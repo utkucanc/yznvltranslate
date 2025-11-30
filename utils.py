@@ -1,5 +1,6 @@
 import re
 import os
+import datetime
 
 def format_file_size(size_bytes: int) -> str:
     """Dosya boyutunu okunabilir formata dönüştürür."""
@@ -18,21 +19,40 @@ def natural_sort_key(s):
     return [int(text) if text.isdigit() else text.lower()
             for text in re.split(r'(\d+)', s)]
 
+def log_error(message):
+    """
+    Hata mesajını 'Logs' klasörüne 'eLog-Tarih-Saat.txt' formatında kaydeder.
+    """
+    try:
+        # Programın çalıştığı dizinde Logs klasörü yolu
+        log_folder = os.path.join(os.getcwd(), "Logs")
+        
+        # Klasör yoksa oluştur
+        if not os.path.exists(log_folder):
+            os.makedirs(log_folder)
+
+        # Dosya adı için zaman damgası: Yıl-Ay-Gün-Saat-Dakika-Saniye
+        timestamp = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+        filename = f"eLog-{timestamp}.txt"
+        filepath = os.path.join(log_folder, filename)
+
+        # Hatayı dosyaya yaz
+        with open(filepath, 'w', encoding='utf-8') as f:
+            f.write(f"Zaman: {datetime.datetime.now()}\n")
+            f.write("-" * 30 + "\n")
+            f.write(str(message))
+            f.write("\n" + "-" * 30 + "\n")
+            
+    except Exception as e:
+        # Loglama sırasında hata olursa (örn: yetki hatası), bunu sessizce yutmak 
+        # veya konsola yazdırmak gerekir ki sonsuz döngü olmasın.
+        print(f"Loglama hatası: {e}")
+
 if __name__ == "__main__":
     # Test fonksiyonları
     print("Dosya Boyutu Testleri:")
     print(f"100 B: {format_file_size(100)}")
-    print(f"1024 B: {format_file_size(1024)}")
-    print(f"1500 B: {format_file_size(1500)}")
-    print(f"1048576 B: {format_file_size(1048576)}") # 1 MB
     
-    print("\nDoğal Sıralama Testleri:")
-    files = ["page_1.txt", "page_10.txt", "page_2.txt", "chapter_A.txt", "chapter_B.txt"]
-    sorted_files = sorted(files, key=natural_sort_key)
-    print(f"Orijinal: {files}")
-    print(f"Sıralı: {sorted_files}")
-
-    # Örnek dosya yolları ile deneme
-    file_paths_test = [os.path.join("path", "to", "file10.txt"), os.path.join("path", "to", "file2.txt")]
-    sorted_paths = sorted(file_paths_test, key=lambda x: natural_sort_key(os.path.basename(x)))
-    print(f"Yol sıralama testi: {sorted_paths}")
+    # Log test
+    log_error("Bu bir test hata mesajıdır.")
+    print("Test logu oluşturuldu.")
