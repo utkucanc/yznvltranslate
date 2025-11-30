@@ -27,7 +27,7 @@ packages = [
 
 # --- Dahil Edilecek Ek Dosyalar ---
 include_files = [
-    "logo.png"
+    "logo.ico"
 ]
 
 # --- Hariç Tutulacaklar ---
@@ -60,13 +60,13 @@ executable = Executable(
     script="main_window.py",
     base=base,
     target_name="CeviriUygulamasi.exe",
-    icon="logo.png"
+    icon="logo.ico"
 )
 
 # --- Kurulum ---
 setup(
     name="CeviriUygulamasi",
-    version="1.9", # Sürümünüz (main_window.py'den alındı)
+    version="1.9.5", # Sürümünüz (main_window.py'den alındı)
     description="Bu uygulama, web sitelerinden Novel içeriği indirmek, Gemini API kullanarak çevirmek, metinleri temizlemek ve seçili çevirileri birleştirmek için tasarlanmıştır.",
     options={"build_exe": build_exe_options},
     executables=[executable]
