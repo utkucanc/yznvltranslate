@@ -1366,7 +1366,7 @@ class MainWindow(QMainWindow):
 
         project_link = ""
         max_pages = None
-        api_key = "AIzaSyC0gimVS3DnEVtug0Mw_CZhhHUvTDqrhZA"  # Varsayılan API anahtarı
+        api_key = "Test_API"  # Varsayılan API anahtarı
         startpromt = (
             "Merhaba. Çince bir hikayeyi okumak istiyorum ancak Çincem yeterli değil. "
             "Sana metinlerin kopyasını göndersem benim için türkçeye çevirir misin? Hikaye "
