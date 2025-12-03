@@ -24,6 +24,7 @@ from cleaning_worker import CleaningWorker
 from merging_worker import MergingWorker
 from token_counter import count_tokens_in_file, load_token_data, save_token_data 
 from utils import format_file_size, natural_sort_key
+from chapter_check_worker import ChapterCheckWorker # Yeni worker eklendi
 
 class TokenCountWorker(QObject):
     finished = pyqtSignal(dict) # Tüm token verilerini döndür
@@ -153,7 +154,10 @@ class MainWindow(QMainWindow):
         self.merging_thread = None
         self.merging_worker = None
         self.token_count_thread = None 
-        self.token_count_worker = None 
+        self.token_count_worker = None
+        self.chapter_check_thread = None  # Yeni: Başlık kontrolü için thread
+        self.chapter_check_worker = None  # Yeni: Başlık kontrolü için worker
+
         self._ensure_app_structure()
         self.current_project_path = None 
         self.config = configparser.ConfigParser() 
@@ -316,6 +320,15 @@ class MainWindow(QMainWindow):
         self.mergeButton.clicked.connect(self.start_merging_process)
         self.mergeButton.setEnabled(False) 
         right_layout.addWidget(self.mergeButton)
+
+        # --- YENİ: Başlık Kontrolü Butonu ---
+        self.chapterCheckButton = QPushButton("Başlık Kontrolü")
+        self.chapterCheckButton.setFont(QFont("Arial", 11, QFont.Weight.Bold))
+        self.chapterCheckButton.setStyleSheet("background-color: #009688; color: white; border-radius: 5px; padding: 10px;") # Teal renk
+        self.chapterCheckButton.clicked.connect(self.start_chapter_check_process)
+        self.chapterCheckButton.setEnabled(False)
+        right_layout.addWidget(self.chapterCheckButton)
+        # ------------------------------------
 
         # Yeni Token Say butonu eklendi
         self.token_count_button = QPushButton("Token Say")
@@ -624,6 +637,7 @@ class MainWindow(QMainWindow):
         self.startButton.setEnabled(False)
         self.cleanButton.setEnabled(False) 
         self.mergeButton.setEnabled(False) 
+        self.chapterCheckButton.setEnabled(False) # Deaktif
         self.projectSettingsButton.setEnabled(False) 
         self.token_count_button.setEnabled(False) 
         
@@ -649,6 +663,7 @@ class MainWindow(QMainWindow):
         self.translateButton.setEnabled(True)
         self.cleanButton.setEnabled(True) # Çeviri bitince temizleme aktif
         self.mergeButton.setEnabled(True) # Çeviri bitince birleştirme aktif
+        self.chapterCheckButton.setEnabled(True) # Çeviri bitince başlık kontrol aktif
         self.projectSettingsButton.setEnabled(True) # İşlem bitince proje ayarları aktif
         self.token_count_button.setEnabled(True) # İşlem bitince Token Say aktif
         self.translateButton.setText("Seçilenleri Çevir")
@@ -678,6 +693,7 @@ class MainWindow(QMainWindow):
         self.translateButton.setEnabled(True)
         self.cleanButton.setEnabled(True) # Hata olsa bile temizleme aktif edilebilir
         self.mergeButton.setEnabled(True) # Hata olsa bile birleştirme aktif edilebilir
+        self.chapterCheckButton.setEnabled(True) # Hata olsa bile başlık kontrol aktif
         self.projectSettingsButton.setEnabled(True) # Hata olsa bile proje ayarları aktif
         self.token_count_button.setEnabled(True) # Hata olsa bile Token Say aktif
         self.translateButton.setText("Seçilenleri Çevir")
@@ -758,6 +774,7 @@ class MainWindow(QMainWindow):
         self.translateButton.setEnabled(False)
         self.cleanButton.setEnabled(False)
         self.mergeButton.setEnabled(False) # Temizleme sırasında birleştirme devre dışı
+        self.chapterCheckButton.setEnabled(False) # Deaktif
         self.projectSettingsButton.setEnabled(False) # İşlem sırasında proje ayarları devre dışı
         self.token_count_button.setEnabled(False) # İşlem sırasında Token Say devre dışı
         self.cleanButton.setText("Temizleniyor...")
@@ -779,6 +796,7 @@ class MainWindow(QMainWindow):
         self.translateButton.setEnabled(True)
         self.cleanButton.setEnabled(True)
         self.mergeButton.setEnabled(True)
+        self.chapterCheckButton.setEnabled(True)
         self.projectSettingsButton.setEnabled(True) # İşlem bitince proje ayarları aktif
         self.token_count_button.setEnabled(True) # İşlem bitince Token Say aktif
         self.cleanButton.setText("Gereksiz Metin Temizleme")
@@ -795,6 +813,7 @@ class MainWindow(QMainWindow):
         self.translateButton.setEnabled(True)
         self.cleanButton.setEnabled(True)
         self.mergeButton.setEnabled(True) # Hata olsa bile birleştirme aktif edilebilir
+        self.chapterCheckButton.setEnabled(True)
         self.projectSettingsButton.setEnabled(True) # Hata olsa bile proje ayarları aktif
         self.token_count_button.setEnabled(True) # Hata olsa bile Token Say aktif
         self.cleanButton.setText("Gereksiz Metin Temizleme")
@@ -861,6 +880,7 @@ class MainWindow(QMainWindow):
         self.translateButton.setEnabled(False)
         self.cleanButton.setEnabled(False)
         self.mergeButton.setEnabled(False)
+        self.chapterCheckButton.setEnabled(False) # Deaktif
         self.projectSettingsButton.setEnabled(False) # İşlem sırasında proje ayarları devre dışı
         self.token_count_button.setEnabled(False) # İşlem sırasında Token Say devre dışı
         self.mergeButton.setText("Birleştiriliyor...")
@@ -881,6 +901,7 @@ class MainWindow(QMainWindow):
         self.translateButton.setEnabled(True)
         self.cleanButton.setEnabled(True)
         self.mergeButton.setEnabled(True)
+        self.chapterCheckButton.setEnabled(True)
         self.projectSettingsButton.setEnabled(True) # İşlem bitince proje ayarları aktif
         self.token_count_button.setEnabled(True) # İşlem bitince Token Say aktif
         self.mergeButton.setText("Seçili Çevirileri Birleştir")
@@ -897,6 +918,7 @@ class MainWindow(QMainWindow):
         self.translateButton.setEnabled(True)
         self.cleanButton.setEnabled(True)
         self.mergeButton.setEnabled(True)
+        self.chapterCheckButton.setEnabled(True)
         self.projectSettingsButton.setEnabled(True) # Hata olsa bile proje ayarları aktif
         self.token_count_button.setEnabled(True) # Hata olsa bile Token Say aktif
         self.mergeButton.setText("Seçili Çevirileri Birleştir")
@@ -907,12 +929,81 @@ class MainWindow(QMainWindow):
         self.merging_worker = None
         self.update_file_list_from_selection() 
 
+    # --- YENİ: Başlık Kontrolü Metotları ---
+    def start_chapter_check_process(self):
+        current_item = self.project_list.currentItem()
+        if not current_item:
+            QMessageBox.warning(self, "Proje Seçilmedi", "Lütfen sol listeden bir proje seçin.")
+            return
+
+        project_name = current_item.text()
+        project_path = os.path.join(os.getcwd(), project_name)
+        
+        # Kontrol edilecek dosyaları topla (Çevrilen Dosyalar)
+        files_to_check = [] # List of (filename, full_path)
+        for row in range(self.file_table.rowCount()):
+            checkbox_item = self.file_table.item(row, 0)
+            if checkbox_item and checkbox_item.checkState() == Qt.CheckState.Checked:
+                translated_file_name = self.file_table.item(row, 2).text()
+                if translated_file_name and translated_file_name != "Yok" and translated_file_name != "N/A":
+                    file_path = os.path.join(project_path, 'trslt', translated_file_name)
+                    files_to_check.append((translated_file_name, file_path))
+        
+        if not files_to_check:
+             QMessageBox.warning(self, "Dosya Seçilmedi", "Lütfen başlık kontrolü için en az bir çevrilmiş dosya seçin.")
+             return
+
+        # Önceki işlem varsa durdur
+        if self.chapter_check_thread and self.chapter_check_thread.isRunning():
+            self.chapter_check_worker.stop()
+            self.chapter_check_thread.quit()
+            self.chapter_check_thread.wait()
+            self.chapter_check_thread = None
+            self.chapter_check_worker = None
+        
+        self.chapter_check_thread = QThread()
+        self.chapter_check_worker = ChapterCheckWorker(project_path, files_to_check)
+        self.chapter_check_worker.moveToThread(self.chapter_check_thread)
+
+        self.chapter_check_thread.started.connect(self.chapter_check_worker.run)
+        self.chapter_check_worker.finished.connect(self.chapter_check_thread.quit)
+        self.chapter_check_worker.finished.connect(self.chapter_check_worker.deleteLater)
+        self.chapter_check_thread.finished.connect(self.chapter_check_thread.deleteLater)
+
+        self.chapter_check_worker.finished.connect(self.on_chapter_check_finished)
+        self.chapter_check_worker.progress.connect(self.update_chapter_check_progress)
+        self.chapter_check_worker.error.connect(self.on_chapter_check_error)
+
+        self.chapter_check_thread.start()
+        
+        # UI Güncelleme
+        self._set_ui_state_on_process_start(self.chapterCheckButton, "Kontrol Ediliyor...", "#FFC107", "black", len(files_to_check), "Durum: Başlıklar kontrol ediliyor...")
+
+    def update_chapter_check_progress(self, current, total):
+        self.progressBar.setValue(current)
+        self.progressBar.setMaximum(total)
+        self.statusLabel.setText(f"Durum: Kontrol ediliyor... Dosya {current}/{total}")
+
+    def on_chapter_check_finished(self, message):
+        QMessageBox.information(self, "Tamamlandı", message)
+        self._set_ui_state_on_process_end(self.chapterCheckButton, "Başlık Kontrolü", "#009688", "white", "Durum: Hazır")
+        self.chapter_check_thread = None
+        self.chapter_check_worker = None
+
+    def on_chapter_check_error(self, message):
+        QMessageBox.critical(self, "Hata", message)
+        self._set_ui_state_on_process_end(self.chapterCheckButton, "Başlık Kontrolü", "#FF5722", "white", f"Durum: Hata - {message}")
+        self.chapter_check_thread = None
+        self.chapter_check_worker = None
+    # ---------------------------------------
+
     def _set_ui_state_on_process_start(self, button, text, bg_color, text_color, max_progress, status_text):
         """İşlem başladığında UI durumunu ayarlar."""
         self.startButton.setEnabled(False)
         self.translateButton.setEnabled(False)
         self.cleanButton.setEnabled(False)
         self.mergeButton.setEnabled(False)
+        self.chapterCheckButton.setEnabled(False) # Yeni
         self.projectSettingsButton.setEnabled(False)
         self.selectHighlightedButton.setEnabled(False)
         self.token_count_button.setEnabled(False) # Yeni: Token Say butonu devre dışı
@@ -934,6 +1025,7 @@ class MainWindow(QMainWindow):
         self.translateButton.setEnabled(True)
         self.cleanButton.setEnabled(True)
         self.mergeButton.setEnabled(True)
+        self.chapterCheckButton.setEnabled(True) # Yeni
         self.projectSettingsButton.setEnabled(True)
         self.selectHighlightedButton.setEnabled(True)
         self.token_count_button.setEnabled(True) # Yeni: Token Say butonu aktif
@@ -953,6 +1045,7 @@ class MainWindow(QMainWindow):
             self.translateButton.setEnabled(False)
             self.cleanButton.setEnabled(False)
             self.mergeButton.setEnabled(False)
+            self.chapterCheckButton.setEnabled(False) # Deaktif
             self.projectSettingsButton.setEnabled(False) 
             self.selectHighlightedButton.setEnabled(False) 
             self.token_count_button.setEnabled(False) # Proje yoksa pasif
@@ -976,6 +1069,7 @@ class MainWindow(QMainWindow):
         self.translateButton.setEnabled(True)
         self.cleanButton.setEnabled(True)
         self.mergeButton.setEnabled(True)
+        self.chapterCheckButton.setEnabled(True) # Aktif
         self.projectSettingsButton.setEnabled(True) 
         self.selectHighlightedButton.setEnabled(True) 
         self.token_count_button.setEnabled(True) # Proje seçilince aktif
@@ -1266,6 +1360,7 @@ class MainWindow(QMainWindow):
         self.translateButton.setEnabled(False)
         self.cleanButton.setEnabled(False)
         self.mergeButton.setEnabled(False)
+        self.chapterCheckButton.setEnabled(False)
         self.projectSettingsButton.setEnabled(False)
         self.selectHighlightedButton.setEnabled(False)
         self.token_count_button.setEnabled(False) # Kendi butonunu da devre dışı bırak
@@ -1387,6 +1482,7 @@ class MainWindow(QMainWindow):
         self.translateButton.setEnabled(enabled)
         self.cleanButton.setEnabled(enabled)
         self.mergeButton.setEnabled(enabled)
+        self.chapterCheckButton.setEnabled(enabled)
         self.projectSettingsButton.setEnabled(enabled)
         self.selectHighlightedButton.setEnabled(enabled)
         self.token_count_button.setEnabled(enabled)
@@ -1604,6 +1700,8 @@ class MainWindow(QMainWindow):
             running_threads.append(self.merging_worker)
         if self.token_count_thread and self.token_count_thread.isRunning(): 
             running_threads.append(self.token_count_worker)
+        if self.chapter_check_thread and self.chapter_check_thread.isRunning(): # Yeni thread
+            running_threads.append(self.chapter_check_worker)
 
         if running_threads:
             reply = QMessageBox.question(self, 'Uygulamayı Kapat', 
@@ -1621,6 +1719,7 @@ class MainWindow(QMainWindow):
                     if self.cleaning_thread and self.cleaning_thread.isRunning(): all_stopped = False
                     if self.merging_thread and self.merging_thread.isRunning(): all_stopped = False
                     if self.token_count_thread and self.token_count_thread.isRunning(): all_stopped = False
+                    if self.chapter_check_thread and self.chapter_check_thread.isRunning(): all_stopped = False # Yeni thread
 
                     if all_stopped:
                         break
