@@ -1550,9 +1550,14 @@ class MainWindow(QMainWindow):
     def show_about_dialog(self):
         """Hakkında iletişim kutusunu gösterme işlevi."""
         QMessageBox.about(self, "Hakkında", 
-                          "Bu uygulama, web sitelerinden metin içeriği indirmek, Gemini API kullanarak çevirmek, metinleri temizlemek ve seçili çevirileri birleştirmek için tasarlanmıştır.\n\n"
+                          "NovelAlem Çeviri Aracı.\n\n"
+                          "Bu uygulama UtkuCanC tarafından NovelAlem için webnovel çevirilerini yapay zeka desteği ile çevirisininin yapılması amacıyla geliştirilmiştir.\n\n"
                           "Sürüm: 1.9 (	Model değişikliği: gemini-2.5-flash-preview-09-2025.)\n"
-                          "Geliştirici: UtkuCanC\n")
+                          "Sürüm: 1.9.1 (Gemini model değiştirme ve seçme özelliği eklendi)\n"
+                          "Sürüm: 1.9.2 (API ve Promt hafızası eklendi. Ekleme, seçim ve düzenleme paneli eklendi.)\n"
+                          "Sürüm: 1.9.3 (Bölüm başlığı kontrolü getirildi.)\n\n"
+                          "Geliştirici: UtkuCanC\n"
+                          "2025\n")
 
     def table_key_press_event(self, event):
         """QTableWidget'ta Enter tuşuna basıldığında vurgulanan satırları işaretler."""

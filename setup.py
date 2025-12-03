@@ -11,7 +11,8 @@ includes = [
     "merging_worker",
     "token_counter",
     "utils",
-    "temizlik"
+    "temizlik",
+    "chapter_check_worker" # Yeni eklenen modül - Bölüm başlığı kontrolü için
 ]
 
 # --- Harici Kütüphaneler ---
@@ -65,9 +66,9 @@ executable = Executable(
 
 # --- Kurulum ---
 setup(
-    name="CeviriUygulamasi",
-    version="1.9.5", # Sürümünüz (main_window.py'den alındı)
-    description="Bu uygulama, web sitelerinden Novel içeriği indirmek, Gemini API kullanarak çevirmek, metinleri temizlemek ve seçili çevirileri birleştirmek için tasarlanmıştır.",
+    name="NovelAlemCeviriAraci",
+    version="1.9.3", # Sürümünüz (main_window.py'den alındı)
+    description="NovelAlem Çeviri Aracı",
     options={"build_exe": build_exe_options},
     executables=[executable]
 )
