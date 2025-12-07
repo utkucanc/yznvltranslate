@@ -65,6 +65,7 @@ executable = Executable(
 )
 
 # --- Kurulum ---
+#python setup.py bdist_msi
 setup(
     name="NovelAlemCeviriAraci",
     version="1.9.3", # Sürümünüz (main_window.py'den alındı)

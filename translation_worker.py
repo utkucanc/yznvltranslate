@@ -54,6 +54,7 @@ class TranslationWorker(QObject):
                 self.translation_errors = {}
 
         try:
+            time.sleep(0.5)  # Küçük bir gecikme, dakika başına istek sınırlarını yönetmeye yardımcı olabilir
             files_to_translate = sorted([f for f in os.listdir(self.input_folder) if f.endswith('.txt')])
             total_files = len(files_to_translate)
             
@@ -113,7 +114,7 @@ class TranslationWorker(QObject):
                     
                     except Exception as e:
                         last_error = str(e)
-                        if "500" in last_error and retry_count < MAX_RETRIES - 1:
+                        if ("500" in last_error or "429" in last_error) and retry_count < MAX_RETRIES - 1:
                             retry_count += 1
                             wait_time = 2 ** retry_count
                             
