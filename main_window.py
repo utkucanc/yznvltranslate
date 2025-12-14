@@ -1677,7 +1677,8 @@ class MainWindow(QMainWindow):
                           "Sürüm: 1.9.1 (Gemini model değiştirme ve seçme özelliği eklendi)\n"
                           "Sürüm: 1.9.2 (API ve Promt hafızası eklendi. Ekleme, seçim ve düzenleme paneli eklendi.)\n"
                           "Sürüm: 1.9.3 (Bölüm başlığı kontrolü getirildi.)\n"
-                          "Sürüm: 1.9.4 (Çevirilecek dosya sayısının sınırlandırılması getirildi)\n\n"
+                          "Sürüm: 1.9.4 (Çevirilecek dosya sayısının sınırlandırılması getirildi.)\n"
+                          "Sürüm: 1.9.5 (Seçili dosyaların EPUB dosyası olarak kaydı sağlandı.)\n\n"
                           "Geliştirici: UtkuCanC\n"
                           "2025\n")
 
