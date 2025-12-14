@@ -10,7 +10,7 @@ from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QMenuBar, QListWidget, 
     QTableWidget, QTableWidgetItem, QPushButton, QHBoxLayout, 
     QVBoxLayout, QHeaderView, QCheckBox, QSizePolicy,  # QCheckBox eklendi
-    QMessageBox, QProgressBar, QLabel, QMenu
+    QMessageBox, QProgressBar, QLabel, QMenu, QSpinBox
 )
 from PyQt6.QtGui import QFont, QColor, QAction
 from PyQt6.QtCore import Qt, QThread, pyqtSignal, QObject, QTimer
@@ -298,7 +298,24 @@ class MainWindow(QMainWindow):
         self.translateButton.clicked.connect(self.start_translation_process)
         self.translateButton.setEnabled(False) 
         right_layout.addWidget(self.translateButton)
-
+        #   --- YENİ EKLENEN KISIM: SAYILI ÇEVİR ---
+        limit_layout = QHBoxLayout()
+        self.limit_checkbox = QCheckBox("Sayılı çevir")
+        self.limit_checkbox.setFont(QFont("Arial", 9))
+        self.limit_checkbox.setToolTip("İşaretlenirse sadece yandaki sayı kadar dosya çevrilip durur.")
+        
+        self.limit_spinbox = QSpinBox()
+        self.limit_spinbox.setMinimum(1)
+        self.limit_spinbox.setMaximum(99999)
+        self.limit_spinbox.setValue(10) # Varsayılan değer
+        self.limit_spinbox.setEnabled(False) # Başlangıçta pasif
+        
+        # Checkbox işaretlenince spinbox aktif olsun
+        self.limit_checkbox.toggled.connect(self.limit_spinbox.setEnabled)
+        
+        limit_layout.addWidget(self.limit_checkbox)
+        limit_layout.addWidget(self.limit_spinbox)
+        right_layout.addLayout(limit_layout)
         # --- YENİ CHECKBOX ---
         self.shutdown_checkbox = QCheckBox("Çeviri Bitince Bilgisayarı Kapat")
         self.shutdown_checkbox.setFont(QFont("Arial", 9))
@@ -615,9 +632,11 @@ class MainWindow(QMainWindow):
             self.translation_thread.wait() # Thread'in bitmesini bekle
             self.translation_thread = None
             self.translation_worker = None
-
+        file_limit = None
+        if self.limit_checkbox.isChecked():
+            file_limit = self.limit_spinbox.value()
         self.translation_thread = QThread()
-        self.translation_worker = TranslationWorker(input_folder, output_folder, api_key, startpromt, model_version)
+        self.translation_worker = TranslationWorker(input_folder, output_folder, api_key, startpromt, model_version, file_limit=file_limit)
         
         self.translation_worker.shutdown_on_finish = self.shutdown_checkbox.isChecked()
         self.translation_worker.moveToThread(self.translation_thread)
