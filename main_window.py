@@ -25,6 +25,7 @@ from merging_worker import MergingWorker
 from token_counter import count_tokens_in_file, load_token_data, save_token_data 
 from utils import format_file_size, natural_sort_key
 from chapter_check_worker import ChapterCheckWorker # Yeni worker eklendi
+from epub_worker import EpubWorker
 
 class TokenCountWorker(QObject):
     finished = pyqtSignal(dict) # Tüm token verilerini döndür
@@ -157,6 +158,8 @@ class MainWindow(QMainWindow):
         self.token_count_worker = None
         self.chapter_check_thread = None  # Yeni: Başlık kontrolü için thread
         self.chapter_check_worker = None  # Yeni: Başlık kontrolü için worker
+        self.epub_thread = None
+        self.epub_worker = None
 
         self._ensure_app_structure()
         self.current_project_path = None 
@@ -346,7 +349,13 @@ class MainWindow(QMainWindow):
         self.chapterCheckButton.setEnabled(False)
         right_layout.addWidget(self.chapterCheckButton)
         # ------------------------------------
-
+        # --- YENİ BUTON: EPUB ÇEVİR ---
+        self.epubButton = QPushButton("Seçilenleri EPUB Yap")
+        self.epubButton.setFont(QFont("Arial", 11, QFont.Weight.Bold))
+        self.epubButton.setStyleSheet("background-color: #795548; color: white; border-radius: 5px; padding: 10px;") # Kahverengi tonu
+        self.epubButton.clicked.connect(self.start_epub_process)
+        self.epubButton.setEnabled(False)
+        right_layout.addWidget(self.epubButton)
         # Yeni Token Say butonu eklendi
         self.token_count_button = QPushButton("Token Say")
         self.token_count_button.setFont(QFont("Arial", 11, QFont.Weight.Bold))
@@ -683,6 +692,7 @@ class MainWindow(QMainWindow):
         self.cleanButton.setEnabled(True) # Çeviri bitince temizleme aktif
         self.mergeButton.setEnabled(True) # Çeviri bitince birleştirme aktif
         self.chapterCheckButton.setEnabled(True) # Çeviri bitince başlık kontrol aktif
+        self.epubButton.setEnabled(True)
         self.projectSettingsButton.setEnabled(True) # İşlem bitince proje ayarları aktif
         self.token_count_button.setEnabled(True) # İşlem bitince Token Say aktif
         self.translateButton.setText("Seçilenleri Çevir")
@@ -713,6 +723,7 @@ class MainWindow(QMainWindow):
         self.cleanButton.setEnabled(True) # Hata olsa bile temizleme aktif edilebilir
         self.mergeButton.setEnabled(True) # Hata olsa bile birleştirme aktif edilebilir
         self.chapterCheckButton.setEnabled(True) # Hata olsa bile başlık kontrol aktif
+        self.epubButton.setEnabled(True)
         self.projectSettingsButton.setEnabled(True) # Hata olsa bile proje ayarları aktif
         self.token_count_button.setEnabled(True) # Hata olsa bile Token Say aktif
         self.translateButton.setText("Seçilenleri Çevir")
@@ -816,6 +827,7 @@ class MainWindow(QMainWindow):
         self.cleanButton.setEnabled(True)
         self.mergeButton.setEnabled(True)
         self.chapterCheckButton.setEnabled(True)
+        self.epubButton.setEnabled(True)
         self.projectSettingsButton.setEnabled(True) # İşlem bitince proje ayarları aktif
         self.token_count_button.setEnabled(True) # İşlem bitince Token Say aktif
         self.cleanButton.setText("Gereksiz Metin Temizleme")
@@ -833,6 +845,7 @@ class MainWindow(QMainWindow):
         self.cleanButton.setEnabled(True)
         self.mergeButton.setEnabled(True) # Hata olsa bile birleştirme aktif edilebilir
         self.chapterCheckButton.setEnabled(True)
+        self.epubButton.setEnabled(True)
         self.projectSettingsButton.setEnabled(True) # Hata olsa bile proje ayarları aktif
         self.token_count_button.setEnabled(True) # Hata olsa bile Token Say aktif
         self.cleanButton.setText("Gereksiz Metin Temizleme")
@@ -921,6 +934,7 @@ class MainWindow(QMainWindow):
         self.cleanButton.setEnabled(True)
         self.mergeButton.setEnabled(True)
         self.chapterCheckButton.setEnabled(True)
+        self.epubButton.setEnabled(True)
         self.projectSettingsButton.setEnabled(True) # İşlem bitince proje ayarları aktif
         self.token_count_button.setEnabled(True) # İşlem bitince Token Say aktif
         self.mergeButton.setText("Seçili Çevirileri Birleştir")
@@ -938,6 +952,7 @@ class MainWindow(QMainWindow):
         self.cleanButton.setEnabled(True)
         self.mergeButton.setEnabled(True)
         self.chapterCheckButton.setEnabled(True)
+        self.epubButton.setEnabled(True)
         self.projectSettingsButton.setEnabled(True) # Hata olsa bile proje ayarları aktif
         self.token_count_button.setEnabled(True) # Hata olsa bile Token Say aktif
         self.mergeButton.setText("Seçili Çevirileri Birleştir")
@@ -998,6 +1013,91 @@ class MainWindow(QMainWindow):
         # UI Güncelleme
         self._set_ui_state_on_process_start(self.chapterCheckButton, "Kontrol Ediliyor...", "#FFC107", "black", len(files_to_check), "Durum: Başlıklar kontrol ediliyor...")
 
+    def start_epub_process(self):
+            current_item = self.project_list.currentItem()
+            if not current_item:
+                QMessageBox.warning(self, "Proje Seçilmedi", "Lütfen sol listeden bir proje seçin.")
+                return
+
+            project_name = current_item.text()
+            project_path = os.path.join(os.getcwd(), project_name)
+            
+            # Seçili ve çevrilmiş dosyaları topla
+            selected_files = []
+            for row in range(self.file_table.rowCount()):
+                checkbox_item = self.file_table.item(row, 0)
+                if checkbox_item and checkbox_item.checkState() == Qt.CheckState.Checked:
+                    translated_file_name = self.file_table.item(row, 2).text()
+                    # Sadece çevrilmiş dosyalar (Yok veya N/A olmayanlar)
+                    if translated_file_name and translated_file_name not in ["Yok", "N/A"]:
+                        file_path = os.path.join(project_path, 'trslt', translated_file_name)
+                        if os.path.exists(file_path):
+                            selected_files.append(file_path)
+            
+            if not selected_files:
+                QMessageBox.warning(self, "Dosya Seçilmedi", "Lütfen EPUB yapmak için en az bir çevrilmiş dosya seçin.")
+                return
+
+            # Dosyaları doğal sıraya göre sırala (Bölüm 1, Bölüm 2, Bölüm 10 sırası için)
+            selected_files.sort(key=lambda x: natural_sort_key(os.path.basename(x)))
+
+            # Önceki işlem varsa durdur
+            if self.epub_thread and self.epub_thread.isRunning():
+                self.epub_worker.stop()
+                self.epub_thread.quit()
+                self.epub_thread.wait()
+                self.epub_thread = None
+                self.epub_worker = None
+
+            # Çıktı klasörü (Completed klasörü içine kaydedelim)
+            output_folder = os.path.join(project_path, 'cmplt')
+            os.makedirs(output_folder, exist_ok=True)
+
+            self.epub_thread = QThread()
+            self.epub_worker = EpubWorker(selected_files, output_folder, project_name=project_name)
+            self.epub_worker.moveToThread(self.epub_thread)
+
+            self.epub_thread.started.connect(self.epub_worker.run)
+            self.epub_worker.finished.connect(self.epub_thread.quit)
+            self.epub_worker.finished.connect(self.epub_worker.deleteLater)
+            self.epub_thread.finished.connect(self.epub_thread.deleteLater)
+
+            self.epub_worker.finished.connect(self.on_epub_finished)
+            self.epub_worker.error.connect(self.on_epub_error)
+            self.epub_worker.progress.connect(self.update_epub_progress)
+
+            self.epub_thread.start()
+            
+            # UI Güncelleme (Yardımcı fonksiyonunuzu kullanıyoruz)
+            self._set_ui_state_on_process_start(
+                self.epubButton, "Epub Oluşturuluyor...", "#FFC107", "black", 
+                len(selected_files), "Durum: EPUB dosyası oluşturuluyor..."
+            )
+
+    def update_epub_progress(self, current, total):
+        self.progressBar.setValue(current)
+        self.progressBar.setMaximum(total)
+        self.statusLabel.setText(f"Durum: EPUB Bölümleri Ekleniyor... {current}/{total}")
+
+    def on_epub_finished(self, message):
+        if message: # Boş mesaj gelirse hata var demektir veya işlem iptaldir
+            QMessageBox.information(self, "Tamamlandı", message)
+        
+        self._set_ui_state_on_process_end(
+            self.epubButton, "Seçilenleri EPUB Yap", "#795548", "white", "Durum: Hazır"
+        )
+        self.epub_thread = None
+        self.epub_worker = None
+        # cmplt klasörü güncellendiği için listeyi yenilemek isteyebilirsiniz
+        self.update_file_list_from_selection()
+
+    def on_epub_error(self, message):
+        QMessageBox.critical(self, "Hata", message)
+        self._set_ui_state_on_process_end(
+            self.epubButton, "Seçilenleri EPUB Yap", "#FF5722", "white", f"Durum: Hata - {message}"
+        )
+        self.epub_thread = None
+        self.epub_worker = None
     def update_chapter_check_progress(self, current, total):
         self.progressBar.setValue(current)
         self.progressBar.setMaximum(total)
@@ -1045,6 +1145,7 @@ class MainWindow(QMainWindow):
         self.cleanButton.setEnabled(True)
         self.mergeButton.setEnabled(True)
         self.chapterCheckButton.setEnabled(True) # Yeni
+        self.epubButton.setEnabled(True)
         self.projectSettingsButton.setEnabled(True)
         self.selectHighlightedButton.setEnabled(True)
         self.token_count_button.setEnabled(True) # Yeni: Token Say butonu aktif
@@ -1089,6 +1190,7 @@ class MainWindow(QMainWindow):
         self.cleanButton.setEnabled(True)
         self.mergeButton.setEnabled(True)
         self.chapterCheckButton.setEnabled(True) # Aktif
+        self.epubButton.setEnabled(True)
         self.projectSettingsButton.setEnabled(True) 
         self.selectHighlightedButton.setEnabled(True) 
         self.token_count_button.setEnabled(True) # Proje seçilince aktif
@@ -1727,7 +1829,8 @@ class MainWindow(QMainWindow):
             running_threads.append(self.token_count_worker)
         if self.chapter_check_thread and self.chapter_check_thread.isRunning(): # Yeni thread
             running_threads.append(self.chapter_check_worker)
-
+        if self.epub_thread and self.epub_thread.isRunning():
+            running_threads.append(self.epub_worker)
         if running_threads:
             reply = QMessageBox.question(self, 'Uygulamayı Kapat', 
                                          "Devam eden işlemler var. Çıkmak istediğinizden emin misiniz? Tüm işlemler durdurulacaktır.",
