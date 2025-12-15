@@ -125,13 +125,18 @@ class TranslationWorker(QObject):
                     
                     except Exception as e:
                         last_error = str(e)
-                        if ("500" in last_error or "429" in last_error) and retry_count < MAX_RETRIES - 1:
+                        if ("500" in last_error) and retry_count < MAX_RETRIES - 1:
                             retry_count += 1
                             wait_time = 2 ** retry_count
                             sleep_start = time.time()
                             while time.time() - sleep_start < wait_time:
                                 if not self.is_running: break
                                 time.sleep(0.5)
+                        if ("429" in last_error) :
+                            self.error.emit("API sınırına ulaşıldı. Lütfen bekleyin veya API kullanımınızı kontrol edin.")
+                            translated_count_session = self.file_limit  # Oturum limitini doldur
+                            break
+
                         else:
                             self.translation_errors[file_name] = f"Çeviri Hatası: {last_error}"
                             try:
