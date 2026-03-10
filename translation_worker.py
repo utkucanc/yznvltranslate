@@ -3,6 +3,7 @@ import google.generativeai as genai
 from PyQt6.QtCore import QObject, pyqtSignal
 import json
 import time
+from logger import app_logger
 
 class TranslationWorker(QObject):
     """

@@ -67,3 +67,27 @@ Her "Yeni Proje" oluşturduğunuzda uygulama, uygulamanın kurulu olduğu dizind
 
 ## JS Dosyalarını Tarayıcıda Elle Kullanma
 Uygulamanın içindeki üst gezinti çubuğunda yer alan **JS Save** menüsüne tıklayarak Booktoki.js ve 69shuba.js komut dosyalarını kolayca Masaüstünüze alabilirsiniz. Eğer indirme aracını kullanmak yerine direkt tarayıcıyı tercih ediyorsanız; ilgili romanın okuma sayfasına girip, Geliştirici Seçeneklerini (`F12`) açarak **Konsol** sekmesine bu indirilen JS kodlarını kopyalayıp enter'a basmanız yeterlidir. Kod, tüm bölümleri kendi kendine tarayıp size bir metin dosyası indirecektir.
+
+## Loglama Sistemi
+Sürüm 1.9.9 itibarıyla uygulama, çalışma sürecindeki tüm önemli olayları, uyarıları ve hataları otomatik olarak `AppConfigs/app.log` dosyasına kaydeder. Herhangi bir hata ile karşılaşırsanız bu dosyayı inceleyerek sorunun kaynağını kolayca tespit edebilirsiniz. Log dosyası her uygulama başlatıldığında üzerine ekleme yapılarak güncellenir (üzerine yazılmaz).
+
+## Proje Yapısı
+
+Uygulamanın düzgün çalışabilmesi için veritabanı benzeri dosyaları `AppConfigs` isimli bir klasör hiyerarşisinde saklamaktadır:
+* `AppConfigs/APIKeys/`: Yeni projelerde veya genel uygulamada kullanılacak `.txt` formatındaki Gemini API Anahtarlarını tutar.
+* `AppConfigs/Promts/`: Çeviride veya metin düzeltmelerinde kullanılan yapay zeka yönlendirme (promt) dosyalarını saklar.
+* `AppConfigs/app.log`: Uygulama genelinde oluşturulan log/izleme dosyası. Hata ayıklama için kullanışlıdır. *(v1.9.9)*
+
+Her "Yeni Proje" oluşturduğunuzda uygulama, uygulamanın kurulu olduğu dizinde veya seçtiğiniz hedefte o projeye özel alt klasörler oluşturur (`dwnld`, `trslt`, `cmplt` vs.) ve indirmeleri, çevirileri birbirine karışmadan bu ortamların içinde saklar.
+
+## Sürüm Geçmişi
+
+| Sürüm | Değişiklikler |
+|-------|--------------|
+| 1.9.9 | Uygulama genelinde `logger.py` ile loglama sistemi eklendi. Token sayımı sonrasında oluşan UI donma hatası giderildi. Token verisi kısmi sayımda sıfırlanma (veri kaybı) sorunu çözüldü. |
+| 1.9.8 | Çalışmayı etkileyen genel hatalar giderildi (retry_count, statusLabel wordwrap, cx_Freeze base). |
+| 1.9.7 | Toplu bölüm ekleme (`split_worker.py`) özelliği eklendi. |
+| 1.9.6 | JS dosyalarını kaydetme özelliği (JS Save menüsü) eklendi. |
+| 1.9.5 | Seçili dosyaların EPUB dosyası olarak kaydı sağlandı. |
+| 1.9.4 | Çevirilecek dosya sayısının sınırlandırılması (`file_limit`) getirildi. |
+| 1.9.3 | Bölüm başlığı kontrolü getirildi. |

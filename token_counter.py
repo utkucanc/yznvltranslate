@@ -2,6 +2,7 @@ import google.generativeai as genai
 import os
 import json 
 import time
+from logger import app_logger
 
 TOKEN_DATA_FILENAME = "token_data.json" 
 
@@ -14,11 +15,31 @@ def count_tokens_in_text(text, api_key, model_version="gemini-2.5-flash-preview-
 
     try:
         genai.configure(api_key=api_key)
-        # Seçili model versiyonunu kullan
         model = genai.GenerativeModel(model_version) 
-        response = model.count_tokens(text)
-        return response.total_tokens, None
+        
+        # Kota aşımı durumları için ufak bir retry mekanizması
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                app_logger.debug(f"Gemini API istek atılıyor (Deneme {attempt+1}/{max_retries})...")
+                response = model.count_tokens(text)
+                time.sleep(1) # API limitlerine takılmamak için her istek arası biraz bekle
+                app_logger.debug(f"Gemini API isteği başarılı. Token Sayısı: {response.total_tokens}")
+                return response.total_tokens, None
+            except Exception as inner_e:
+                app_logger.warning(f"Gemini API Çağrısında hata (Deneme {attempt+1}/{max_retries}): {inner_e}")
+                if "429" in str(inner_e) or "ResourceExhausted" in str(inner_e):
+                    if attempt < max_retries - 1:
+                        app_logger.info("Kota aşıldı belirtisi, 3 saniye bekleniyor...")
+                        time.sleep(3) # Kota aşıldıysa 3 saniye bekle ve tekrar dene
+                        continue
+                    else:
+                        app_logger.error("API Kota Sınırı Aşıldı.")
+                        return None, "API Kota Sınırı Aşıldı. Lütfen bir süre sonra tekrar deneyin."
+                raise inner_e # Diğer hataları dışarı yolla
+                
     except Exception as e:
+        app_logger.error(f"Token sayımı genel hatası: {str(e)}")
         return None, f"Token sayımı hatası: {str(e)}"
 
 def count_tokens_in_file(file_path, api_key, model_version="gemini-2.5-flash-preview-09-2025"):

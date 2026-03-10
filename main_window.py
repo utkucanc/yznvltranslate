@@ -1,5 +1,6 @@
 import sys
 import os
+import copy
 import configparser
 import json
 import re
@@ -27,23 +28,30 @@ from utils import format_file_size, natural_sort_key
 from chapter_check_worker import ChapterCheckWorker # Yeni worker eklendi
 from epub_worker import EpubWorker
 from split_worker import SplitWorker
+from logger import app_logger
 
 class TokenCountWorker(QObject):
     finished = pyqtSignal(dict) # Tüm token verilerini döndür
     progress = pyqtSignal(int, int) # Current file index, total files
     error = pyqtSignal(str)
 
-    def __init__(self, project_path, api_key, current_token_cache, model_version):
+    def __init__(self, project_path, api_key, current_token_cache, model_version, selected_files=None):
         super().__init__()
         self.project_path = project_path
         self.api_key = api_key
         self.is_running = True
         self.current_token_cache = current_token_cache # Mevcut önbellek (dict)
         self.model_version = model_version
-        self.token_data_to_save = {"file_token_data": {}, "total_original_tokens": 0, "total_translated_tokens": 0, "total_combined_tokens": 0}
+        self.selected_files = selected_files
+        # Mevcut önbellekten derin kopya al — önceki token kayıtlarını korumak için
+        if current_token_cache and "file_token_data" in current_token_cache:
+            self.token_data_to_save = copy.deepcopy(current_token_cache)
+        else:
+            self.token_data_to_save = {"file_token_data": {}, "total_original_tokens": 0, "total_translated_tokens": 0, "total_combined_tokens": 0}
 
 
     def run(self):
+        app_logger.info(f"TokenCountWorker başlatıldı. Proje: {self.project_path}")
         original_folder = os.path.join(self.project_path, 'dwnld')
         translated_folder = os.path.join(self.project_path, 'trslt')
         completed_folder = os.path.join(self.project_path, 'cmplt')
@@ -58,23 +66,29 @@ class TokenCountWorker(QObject):
 
         all_relevant_files = [] # {filename, path, type (original/translated/merged)}
         for f in original_files:
+            if self.selected_files and f not in self.selected_files: continue
             all_relevant_files.append({'name': f, 'path': os.path.join(original_folder, f), 'type': 'original'})
         for f in translated_files:
+            if self.selected_files and f not in self.selected_files: continue
             all_relevant_files.append({'name': f, 'path': os.path.join(translated_folder, f), 'type': 'translated'})
         for f in merged_files:
+            if self.selected_files and f not in self.selected_files: continue
             all_relevant_files.append({'name': f, 'path': os.path.join(completed_folder, f), 'type': 'merged'})
         
         total_files_to_check = len(all_relevant_files)
         processed_count = 0
+        app_logger.info(f"Token sayılacak dosya sayısı: {total_files_to_check}")
 
         # Her bir dosyayı işle
         for file_info in all_relevant_files:
             if not self.is_running: 
+                app_logger.info("TokenCountWorker durduruldu, döngüden çıkılıyor.")
                 break
 
             file_name = file_info['name']
             file_path = file_info['path']
             file_type = file_info['type']
+            app_logger.debug(f"[{processed_count+1}/{total_files_to_check}] İşleniyor: {file_name} ({file_type})")
             
             # Önbellekte dosya verisini ara
             cached_data = self.current_token_cache.get("file_token_data", {}).get(file_name)
@@ -92,16 +106,21 @@ class TokenCountWorker(QObject):
                 elif file_type == 'translated' and cached_data.get('translated_mtime') == current_mtime:
                     token_count = cached_data.get('translated_tokens')
                     should_recount = False
-                elif file_type == 'merged' and cached_data.get('merged_mtime') == current_mtime: # merged dosyalar için ayrı mtime
+                elif file_type == 'merged' and cached_data.get('merged_mtime') == current_mtime:
                     token_count = cached_data.get('merged_tokens')
                     should_recount = False
+
+                if not should_recount:
+                    app_logger.debug(f"'{file_name}' için önbellekteki değer kullanılıyor: {token_count}")
             
             if should_recount:
+                app_logger.debug(f"'{file_name}' için API çağrısı yapılıyor...")
                 tokens, err = count_tokens_in_file(file_path, self.api_key, self.model_version)
                 if tokens is not None:
                     token_count = tokens
+                    app_logger.debug(f"'{file_name}' token sayımı tamamlandı: {tokens}")
                 else:
-                    print(f"Token sayım hatası ({file_name}): {err}") # Konsola hata bas
+                    app_logger.error(f"Token sayım hatası ({file_name}): {err}")
             
             # Sonuçları işçi verisine kaydet
             if file_name not in self.token_data_to_save["file_token_data"]:
@@ -122,20 +141,32 @@ class TokenCountWorker(QObject):
                 if token_count is not None:
                     total_translated_tokens_sum += token_count
             elif file_type == 'merged':
-                # Birleştirilmiş dosyalar genellikle 'translated_...' ön ekiyle ilişkilendirilmez
-                # Bu yüzden sadece merged_tokens ve mtime'ı güncelleriz.
                 self.token_data_to_save["file_token_data"][file_name]["merged_tokens"] = token_count
                 self.token_data_to_save["file_token_data"][file_name]["merged_mtime"] = current_mtime
-                
 
             processed_count += 1
             self.progress.emit(processed_count, total_files_to_check)
+        
+        app_logger.info("Tüm dosyalar işlendi. finished sinyali yayınlanıyor...")
 
-        self.token_data_to_save["total_original_tokens"] = total_original_tokens_sum
-        self.token_data_to_save["total_translated_tokens"] = total_translated_tokens_sum
-        self.token_data_to_save["total_combined_tokens"] = total_original_tokens_sum + total_translated_tokens_sum
+        # Toplam tokenleri TÜM kayıtlardan yeniden hesapla (sadece seçili dosyalar değil)
+        # Böylece önceki sayımlar dahil doğru genel toplam elde edilir
+        grand_original = 0
+        grand_translated = 0
+        for fname, fdata in self.token_data_to_save["file_token_data"].items():
+            orig = fdata.get("original_tokens")
+            trans = fdata.get("translated_tokens")
+            if orig is not None:
+                grand_original += orig
+            if trans is not None:
+                grand_translated += trans
+
+        self.token_data_to_save["total_original_tokens"] = grand_original
+        self.token_data_to_save["total_translated_tokens"] = grand_translated
+        self.token_data_to_save["total_combined_tokens"] = grand_original + grand_translated
 
         self.finished.emit(self.token_data_to_save)
+        app_logger.info("finished sinyali yayınlandı.")
     
     def stop(self):
         self.is_running = False
@@ -1602,6 +1633,24 @@ class MainWindow(QMainWindow):
             self.token_count_thread = None
             self.token_count_worker = None
 
+        # Sadece seçilen dosyaları belirle
+        selected_files = []
+        for row in range(self.file_table.rowCount()):
+            checkbox_item = self.file_table.item(row, 0)
+            if checkbox_item and checkbox_item.checkState() == Qt.CheckState.Checked:
+                orig_name = self.file_table.item(row, 1).text() if self.file_table.item(row, 1) else ""
+                trans_name = self.file_table.item(row, 2).text() if self.file_table.item(row, 2) else ""
+                
+                if orig_name and orig_name != "Yok" and orig_name != "Orijinali Yok":
+                    selected_files.append(orig_name)
+                    
+                if trans_name and trans_name != "Yok":
+                    selected_files.append(trans_name)
+
+        if not selected_files:
+            QMessageBox.warning(self, "Uyarı", "Lütfen token hesaplanmasını istediğiniz dosyaları kutucuklarından işaretleyin.")
+            return
+
         config_path = os.path.join(self.current_project_path, 'config', 'config.ini')
         api_key = ""
         if os.path.exists(config_path):
@@ -1646,20 +1695,22 @@ class MainWindow(QMainWindow):
         self.total_translated_tokens_label.setVisible(True)
 
         self.token_count_thread = QThread()
-        # Worker'a mevcut önbelleği gönderiyoruz
-        self.token_count_worker = TokenCountWorker(self.current_project_path, api_key, self.project_token_cache)
+        # Worker'a mevcut önbelleği, model versiyonunu ve SEÇİLEN DOSYALARI gönderiyoruz
+        gemini_version = self.get_gemini_model_version()
+        self.token_count_worker = TokenCountWorker(self.current_project_path, api_key, self.project_token_cache, gemini_version, selected_files)
         self.token_count_worker.moveToThread(self.token_count_thread)
 
+        # finished sinyali sıralaması: önce UI güncellemesi, sonra thread temizliği
         self.token_count_thread.started.connect(self.token_count_worker.run)
-        self.token_count_worker.finished.connect(self.token_count_thread.quit)
-        self.token_count_worker.finished.connect(self.token_count_worker.deleteLater)
-        self.token_count_thread.finished.connect(self.token_count_thread.deleteLater)
-        
         self.token_count_worker.finished.connect(self._on_token_counting_finished)
         self.token_count_worker.progress.connect(self._update_token_counting_progress)
         self.token_count_worker.error.connect(self._on_token_counting_error)
+        # Qt thread yönetimi: finished sonrası temizlik
+        self.token_count_worker.finished.connect(self.token_count_thread.quit)
+        self.token_count_thread.finished.connect(self._cleanup_token_count_thread)
 
         self.token_count_thread.start()
+        app_logger.info("Token sayım thread'i başlatıldı.")
 
     def _update_token_counting_progress(self, current, total):
         self.token_progress_bar.setMaximum(total)
@@ -1667,68 +1718,124 @@ class MainWindow(QMainWindow):
         self.statusLabel.setText(f"Durum: Token sayılıyor... Dosya {current}/{total}")
 
     def _on_token_counting_finished(self, results):
+        import time as _time
+        _t0 = _time.time()
+        app_logger.info("Token sayımı tamamlandı. UI güncelleniyor...")
+
         self.statusLabel.setText("Durum: Token sayımı tamamlandı.")
         self.token_progress_bar.setVisible(False)
         self.token_count_button.setText("Token Say")
-        self.token_count_button.setStyleSheet("background-color: #673AB7; color: white; border-radius: 5px; padding: 10px;") # Rengi geri yükle
-        self._set_all_buttons_enabled_state(True) # Diğer butonları tekrar aktif et
+        app_logger.info(f"[PERF] statusLabel+progressBar+btn setText: {_time.time()-_t0:.3f}s")
+
+        self.token_count_button.setStyleSheet("background-color: #673AB7; color: white; border-radius: 5px; padding: 10px;")
+        app_logger.info(f"[PERF] btn setStyleSheet: {_time.time()-_t0:.3f}s")
+
+        self._set_all_buttons_enabled_state(True)
+        app_logger.info(f"[PERF] _set_all_buttons_enabled_state: {_time.time()-_t0:.3f}s")
 
         # Önbelleği güncelleyelim
         self.project_token_cache = results
-        # Güncellenmiş önbelleği dosyaya kaydedelim
         config_folder_path = os.path.join(self.current_project_path, 'config')
         save_token_data(config_folder_path, self.project_token_cache)
-
+        app_logger.info(f"[PERF] save_token_data: {_time.time()-_t0:.3f}s")
 
         file_tokens = results['file_token_data']
         total_original = results['total_original_tokens']
         total_translated = results['total_translated_tokens']
         total_combined = results['total_combined_tokens']
+        app_logger.info(f"[PERF] Tablo sat\u0131r say\u0131s\u0131: {self.file_table.rowCount()}")
 
-        # Her bir dosyanın token sayısını tabloya işle
-        for row in range(self.file_table.rowCount()):
-            original_file_name = self.file_table.item(row, 1).text()
-            translated_file_name = self.file_table.item(row, 2).text()
-            status_text = self.file_table.item(row, 5).text() 
+        # --- Ad\u0131m 1: setSortingEnabled(False) ---
+        app_logger.info(f"[PERF] setSortingEnabled(False) \u00f6ncesi: {_time.time()-_t0:.3f}s")
+        self.file_table.setSortingEnabled(False)
+        app_logger.info(f"[PERF] setSortingEnabled(False) sonras\u0131: {_time.time()-_t0:.3f}s")
 
-            original_token_str = "Yok"
-            translated_token_str = "Yok"
-            
-            # Orijinal dosya adına göre token bilgisini arayalım
-            if original_file_name != "Orijinali Yok" and original_file_name != "N/A" and original_file_name in file_tokens:
-                original_token_val = file_tokens[original_file_name].get("original_tokens")
-                original_token_str = str(original_token_val) if original_token_val is not None else "Hata/N/A"
-            
-            # Çevrilen veya birleştirilmiş dosya adına göre token bilgisini arayalım
-            if translated_file_name != "Yok" and translated_file_name != "N/A" and translated_file_name in file_tokens:
-                if "Birleştirildi" in status_text: 
-                    translated_token_val = file_tokens[translated_file_name].get("merged_tokens")
-                else: 
-                    translated_token_val = file_tokens[translated_file_name].get("translated_tokens")
-                
-                translated_token_str = str(translated_token_val) if translated_token_val is not None else "Hata/Yok"
+        # --- Ad\u0131m 2: setUpdatesEnabled(False) ---
+        self.file_table.setUpdatesEnabled(False)
+        app_logger.info(f"[PERF] setUpdatesEnabled(False) sonras\u0131: {_time.time()-_t0:.3f}s")
 
-            original_token_item = QTableWidgetItem(original_token_str)
-            translated_token_item = QTableWidgetItem(translated_token_str)
+        # --- Ad\u0131m 3: model blockSignals ---
+        model = self.file_table.model()
+        model.blockSignals(True)
+        app_logger.info(f"[PERF] model.blockSignals(True) sonras\u0131: {_time.time()-_t0:.3f}s")
 
-            # Hata veya N/A durumlarında kırmızı renklendirme
-            if "Hata" in original_token_str or original_token_str == "N/A":
-                original_token_item.setForeground(QColor(Qt.GlobalColor.red))
-            if "Hata" in translated_token_str or translated_token_str == "Yok" or translated_token_str == "N/A":
-                translated_token_item.setForeground(QColor(Qt.GlobalColor.red))
-                
-            self.file_table.setItem(row, 6, original_token_item)
-            self.file_table.setItem(row, 7, translated_token_item)
+        try:
+            for row in range(self.file_table.rowCount()):
+                original_file_name = self.file_table.item(row, 1).text()
+                translated_file_name = self.file_table.item(row, 2).text()
+                status_text = self.file_table.item(row, 5).text()
 
-        # Genel token bilgilerini güncelle
-        self.total_tokens_label.setText(f"Toplam Token (Orijinal + Çevrilen): {total_combined}")
+                original_token_str = "Yok"
+                translated_token_str = "Yok"
+
+                if original_file_name != "Orijinali Yok" and original_file_name != "N/A" and original_file_name in file_tokens:
+                    original_token_val = file_tokens[original_file_name].get("original_tokens")
+                    original_token_str = str(original_token_val) if original_token_val is not None else "Hata/N/A"
+
+                if translated_file_name != "Yok" and translated_file_name != "N/A" and translated_file_name in file_tokens:
+                    if "Birle\u015ftirildi" in status_text:
+                        translated_token_val = file_tokens[translated_file_name].get("merged_tokens")
+                    else:
+                        translated_token_val = file_tokens[translated_file_name].get("translated_tokens")
+                    translated_token_str = str(translated_token_val) if translated_token_val is not None else "Hata/Yok"
+
+                original_token_item = QTableWidgetItem(original_token_str)
+                translated_token_item = QTableWidgetItem(translated_token_str)
+
+                if "Hata" in original_token_str or original_token_str == "N/A":
+                    original_token_item.setForeground(QColor(Qt.GlobalColor.red))
+                if "Hata" in translated_token_str or translated_token_str == "Yok" or translated_token_str == "N/A":
+                    translated_token_item.setForeground(QColor(Qt.GlobalColor.red))
+
+                self.file_table.setItem(row, 6, original_token_item)
+                self.file_table.setItem(row, 7, translated_token_item)
+
+                # \u0130lk 5 sat\u0131r i\u00e7in detayl\u0131 zaman\u00f6l\u00e7\u00fcm\u00fc
+                if row < 5:
+                    app_logger.info(f"[PERF] sat\u0131r {row} setItem tamamland\u0131: {_time.time()-_t0:.3f}s")
+
+        finally:
+            # --- Ad\u0131m 4: model sinyallerini geri a\u00e7 ---
+            app_logger.info(f"[PERF] D\u00f6ng\u00fc bitti, model.blockSignals(False) \u00f6ncesi: {_time.time()-_t0:.3f}s")
+            model.blockSignals(False)
+            app_logger.info(f"[PERF] model.blockSignals(False) sonras\u0131: {_time.time()-_t0:.3f}s")
+
+            # --- Ad\u0131m 5: setSortingEnabled(True) ---
+            app_logger.info(f"[PERF] setSortingEnabled(True) \u00f6ncesi: {_time.time()-_t0:.3f}s")
+            self.file_table.setSortingEnabled(True)
+            app_logger.info(f"[PERF] setSortingEnabled(True) sonras\u0131: {_time.time()-_t0:.3f}s")
+
+            # --- Ad\u0131m 6: setUpdatesEnabled(True) ---
+            self.file_table.setUpdatesEnabled(True)
+            app_logger.info(f"[PERF] setUpdatesEnabled(True) sonras\u0131: {_time.time()-_t0:.3f}s")
+
+            # --- Ad\u0131m 7: viewport().update() ---
+            self.file_table.viewport().update()
+            app_logger.info(f"[PERF] viewport().update() sonras\u0131: {_time.time()-_t0:.3f}s")
+
+        # Genel token bilgilerini g\u00fcncelle
+        self.total_tokens_label.setText(f"Toplam Token (Orijinal + \u00c7evrilen): {total_combined}")
         self.total_original_tokens_label.setText(f"Toplam Orijinal Token: {total_original}")
-        self.total_translated_tokens_label.setText(f"Toplam Çevrilen Token: {total_translated}")
+        self.total_translated_tokens_label.setText(f"Toplam \u00c7evrilen Token: {total_translated}")
         self.total_tokens_label.setVisible(True)
         self.total_original_tokens_label.setVisible(True)
         self.total_translated_tokens_label.setVisible(True)
+        app_logger.info(f"[PERF] Token say\u0131m\u0131 UI g\u00fcncellemesi tamamland\u0131: {_time.time()-_t0:.3f}s")
+
+
+    def _cleanup_token_count_thread(self):
+        """Token sayım thread'ini ve worker'ı güvenli şekilde temizler."""
+        app_logger.info("Token sayım thread'i temizleniyor...")
+        if self.token_count_worker:
+            self.token_count_worker.deleteLater()
+            self.token_count_worker = None
+        if self.token_count_thread:
+            self.token_count_thread.deleteLater()
+            self.token_count_thread = None
+        app_logger.info("Token sayım thread'i temizlendi.")
 
     def _on_token_counting_error(self, message):
+        app_logger.error(f"Token sayım hatası: {message}")
         QMessageBox.critical(self, "Token Sayım Hatası", f"Token sayımı sırasında bir hata oluştu:\n{message}")
         self.statusLabel.setText(f"Durum: Token sayım hatası - {message}")
         self.token_progress_bar.setVisible(False)
@@ -1742,6 +1849,7 @@ class MainWindow(QMainWindow):
         self.total_tokens_label.setVisible(True)
         self.total_original_tokens_label.setVisible(True)
         self.total_translated_tokens_label.setVisible(True)
+
 
     def _set_all_buttons_enabled_state(self, enabled):
         """Tüm ana işlem butonlarının etkinliğini ayarlar."""
@@ -1832,16 +1940,14 @@ class MainWindow(QMainWindow):
         """Hakkında iletişim kutusunu gösterme işlevi."""
         QMessageBox.about(self, "Hakkında", 
                           "NovelAlem Çeviri Aracı.\n\n"
-                          "Bu uygulama UtkuCanC tarafından NovelAlem için webnovel çevirilerini yapay zeka desteği ile çevirisininin yapılması amacıyla geliştirilmiştir.\n\n"
-                          "Sürüm: 1.9 (	Model değişikliği: gemini-2.5-flash-preview-09-2025.)\n"
-                          "Sürüm: 1.9.1 (Gemini model değiştirme ve seçme özelliği eklendi)\n"
-                          "Sürüm: 1.9.2 (API ve Promt hafızası eklendi. Ekleme, seçim ve düzenleme paneli eklendi.)\n"
+                          "Bu uygulama UtkuCanC tarafından webnovel çevirilerini yapay zeka desteği ile çevirisininin yapılması amacıyla geliştirilmiştir.\n\n"
                           "Sürüm: 1.9.3 (Bölüm başlığı kontrolü getirildi.)\n"
                           "Sürüm: 1.9.4 (Çevirilecek dosya sayısının sınırlandırılması getirildi.)\n"
-                          "Sürüm: 1.9.5 (Seçili dosyaların EPUB dosyası olarak kaydı sağlandı.)\n\n"
-                          "Sürüm: 1.9.6 (JS dosyalarını kaydetme özelliği eklendi.)\n\n"
-                          "Sürüm: 1.9.7 (Toplu bölüm ekleme özelliği eklendi.)\n\n"
-                          "Sürüm: 1.9.8 (Çalışmayı etkileyen genel hatalar giderildi.)\n\n"
+                          "Sürüm: 1.9.5 (Seçili dosyaların EPUB dosyası olarak kaydı sağlandı.)\n"
+                          "Sürüm: 1.9.6 (JS dosyalarını kaydetme özelliği eklendi.)\n"
+                          "Sürüm: 1.9.7 (Toplu bölüm ekleme özelliği eklendi.)\n"
+                          "Sürüm: 1.9.8 (Çalışmayı etkileyen genel hatalar giderildi.)\n"
+                          "Sürüm: 1.9.9 (Uygulama genelinde loglama sistemi eklendi. Token sayımı donma ve veri kaybolma hataları giderildi.)\n\n"
                           "Geliştirici: UtkuCanC\n"
                           "2026\n")
 

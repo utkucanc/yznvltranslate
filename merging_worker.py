@@ -1,6 +1,7 @@
 import os
 from PyQt6.QtCore import QObject, pyqtSignal
 import datetime
+from logger import app_logger
 
 class MergingWorker(QObject):
     finished = pyqtSignal()

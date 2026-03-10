@@ -13,7 +13,8 @@ includes = [
     "utils",
     "temizlik",
     "chapter_check_worker",
-    "split_worker" # Yeni eklenen modül - Toplu bölüm ekleme için
+    "split_worker", # Toplu bölüm ekleme için
+    "logger"  # v1.9.9 - Uygulama genelinde loglama için
 ]
 
 # --- Harici Kütüphaneler ---
@@ -71,7 +72,7 @@ executable = Executable(
 #python setup.py bdist_msi
 setup(
     name="NovelAlemCeviriAraci",
-    version="1.9.8", 
+    version="1.9.9",  # Logging sistemi eklendi, token sayım hataları giderildi
     description="NovelAlem Çeviri Aracı",
     options={"build_exe": build_exe_options},
     executables=[executable]
