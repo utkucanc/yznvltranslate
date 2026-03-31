@@ -1,21 +1,26 @@
-# YZ Novel Translate - Otomatik Çeviri ve Düzenleme Aracı
+# Novel Çeviri Aracı - Yapay Zeka Destekli Novel Çeviri ve Düzenleme Uygulaması
+# NCA
 
-Bu proje, yabancı dildeki (özellikle İngilizce, Korece, Çince) web romanlarını (novel) indirmek, Google Gemini API kullanarak yerel bağlantıda toplu çevirisini yapmak ve sonrasında bu metinleri temizleyip EPUB veya benzeri formatlarda birleştirmek için tasarlanmış, PyQt6 tabanlı masaüstü bir uygulamadır.
-
+Bu proje, yabancı dildeki (özellikle İngilizce, Korece, Çince gibi) web romanlarını (novel) indirmek, Google Gemini API kullanarak yerel bağlantıda toplu çevirisini yapmak ve sonrasında bu metinleri temizleyip EPUB veya benzeri formatlarda birleştirmek için tasarlanmış, PyQt6 tabanlı masaüstü bir uygulamadır.
+## Nasıl Kullanılır?
+- Youtube Video Linki:
+https://youtu.be/4HQpAn_qiBU
 ## Özellikler
 
 * **Toplu İndirme**: 
   - Standart Web Kazıma (Requests/BS4)
-  - JavaScript destekli indirme (Booktoki ve 69shuba için Selenium Webdriver entegrasyonu)
+  - JavaScript destekli indirme (Novelfire, Booktoki ve 69shuba için Selenium Webdriver entegrasyonu)
 * **Gelişmiş Çeviri Sistemi**: 
-  - Google Gemini API (`google.generativeai`) ile çeviri desteği.
-  - Özel Promt yönetimi ve API Anahtarı entegrasyonu.
-  - Kota aşımı (HTTP 429) durumunda otomatik bekleme ve tekrar deneme limitleri (*max_retries* mekanizması).
+  - OpenAI uyumlu sunucu desteği ve Google Gemini (`google-genai`) ile çalışan **MCP (Multi-endpoint Connection Provider)** mimarisi.
+  - Sınırsız sayıda API Anahtarından oluşan rotasyonlu Key Pool desteği.
+  - Otomatik **Translation Cache** ve **Terminology Memory** ile maliyet tasarrufu ve terim tutarlılığı.
+  - **Prompt Generator (PromtGen)** ile projeye özel (Literal/Natural/Balanced) çeviri promptlarının AI tarafından otomatik çıkarılması.
+  - Çevirilerde Çince/Korece (CJK) oranını tarayarak hatalı çıktıları engelleyen karakter koruma sistemi.
 * **Dosya Manipülasyonu**:
   - `Toplu Bölüm Ekle`: Büyük boyutlu `.txt` dosyalarını "## Bölüm - X ##" ayracı baz alınarak otomatik parçalara ayırma.
-  - Orijinal yabancı isimleri, çeviri sonrası metinlerdeki Türkçe kurallara göre temizleme ve düzeltme.
-  - Çevrilmiş bölümleri tek bir `.txt` veya `.epub` formatında (yakında) birleştirme.
-* **Token Sayacı**: Yüz binlerce kelimelik klasörlerdeki token maliyetini/api kullanım miktarını önden hesaplama imkanı.
+  - Geliştirilmiş çift tıklama ile açılan Metin Düzenleyici (Text Editor) üzerinden anlık düzeltme.
+  - Çevrilmiş bölümleri tek bir `.txt` veya `.epub` formatında birleştirme.
+* **Token ve Limit Sayacı**: Akıllı durum çubuğu ile maliyet hesaplama, hız takibi ve kalıcı API istek istatistikleri.
 
 ## Gereksinimler
 
@@ -25,10 +30,11 @@ Programın kaynak koddan çalıştırılabilmesi için sisteminizde aşağıdaki
 pip install PyQt6
 pip install requests
 pip install beautifulsoup4
-pip install google-generativeai
+pip install google-genai
 pip install selenium
 pip install webdriver-manager
 pip install cx_Freeze
+pip install jieba
 ```
 
 Not: JavaScript tabanlı Booktoki ve 69shuba indirmelerini (Selenium) kullanmak için bilgisayarınızda Google Chrome tarayıcısı yüklü olmalıdır. `webdriver-manager` aracı ChromeDriver eşleştirmelerini kendi kendine yapacaktır.
@@ -84,6 +90,7 @@ Her "Yeni Proje" oluşturduğunuzda uygulama, uygulamanın kurulu olduğu dizind
 
 | Sürüm | Değişiklikler |
 |-------|--------------|
+| 2.0.0 | Majör Güncelleme! MCP Mimarisi, Prompt Generator, Translation Cache, Terminology Memory, Yeni GenAI SDK, CJK Çeviri Hata Kontrolü ve gelişmiş Metin Düzenleyicisi eklendi. |
 | 1.9.9 | Uygulama genelinde `logger.py` ile loglama sistemi eklendi. Token sayımı sonrasında oluşan UI donma hatası giderildi. Token verisi kısmi sayımda sıfırlanma (veri kaybı) sorunu çözüldü. |
 | 1.9.8 | Çalışmayı etkileyen genel hatalar giderildi (retry_count, statusLabel wordwrap, cx_Freeze base). |
 | 1.9.7 | Toplu bölüm ekleme (`split_worker.py`) özelliği eklendi. |

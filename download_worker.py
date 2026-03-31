@@ -18,6 +18,8 @@ class DownloadWorker(QObject):
     error = pyqtSignal(str)
     file_downloaded = pyqtSignal(str, str)  # İndirilen dosyanın tam yolu ve adı
     progress = pyqtSignal(int, int) # Mevcut sayfa ve toplam sayfa sayısı için
+    selenium_menu_required = pyqtSignal() # UI'dan menü açılmasını ister
+    status_message = pyqtSignal(str) # UI'da metin olarak durum göstermek için
     
     def __init__(self, base_url, download_folder, max_pages=None, js_script_path=None):
         super().__init__()
@@ -27,9 +29,13 @@ class DownloadWorker(QObject):
         self.max_pages = max_pages # İndirilecek maksimum sayfa sayısı
         self.downloaded_pages = 0
         self.js_script_path = js_script_path # JS dosyası yolu (None ise normal indirme)
+        self.selenium_command = None # UI'dan gelecek komut (booktoki, shuba, cancel)
+        self.selenium_chapter_limit = 120
 
     def run(self):
         """İndirme işlemini başlatan ana fonksiyon."""
+        app_logger.info(f"İndirme işlemi başlatılıyor: {self.base_url}")
+        print(f"DEBUG: Ana URL -> {self.base_url}")
         if self.js_script_path and os.path.exists(self.js_script_path):
             self._run_selenium()
         else:
@@ -38,12 +44,19 @@ class DownloadWorker(QObject):
     def _run_selenium(self):
         """JS kodlarını Selenium üzerinden çalıştırarak indirir."""
         driver = None
+        app_logger.info("Selenium işçisi başlatıldı.")
+        print("INFO: Selenium süreci başlıyor...")
         try:
             self.progress.emit(0, 100)
+            self.status_message.emit("Tarayıcı hazırlanıyor...")
             
             # Chrome ayarlarını yapılandır
             chrome_options = Options()
-            # chrome_options.add_argument("--headless") # Kullanıcının bot kontrolünü (cloudflare vs) aşması için headless kapalı önerilir, ancak eklenebilir.
+            # Log kaydı için browser loglarını etkinleştir
+            chrome_options.set_capability('goog:loggingPrefs', {'browser': 'ALL'})
+            
+            # Cloudflare aşmak için headless kapalı olmalı
+            # chrome_options.add_argument("--headless") 
             prefs = {"download.default_directory": self.download_folder,
                      "download.prompt_for_download": False,
                      "download.directory_upgrade": True}
@@ -51,70 +64,138 @@ class DownloadWorker(QObject):
             
             # WebDriver Başlat
             self.progress.emit(10, 100)
+            app_logger.info("WebDriver kuruluyor...")
             driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
             
             # Hedef URL'ye git
             self.progress.emit(20, 100)
+            self.status_message.emit("Siteye bağlanılıyor...")
+            app_logger.info(f"URL açılıyor: {self.base_url}")
             driver.get(self.base_url)
             
-            # Kullanıcıya cloudflare aşması için biraz süre tanıyabiliriz veya script doğrudan bunu halledebilir.
-            time.sleep(3) 
+            # UI'daki menünün açılmasını tetikle
+            self.selenium_menu_required.emit()
+            
+            # Kullanıcının menüden bir seçenek seçmesini bekle
+            self.status_message.emit("Kullanıcı seçimi bekleniyor (Panelden seçim yapın)...")
+            print("Kullanıcı etkileşimi bekleniyor...")
+            while self.selenium_command is None and self.is_running:
+                time.sleep(1)
+            
+            if not self.is_running or self.selenium_command == "cancel":
+                app_logger.warning("İndirme iptal edildi.")
+                print("İndirme iptal edildi.")
+                return
+
+            # Seçilen JS dosyasını belirle
+            actual_js_path = None
+            if self.selenium_command == "shuba":
+                actual_js_path = os.path.join(os.getcwd(), "69shuba.js")
+                self.status_message.emit("69shuba scripti hazırlanıyor...")
+            elif self.selenium_command == "booktoki":
+                actual_js_path = os.path.join(os.getcwd(), "booktoki.js")
+                self.status_message.emit("Booktoki scripti hazırlanıyor...")
+                # Booktoki için limit ayarını güncelle
+                if os.path.exists(actual_js_path):
+                    with open(actual_js_path, 'r', encoding='utf-8') as f:
+                        lines = f.readlines()
+                    
+                    found_limit = False
+                    for i, line in enumerate(lines):
+                        if 'if (counter>=' in line:
+                            lines[i] = f"        if (counter>= {self.selenium_chapter_limit}){{\n"
+                            found_limit = True
+                            break
+                    
+                    if found_limit:
+                        with open(actual_js_path, 'w', encoding='utf-8') as f:
+                            f.writelines(lines)
+                        app_logger.info(f"Booktoki limit güncellendi: {self.selenium_chapter_limit}")
+            
+            if not actual_js_path or not os.path.exists(actual_js_path):
+                msg = f"JS dosyası bulunamadı: {actual_js_path}"
+                app_logger.error(msg)
+                self.error.emit(msg)
+                return
 
             # JS Dosyasını Oku
-            with open(self.js_script_path, 'r', encoding='utf-8') as f:
+            with open(actual_js_path, 'r', encoding='utf-8') as f:
                 js_code = f.read()
 
             self.progress.emit(40, 100)
+            self.status_message.emit("JavaScript enjekte ediliyor...")
+            app_logger.info(f"Script enjekte ediliyor: {os.path.basename(actual_js_path)}")
             
             # İndirme klasöründeki mevcut txt dosyalarını al (yeni geleni tespit etmek için)
             existing_files = set(f for f in os.listdir(self.download_folder) if f.endswith('.txt'))
             
             # JS Kodunu Enjekte Et ve Çalıştır
-            # Not: .js dosyası bir IIFE (Immediately Invoked Function Expression) olduğu için await çalıştırması yapacak.
             driver.execute_script(js_code)
             
             self.progress.emit(60, 100)
+            app_logger.info("Script çalıştırıldı, loglar dinleniyor...")
 
-            # Dosyanın inmesini bekle (Maksimum 10 dakika bekleyelim, büyük romanlar uzun sürebilir)
+            # Dosyanın inmesini bekle + Logları Dinle
             wait_time = 0
-            max_wait_time = 600 
+            max_wait_time = 1800 # 30 dakika (büyük romanlar için)
             downloaded_file = None
             
             while wait_time < max_wait_time and self.is_running:
+                # Browser loglarını kontrol et
+                try:
+                    logs = driver.get_log('browser')
+                    for entry in logs:
+                        msg = entry.get('message', '')
+                        # console.log çıktılarını yakala
+                        if '📄' in msg or 'bölüm' in msg.lower():
+                            # Chrome logları genellikle string içindedir, temizleyelim
+                            clean_msg = msg.split('"')[-2] if '"' in msg else msg
+                            print(f"BROWSER: {clean_msg}")
+                            self.status_message.emit(clean_msg)
+                            app_logger.info(f"JS Progress: {clean_msg}")
+                except Exception as log_err:
+                    print(f"Log okuma hatası: {log_err}")
+
+                # Dosya kontrolü
                 current_files = set(f for f in os.listdir(self.download_folder) if f.endswith('.txt'))
                 new_files = current_files - existing_files
                 
-                # Geçici indirme dosyalarını (crdownload vs) saymıyoruz (".txt" ile bittiği için sorun yok)
                 if new_files:
-                    downloaded_file = new_files.pop()
+                    downloaded_file = list(new_files)[0]
+                    app_logger.info(f"Yeni dosya tespit edildi: {downloaded_file}")
                     break
                     
-                time.sleep(2)
-                wait_time += 2
+                time.sleep(3) # Logları kaçırmamak ve CPU yormamak için ideal
+                wait_time += 3
                 
-                # Progres barı yalandan biraz oynat (60-95 arası)
-                simulated_progress = min(95, 60 + int((wait_time / max_wait_time) * 35))
+                simulated_progress = min(98, 60 + int((wait_time / max_wait_time) * 38))
                 self.progress.emit(simulated_progress, 100)
 
             if not self.is_running:
-                print("İndirme iptal edildi.")
+                app_logger.warning("Durma sinyali alındı, döngüden çıkılıyor.")
                 return
 
             if downloaded_file:
-                # İndirme algılandı
                 full_path = os.path.join(self.download_folder, downloaded_file)
                 self.progress.emit(100, 100)
+                self.status_message.emit("✅ İndirme Tamamlandı!")
+                app_logger.info(f"İşlem başarılı: {full_path}")
                 self.file_downloaded.emit(full_path, downloaded_file)
             else:
-                self.error.emit(f"Zaman aşımı: {max_wait_time} saniye boyunca indirme algılanamadı veya script hata verdi.")
+                msg = "Zaman aşımı: İndirme algılanamadı."
+                app_logger.error(msg)
+                self.error.emit(msg)
 
         except Exception as e:
+            app_logger.critical(f"Kritik Selenium Hatası: {str(e)}", exc_info=True)
             self.error.emit(f"Selenium Hatası: {str(e)}")
         finally:
             if driver:
+                print("Tarayıcı kapatılıyor...")
                 driver.quit()
             self.finished.emit()
             print("Selenium işçisi tamamlandı/durduruldu.")
+            app_logger.info("Selenium işçisi oturumu kapattı.")
 
 
     def _run_standard(self):

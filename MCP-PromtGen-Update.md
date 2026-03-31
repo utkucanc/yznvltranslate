@@ -15,6 +15,20 @@ Bağlantı ayarları `AppConfigs/MCP_Endpoints.json` dosyasında, API anahtarlar
 
 > [!IMPORTANT]
 > API Anahtarları artık JSON içinde değil, `AppConfigs/APIKeys/MCP/<endpoint_id>.txt` yolundaki dosyalarda saklanır. Dosya içindeki her bir satır farklı bir API anahtarı olarak kabul edilir.
+LLM ekosisteminde yakında şunlar olacak:
+
+- OpenAI
+- Anthropic
+- Gemini
+- OpenRouter
+- Ollama
+- LM Studio
+- LocalAI
+- Groq
+- TogetherAI
+- DeepSeek
+- vLLM
+
 
 **Örnek Standart JSON Formatı:**
 ```json
@@ -99,11 +113,20 @@ Yapay zekaya gönderilecek bağlam şu verilerden oluşturulur:
 
 #### B. Promt Üretimi
 Bütün bu veriler derlenerek, seçili aktif LLM üzerinden "Bu hikaye için en iyi çeviri promtunu oluştur" talimatı ile yeni bir promt üretilir.
+PromtGen sadece 1 prompt üretmesin.
+
+3 prompt üretsin.
+
+- Prompt A – literal
+- Prompt B – natural
+- Prompt C – balanced
+
+Kullanıcı seçsin.
 
 #### C. Kayıt ve Kullanım
 Oluşturulan promt otomatik olarak **`ProjeAdı-PromtGen.txt`** adıyla kaydedilir ve proje ayarlarında seçilebilir hale gelir.
 
-### Arayüz (UI) Entegrasyonu
+#### D. Arayüz (UI) Entegrasyonu
 - **Proje Ayarları**: "Prompt Oluşturucu (Generator)" adında yeni bir buton eklenecek.
 - **Generator Ekranı**: Wiki metni giriş alanı ve hangi bölümlerin örnek alınacağını seçme (varsayılan 2+2+2) seçeneklerini içeren bir pencere.
 
@@ -125,5 +148,411 @@ Oluşturulan promt otomatik olarak **`ProjeAdı-PromtGen.txt`** adıyla kaydedil
 5. **Test**: Farklı hikaye türleri için üretilen promtların başarısının ölçülmesi.
 
 ---
+## 5. Ek Düzenlemeler
+- **API Health Check**: Proje Ayarları kısmından api durumu kontrol edilecek. Kotası dolu ise uyarı verecek. Bu kontrol mümkünse kotayı düşürmemeli.
+- **Token Sayacı**: MCP entegrasyonu ile birlikte token sayacı güncellenecek.
+- **Çeviri Arayüzü**: MCP entegrasyonu ile birlikte çeviri arayüzü güncellenecek.
+- **UI Düzenlemeleri**:
+    - İndirme yönetimi kısmında yer alan açıl pencerenin arka planı koyulaştırılacak. Şeffaf olması okunmayı zorlaştırıyor.
+    - Başlık kontrolü butonu kaldırılacak bu buton yerine çıktı txt dosyalarının içeriğindeki korece ve çince kelime kontrolü yapan "Çeviri Hata Kontrol" butonu eklenecek.
+- **Çeviri Hata Kontrolü**: Çıktı txt dosyalarının içeriğindeki korece ve çince kelime kontrolü yapan bir buton eklenecek. 
+    - Butona tıklandığında çıktı klasöründeki tüm txt dosyaları kontrol edilecek. 
+    - ratio = korece_karakter_sayısı / toplam_karakter_sayısı && ratio = çince_karakter_sayısı / toplam_karakter_sayısı
+    - Korece ve çince karakter sayısı **ratio > 5%** olan dosyalar silinecek. Onay penceresi çıkacak. (... Silinsin mi ? | Evet | Hayır)
+    - Onay penceresi içerisinde silinecek dosya sayısı ve toplam karakter sayısı yazacak.
+    - Korece ve çince karakter sayısı **ratio < 5%** olan dosyalar silinmeyecek.
+    - Korece ve çince karakter sayısı **ratio < 5%** olan dosyalar için bir rapor dosyası oluşturulacak.
+    - Korece ve çince karakter sayısı **ratio > 5%** olan dosyalar için bir rapor dosyası oluşturulacak.
+    - ch-kontrol.py ve kr-kontrol.py dosyaları kullanılacak.
+    - ch-kontrol.py dosyası korece karakter sayısını kontrol edecek.
+    - kr-kontrol.py dosyası çince karakter sayısını kontrol edecek.
+    - Bu dosyalar programa uygun hale getirilecek ve uygun worker dosyası oluşturulacak.
+- **Çeviriyi Durdurma Butonu**: Çeviri işlemi sırasında çeviriyi durdurmak için bir buton eklenecek.
+    - Butona tıklandığında çeviri işlemi durdurulacak.
+    - Bu buton çeviri işlemi devam ederken görünür olacak. Çeviri işlemi bittiğinde veya durdurulduğunda kaybolacak. Çeviriyi başlat butonu tıklandığında bu buton görünür olacak. Duraklat butonunun boyu küçültülecek. Durdurma butonu kırmızı renkte olacak. Tıklandığında uyarı mesajı verilecek. 
+- **Projeler listesi**: Projeler listesinin üstünde arama çubuğu eklenecek. Bu çubuğa yazılan kelime projeler listesinde aranacak ve bulunan projeler listelenecek. Yazılan metini temizlemek için bir buton eklenecek.
+- **Proje içinde dosya arama**: Ana UI içindeki dosya listesi kısmında arama çubuğu eklenecek. Bu çubuğa yazılan kelime dosya listesinde aranacak ve bulunan dosyalar listelenecek. Yazılan metini temizlemek için bir buton eklenecek.
+- **Uygulama bilgi alt barı**: Uygulamanın en altında bir bar eklenecek. Bu barın içerisinde şu bilgiler küçük bir şekilde yer alacak
+    - Mevcut durum (Hazır - Çeviri yapılıyor - Duraklatıldı - Durduruldu - Hata var ...)
+    - Çeviri hızı (bölüm/saat)
+    - Kullanılan model
+    - Kullanılan API Kayıtlı Adı
+    - Kullanılan API servisi
+    - Kullanılan API istek sayısı
+    - Kullanılan API token sayısı
+    - En sol köşe UI Yeniden yükleme butonu eklenecek. Bu buton tıklandığında UI yeniden yüklenecek.
+---
+## 6. Translation Cache
+
+Bu doküman, YZNovelTranslate projesine eklenmesi planlanan **Translation
+Cache** ve **Terminology Memory** sistemlerinin mimari tasarımını, veri
+yapılarını ve uygulama adımlarını tanımlar.
+
+------------------------------------------------------------------------
+
+## 6. Translation Cache Sistemi
+
+### Amaç
+
+Aynı metnin tekrar çevrilmesini engelleyerek:
+
+-   API maliyetini azaltmak
+-   Çeviri hızını artırmak
+-   Çeviri tutarlılığını korumak
+
+------------------------------------------------------------------------
+
+### Mimari Tasarım
+
+Cache sistemi **satır veya paragraf bazlı** çalışır.
+
+Akış:
+
+    Metin al
+       ↓
+    Hash oluştur
+       ↓
+    Cache kontrol
+       ↓
+    Bulundu → Cache kullan
+    Bulunamadı → LLM çağrısı
+       ↓
+    Sonucu cache'e yaz
+
+------------------------------------------------------------------------
+
+### Dosya Yapısı
+
+Önerilen klasör:
+
+    AppData/
+       Cache/
+          translations/
+
+Her çeviri **hash tabanlı dosya** olarak saklanır.
+
+Örnek:
+
+    c9f1f1f0d8e.json
+
+------------------------------------------------------------------------
+
+### Cache Dosya Formatı
+
+    {
+      "original_text": "The Nascent Soul cultivator opened his eyes.",
+      "translation": "Ruh Embriyosu gelişimcisi gözlerini açtı.",
+      "model": "gemini-2.5-flash",
+      "endpoint": "default_gemini",
+      "prompt_hash": "ae8391d",
+      "created_at": "2026-03-12T22:41:00"
+    }
+
+------------------------------------------------------------------------
+
+### Hash Oluşturma
+
+Cache hash şu verilerden oluşturulur:
+
+    original_text
+    +
+    model_id
+    +
+    prompt_hash
+
+Örnek:
+
+    sha1(original_text + model_id + prompt_hash)
+
+Sebep:
+
+  Değişken        Neden
+  --------------- ------------------
+  original_text   metin değişirse
+  model           model değişirse
+  prompt          prompt değişirse
+
+------------------------------------------------------------------------
+
+### Prompt Hash
+
+Prompt değiştiğinde eski cache kullanılmamalıdır.
+
+    prompt_hash = sha1(prompt_text)
+
+------------------------------------------------------------------------
+
+### Cache Hit Algoritması
+
+Pseudo kod:
+
+    hash = generate_hash(text)
+
+    if cache_exists(hash):
+        return cached_translation
+    else:
+        translation = call_llm()
+        save_cache(hash, translation)
+
+------------------------------------------------------------------------
+
+### Cache Boyutu Yönetimi
+
+Cache zamanla büyür.
+
+Önerilen limitler:
+
+    Max Cache Size: 1GB
+    veya
+    Max Entries: 100000
+
+Temizleme yöntemi:
+
+    LRU (Least Recently Used)
+
+------------------------------------------------------------------------
+
+### Beklenen Kazanç
+
+Gerçek projelerde:
+
+    %20 – %60 API tasarrufu
+
+Özellikle tekrar eden:
+
+-   diyaloglar
+-   anlatım kalıpları
+-   teknik terimler
+
+cache avantajı sağlar.
+
+------------------------------------------------------------------------
+
+## 7. Terminology Memory Sistemi
+
+### Amaç
+
+Belirli terimlerin **her zaman aynı şekilde çevrilmesini sağlamak.**
+
+Örnek problem:
+
+    Nascent Soul
+
+LLM bazen:
+
+    Ruh Embriyosu
+
+bazen:
+
+    Doğmakta Olan Ruh
+
+şeklinde çevirebilir.
+
+Terminology Memory bunu engeller. Bu doğrultuda Çince ve Korece dillerini de destekleyecek şekilde genişletilebilir.
+
+------------------------------------------------------------------------
+
+### Veri Yapısı
+
+Her proje için ayrı dosya önerilir.
+
+    ProjectConfigs/
+       terminology.json
+
+------------------------------------------------------------------------
+
+### Terminology JSON Formatı
+
+    {
+      "terms": [
+        {
+          "source": "Nascent Soul",
+          "target": "Ruh Embriyosu"
+        },
+        {
+          "source": "Qi",
+          "target": "Qi"
+        },
+        {
+          "source": "Dao",
+          "target": "Dao"
+        },
+        {
+          "source": "Spirit Beast",
+          "target": "Ruh Canavarı"
+        }
+      ]
+    }
+
+------------------------------------------------------------------------
+
+### Prompt Entegrasyonu
+
+Terminology Memory otomatik olarak prompta eklenir.
+
+Örnek:
+
+    Terminology Rules:
+
+    Nascent Soul → Ruh Embriyosu
+    Qi → Qi
+    Dao → Dao
+    Spirit Beast → Ruh Canavarı
+
+    Use these translations consistently.
+    Do not translate them differently.
+
+Bu yöntem LLM davranışını stabilize eder.
+
+------------------------------------------------------------------------
+
+### Ek Özellikler
+
+#### Case Insensitive Destek
+
+Aynı terim şu varyasyonlarda tanınmalıdır:
+
+    nascent soul
+    Nascent Soul
+    NASCENT SOUL
+
+------------------------------------------------------------------------
+
+#### Regex Destek (Opsiyonel)
+
+Örnek:
+
+    Qi Refinement Stage [0-9]
+
+------------------------------------------------------------------------
+
+#### UI Entegrasyonu
+
+Proje ayarlarında yeni sekme:
+
+    Terminology
+
+UI alanları:
+
+    Source Term → Target Term
+
+Butonlar:
+
+    Add
+    Import
+    Export
+    Delete
+
+------------------------------------------------------------------------
+
+#### Terminology Otomatik Tespit (Opsiyonel)
+
+Prompt Generator sırasında AI şu işlemi yapabilir:
+
+    Extract important terms from the text
+
+Örnek sonuç:
+
+    Nascent Soul
+    Qi
+    Spirit Beast
+    Heavenly Tribulation
+
+Bu terimler kullanıcıya önerilir.
+
+------------------------------------------------------------------------
+
+### Terminology Kullanım Yöntemleri
+
+#### Yöntem 1 (Önerilen)
+
+Terminology kuralları **prompt içine eklenir.**
+
+Avantaj:
+
+-   daha doğal çeviri
+-   bağlam korunur
+
+------------------------------------------------------------------------
+
+#### Yöntem 2
+
+Çeviri sonrası otomatik replace.
+
+    text.replace()
+
+Ancak bağlam hatalarına sebep olabilir.
+
+------------------------------------------------------------------------
+
+### Backend Sınıfları
+
+#### TranslationCache
+
+Temel metodlar:
+
+    get(text)
+    set(text, translation)
+    cleanup()
+
+------------------------------------------------------------------------
+
+#### TerminologyManager
+
+Temel metodlar:
+
+    load_terms()
+    add_term()
+    remove_term()
+    build_prompt_section()
+
+------------------------------------------------------------------------
+
+#### Önerilen Kod Yapısı
+
+    yznvltranslate/
+
+       cache/
+          translation_cache.py
+
+       terminology/
+          terminology_manager.py
+
+------------------------------------------------------------------------
+
+
+
+#### Beklenen Performans Artışı
+
+| Özellik | Kazanç |
+|-------|--------------|
+| Translation Cache | %20--60 API tasarrufu |
+| Terminology Memory | Daha tutarlı çeviri |
+| Birlikte kullanım | 2‑3x daha hızlı çeviri |
+
+## 8. Bölüm Düzenleyici - Text Editor
+Bölüm düzenleyici, çeviri sonrası düzenleme için kullanılacak. Ana ekrandaki bölüm listesinde yer alan "Orjinal Dosya" ve Çevirilen Dosya" listesinde yer alan dosyalar çift tıklandığında bölüm düzenleyici (text editor) açılacak. Bu düzenleyici, çevirinin düzenlenmesi için kullanılacak. 
+
+### Özellikler
+
+-   Çift tıklandığında bölüm düzenleyici açılacak.
+-   Bu düzenleyici, çevirinin düzenlenmesi için kullanılacak.
+-   Düzenleme bittikten sonra kaydetme butonu ile yada CTRL+S ile kaydedilecek.
+-   Kaydetme işlemi sonrası ana ekrandaki bölüm listesinde yer alan "Çevirilen Dosya" listesindeki dosya güncellenecek.
+-   ESC tuşuna basıldığında düzenleyici kapatılacak. Değişiklik varsa kaydetme için uyarı verilecek.
+-   Kelime sayısı, karakter sayısı, satır sayısı gibi bilgiler görüntülenecek.
+-   Bölümün tekrar çevirisi yapılabilmesi için bölüm olacak. Bu bölümde API ayarı, model ayarı, prompt ayarı, terminology ayarı, cache ayarı gibi ayarlar yapılabilecek. Bu ayarlar sadece o bölüm için geçerli olacak. Çeviri butonuna basıldığında sadece o bölüm için çeviri yapılacak.
+#### ESC ile kapatma
+ESC veya kapatma:
+
+Eğer değişiklik varsa:
+```text
+Kaydedilmemiş değişiklik var.
+
+    Kaydet
+    Kaydetmeden çık
+    İptal
+```
 **Durum:** Planlama aşamasında
+
 **Versiyon Hedefi:** 2.0.0 (Majör Özellik Güncellemesi)
