@@ -6,8 +6,9 @@
 
 Bu proje, yabancı dildeki (özellikle İngilizce, Korece, Çince gibi) web romanlarını (novel) indirmek, Google Gemini API kullanarak yerel bağlantıda toplu çevirisini yapmak ve sonrasında bu metinleri temizleyip EPUB veya benzeri formatlarda birleştirmek için tasarlanmış, PyQt6 tabanlı masaüstü bir uygulamadır.
 ## Nasıl Kullanılır?
-- Youtube Video Linki:
-https://youtu.be/4HQpAn_qiBU
+
+- [![Youtube Video Link](https://img.shields.io/badge/Youtube%20Video%20Link-red?style=for-the-badge&logo=youtube)](https://youtu.be/4HQpAn_qiBU)
+- https://youtu.be/4HQpAn_qiBU
 ## Özellikler
 
 * **Toplu İndirme**: 
