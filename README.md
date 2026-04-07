@@ -35,7 +35,11 @@ Programın kaynak koddan çalıştırılabilmesi için sisteminizde aşağıdaki
 ```bash
 pip install -r requirements.txt
 ```
-
+- Tavsiye edilen Python versiyonu:
+```bash
+Python 3.13 
+```
+  
 Not: JavaScript tabanlı Booktoki ve 69shuba indirmelerini (Selenium) kullanmak için bilgisayarınızda Google Chrome tarayıcısı yüklü olmalıdır. `webdriver-manager` aracı ChromeDriver eşleştirmelerini kendi kendine yapacaktır.
 
 ## Kurulum ve Çalıştırma
