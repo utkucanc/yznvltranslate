@@ -111,7 +111,7 @@ yznvltranslate-main/
 
 | Sürüm | Değişiklikler |
 |-------|--------------| 
-| 2.1.0 | **Paragraf Bazlı Çeviri** standart hale getirildi (cache bağımsız). **Toplu Çeviri (Batch Mode)** eklendi: birden fazla bölümü tek API isteğinde göndererek aynı RPD ile daha fazla bölüm çevirme. **Asenkron Çeviri** eklendi. Aynı anda birden fazla API isteği göndererek daha hızlı çeviri yapılabilir. Proje Ayarlarından aktif/deaktif edilebilir. |
+| 2.1.0 | **SRP** yeniden yapılandırma. **Paragraf Bazlı Çeviri** standart hale getirildi (cache bağımsız). **Toplu Çeviri (Batch Mode)** eklendi: birden fazla bölümü tek API isteğinde göndererek aynı RPD ile daha fazla bölüm çevirme. **Asenkron Çeviri** eklendi. Aynı anda birden fazla API isteği göndererek daha hızlı çeviri yapılabilir. Proje Ayarlarından aktif/deaktif edilebilir. |
 | 2.0.0 | Majör Güncelleme! MCP Mimarisi, Prompt Generator, Translation Cache, Terminology Memory, Yeni GenAI SDK, CJK Çeviri Hata Kontrolü ve gelişmiş Metin Düzenleyicisi eklendi. |
 | 1.9.9 | Uygulama genelinde `logger.py` ile loglama sistemi eklendi. Token sayımı sonrasında oluşan UI donma hatası giderildi. Token verisi kısmi sayımda sıfırlanma (veri kaybı) sorunu çözüldü. |
 | 1.9.8 | Çalışmayı etkileyen genel hatalar giderildi (retry_count, statusLabel wordwrap, cx_Freeze base). |
