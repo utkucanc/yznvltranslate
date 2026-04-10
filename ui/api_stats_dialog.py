@@ -4,7 +4,7 @@ ApiStatsDialog — API kullanım istatistikleri diyaloğu.
 
 from datetime import date, timedelta
 from PyQt6.QtWidgets import (
-    QDialog, QVBoxLayout, QHBoxLayout, QTabWidget, QWidget,
+    QDialog, QHeaderView, QVBoxLayout, QHBoxLayout, QTabWidget, QWidget,
     QTableWidget, QTableWidgetItem, QPushButton, QLabel
 )
 from PyQt6.QtCore import Qt
@@ -85,7 +85,9 @@ def show_api_stats_dialog(main_window):
     table_layout.addWidget(table)
     tabs.addTab(table_tab, "📝 Tablo")
     main_layout.addWidget(tabs)
-
+    table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)  # Tarih ve API sütunları genişlesin
+    table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)  # İstek
+    table.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeMode.Stretch)  # İstek sayısı sütunu esnek olsun
     today_count = main_window.request_counter_manager.get_total_today()
     info_label = QLabel(f"Bugünkü toplam istek: {today_count}")
     info_label.setStyleSheet("font-size: 11pt; padding: 4px;")

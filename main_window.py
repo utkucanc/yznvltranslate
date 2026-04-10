@@ -340,13 +340,13 @@ class MainWindow(QMainWindow):
         startpromt = ""
         gemini_version = self.get_gemini_model_version()
         mcp_endpoint_id = None
-        cache_enabled = True
+        cache_enabled = False
         terminology_enabled = True
         async_enabled = False
         async_threads = 3
         batch_enabled = False
         max_batch_chars = 33000
-        max_chapters_per_batch = 5
+        max_chapters_per_batch = 3
         if os.path.exists(config_path):
             try:
                 with open(config_path, 'r', encoding='utf-8') as f:
@@ -357,13 +357,13 @@ class MainWindow(QMainWindow):
                 api_key = self.config.get('API', 'gemini_api_key', fallback="")
                 startpromt = self.config.get('Startpromt', 'startpromt', fallback="")
                 mcp_endpoint_id = self.config.get('MCP', 'endpoint_id', fallback=None)
-                cache_enabled = self.config.getboolean('Features', 'cache_enabled', fallback=True)
+                cache_enabled = self.config.getboolean('Features', 'cache_enabled', fallback=False)
                 terminology_enabled = self.config.getboolean('Features', 'terminology_enabled', fallback=True)
                 async_enabled = self.config.getboolean('Features', 'async_enabled', fallback=False)
                 async_threads = self.config.getint('Features', 'async_threads', fallback=3)
                 batch_enabled = self.config.getboolean('Batch', 'batch_enabled', fallback=False)
                 max_batch_chars = self.config.getint('Batch', 'max_batch_chars', fallback=33000)
-                max_chapters_per_batch = self.config.getint('Batch', 'max_chapters_per_batch', fallback=5)
+                max_chapters_per_batch = self.config.getint('Batch', 'max_chapters_per_batch', fallback=3)
             except Exception:
                 pass
         self.max_retries = max_retries
@@ -548,7 +548,9 @@ class MainWindow(QMainWindow):
 
     def update_status_bar(self):
         self.status_bar_mgr.update()
-
+        
+    def add_file_to_table(self, file_path, file_name):
+        pass    
     # ─────────────── Yardımcı Metotlar ───────────────
 
     def on_shutdown_checkbox_toggled(self, checked):

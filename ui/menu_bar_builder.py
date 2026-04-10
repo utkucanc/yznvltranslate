@@ -55,6 +55,10 @@ def build_menu_bar(main_window):
     save_novelfire_action = js_save_menu.addAction("Novelfire")
     save_novelfire_action.triggered.connect(lambda: _save_js_file(win, "novelfire.js"))
 
+    # ── JSON Kaydet Menüsü ──
+    json_save_action = menu_bar.addAction("JSON Kaydet")
+    json_save_action.triggered.connect(lambda: _run_json_output(win))
+
     # ── Yardım Menüsü ──
     help_menu = menu_bar.addMenu("Yardım")
     about_action = help_menu.addAction("Hakkında")
@@ -90,3 +94,44 @@ def _save_js_file(main_window, js_filename):
             QMessageBox.information(main_window, "Başarılı", f"Dosya başarıyla kaydedildi:\n{save_path}")
         except Exception as e:
             QMessageBox.critical(main_window, "Kayıt Hatası", f"Dosya kaydedilirken bir hata oluştu:\n{str(e)}")
+
+
+def _run_json_output(win):
+    """Seçili çeviri dosyalarını okuyarak bir JSON dosyasına aktarır."""
+    from core.workers.jsonoutput import JsonOutputWorker
+    from core.utils import natural_sort_key
+    from PyQt6.QtCore import Qt
+    
+    current_item = win.project_list.currentItem()
+    if not current_item:
+        QMessageBox.warning(win, "Proje Seçilmedi", "Lütfen sol listeden bir proje seçin.")
+        return
+        
+    project_name = current_item.text()
+    project_path = os.path.join(os.getcwd(), project_name)
+
+    selected_files = []
+    # QTableWidget üzerinden işaretli satırların 'Çevrilen Dosya' kolonunu(Index 2) alın
+    for row in range(win.file_table.rowCount()):
+        checkbox_item = win.file_table.item(row, 0)
+        if checkbox_item and checkbox_item.checkState() == Qt.CheckState.Checked:
+            translated_file_name = win.file_table.item(row, 2).text()
+            if translated_file_name and translated_file_name != "Yok":
+                file_path = os.path.join(project_path, 'trslt', translated_file_name)
+                if os.path.exists(file_path):
+                    selected_files.append(file_path)
+
+    if not selected_files:
+        QMessageBox.warning(win, "Dosya Seçilmedi", "Lütfen işlenecek çevrilmiş dosya seçin.")
+        return
+        
+    selected_files.sort(key=lambda x: natural_sort_key(os.path.basename(x)))
+    
+    if hasattr(win, 'json_worker') and win.json_worker.isRunning():
+        QMessageBox.warning(win, "Devam Eden İşlem", "Şu anda zaten çalışan bir JSON kayıt işlemi var.")
+        return
+        
+    win.json_worker = JsonOutputWorker(selected_files, project_path, project_name)
+    win.json_worker.error.connect(lambda msg: QMessageBox.critical(win, "Hata", msg))
+    win.json_worker.success.connect(lambda msg: QMessageBox.information(win, "Başarılı", msg))
+    win.json_worker.start()

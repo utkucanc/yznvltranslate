@@ -168,7 +168,8 @@ class ProjectSettingsDialog(QDialog):
         
         self.async_threads_spinbox = QSpinBox()
         self.async_threads_spinbox.setMinimum(1)
-        self.async_threads_spinbox.setMaximum(10)
+        self.async_threads_spinbox.setMaximum(100)
+        self.async_threads_spinbox.setSingleStep(1)
         self.async_threads_spinbox.setValue(async_threads)
         self.async_threads_spinbox.setEnabled(async_enabled)
         self.async_checkbox.toggled.connect(self.async_threads_spinbox.setEnabled)
@@ -183,7 +184,7 @@ class ProjectSettingsDialog(QDialog):
 
         self.batch_chars_spinbox = QSpinBox()
         self.batch_chars_spinbox.setMinimum(5000)
-        self.batch_chars_spinbox.setMaximum(200000)
+        self.batch_chars_spinbox.setMaximum(1000000)
         self.batch_chars_spinbox.setSingleStep(1000)
         self.batch_chars_spinbox.setValue(max_batch_chars)
         self.batch_chars_spinbox.setEnabled(batch_enabled)
@@ -191,7 +192,8 @@ class ProjectSettingsDialog(QDialog):
 
         self.batch_chapters_spinbox = QSpinBox()
         self.batch_chapters_spinbox.setMinimum(1)
-        self.batch_chapters_spinbox.setMaximum(20)
+        self.batch_chapters_spinbox.setMaximum(100)
+        self.batch_chapters_spinbox.setSingleStep(1)
         self.batch_chapters_spinbox.setValue(max_chapters_per_batch)
         self.batch_chapters_spinbox.setEnabled(batch_enabled)
         self.batch_chapters_spinbox.setToolTip("Bir batch'e konabilecek maksimum bölüm sayısı.")

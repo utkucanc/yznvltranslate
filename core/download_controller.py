@@ -14,6 +14,7 @@ from PyQt6.QtWidgets import QMessageBox
 from core.workers.download_worker import DownloadWorker
 from dialogs import SeleniumMenuDialog
 from logger import app_logger
+from core.file_list_manager import FileListManager
 
 
 class DownloadController:
@@ -137,10 +138,12 @@ class DownloadController:
         self.win.sync_database_if_exists()
         self.win.update_file_list_from_selection()
 
-    def _on_file_downloaded(self, full_path, filename):
-        """İndirilen dosyayı tabloya ekler ve başarı bayrağını set eder."""
+    def _on_file_downloaded(self, file_path, filename):
+        """İndirilen dosyayı tabloya ekler ve UI günceller."""
+        app_logger.info(f"DownloadController: Dosya indirildi: {filename}")
         self._download_succeeded = True
-        self.win.add_file_to_table(full_path, filename)
+        self.win.sync_database_if_exists()
+        self.win.update_file_list_from_selection()
 
     def _on_finished(self):
         """Worker finished sinyalini işler."""
@@ -224,3 +227,4 @@ class DownloadController:
         """İndirmeyi durdurur (closeEvent için)."""
         if self.worker:
             self.worker.stop()
+

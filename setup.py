@@ -24,6 +24,7 @@ try:
         "core.workers.token_counter",
         "core.workers.prompt_generator",
         "core.workers.split_worker",
+        "core.workers.jsonoutput",
         "core.workers.ml_terminology_extractor",
         "core.chapter_check_worker",
         "core.utils",
@@ -84,7 +85,7 @@ try:
         "includes": includes,
         "include_files": include_files,
         "excludes": excludes,
-        "include_msvcr": True,
+        "include_msvcr": True,  # DLL eksikliklerini önlemek için Visual C++ kütüphanelerini dahil edin
     }
 
     # --- Platforma Özel Ayarlar ---

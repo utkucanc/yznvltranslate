@@ -62,6 +62,11 @@ class TranslationWorker(QObject):
         self.translated_count_session = 0
         self.global_error = None
 
+        # Endpoint failover
+        self._all_endpoints = []   # [(kind, endpoint_dict, api_key_or_None), ...]
+        self._current_endpoint_idx = 0
+        self._endpoint_exhausted = False
+
         # İstatistik takibi (status bar için)
         self.api_request_count = 0
         self.api_token_count = 0
@@ -76,6 +81,7 @@ class TranslationWorker(QObject):
         self.endpoint_id = endpoint_id
         self.endpoint_config = endpoint_config
         self._init_provider()
+        self._load_all_endpoints()
 
         # Cache & Terminology nesneleri (run() içinde başlatılır)
         self._cache = None
@@ -108,6 +114,129 @@ class TranslationWorker(QObject):
         except Exception as e:
             app_logger.error(f"LLMProvider başlatılamadı: {e}")
             self.provider = None
+
+    def _load_all_endpoints(self):
+        """
+        Failover için kullanılabilir tüm endpoint'leri sıralı olarak yükler.
+        Önce aktif provider'ın endpoint'i gelir, ardından diğerleri eklenir.
+        Yalnızca API anahtarı mevcut olan endpoint'ler listeye alınır.
+        """
+        try:
+            from core.llm_provider import load_endpoints, KeyPool
+            data = load_endpoints()
+            all_eps = data.get("endpoints", [])
+            current_ep_id = getattr(self.provider, 'ep_id', None) if self.provider else None
+
+            # Aktif endpoint'i ilk sıraya koy, geri kalanını ekle
+            ordered = []
+            for ep in all_eps:
+                if ep.get("id") == current_ep_id:
+                    ordered.insert(0, ep)
+                else:
+                    ordered.append(ep)
+
+            # Legacy (proje config) API key ile Gemini endpoint (listede yoksa ekle)
+            if self.api_key and not any(ep.get("id") == "legacy_gemini" for ep in ordered):
+                ordered.append({
+                    "id": "legacy_gemini",
+                    "name": "Proje API Anahtarı (Gemini)",
+                    "type": "gemini",
+                    "model_id": self.model_version,
+                    "base_url": None,
+                    "use_key_rotation": False,
+                    "headers": {}
+                })
+
+            # Yalnızca API anahtarı olan endpoint'leri al
+            valid = []
+            for ep in ordered:
+                ep_id = ep.get("id", "")
+                if ep_id == "legacy_gemini" and self.api_key:
+                    valid.append(("legacy", ep, self.api_key))
+                else:
+                    pool = KeyPool(ep_id, ep.get("use_key_rotation", True))
+                    if pool.has_keys():
+                        valid.append(("pool", ep, None))
+
+            self._all_endpoints = valid
+            self._current_endpoint_idx = 0
+            app_logger.info(
+                f"Endpoint failover listesi: {len(valid)} endpoint. "
+                f"Sıra: {[e[1].get('name', e[1].get('id')) for e in valid]}"
+            )
+        except Exception as e:
+            app_logger.warning(f"Endpoint listesi yüklenemedi: {e}")
+            self._all_endpoints = []
+
+    def _try_next_endpoint(self, failed_at_idx: int) -> bool:
+        """
+        Compare-and-swap tabanlı thread-safe 429 kurtarma mekanizması.
+
+        failed_at_idx: Bu thread hangi endpoint idx'indeyken 429 aldı?
+
+        Adım 1 — Pool İçi Key Rotasyonu (öncelikli):
+          Aynı endpoint'in havuzunda daha fazla anahtar varsa → sıradakine geç.
+          Tüm pool anahtarları tükenmeden farklı endpoint'e geçilmez.
+
+        Adım 2 — Endpoint Geçişi (pool tamamen tükendikten sonra):
+          Tüm pool anahtarları denendiyse → bir sonraki MCP endpoint'ine geç.
+
+        CAS koruması (thread-safe):
+          _current_endpoint_idx != failed_at_idx ise başka thread zaten işledi,
+          mevcut kaynağı kullanmaya devam et (ek geçiş YAPMA).
+
+        Dönüş değeri:
+          True  → Kaynak değiştirildi veya başka thread zaten değiştirdi (devam edebilir)
+          False → Tüm kaynaklar (pool + endpoint'ler) tükendi (dur)
+        """
+        with self.data_lock:
+            if self._endpoint_exhausted:
+                return False
+
+            # Başka bir thread zaten bu endpoint'ten atladı — yeni geçiş YAPMA
+            if self._current_endpoint_idx != failed_at_idx:
+                app_logger.info(
+                    f"429 kurtarma: arayan idx={failed_at_idx}, "
+                    f"mevcut idx={self._current_endpoint_idx} "
+                    "(başka thread zaten geçti). Mevcut kaynak ile devam."
+                )
+                return True
+
+            # ── Adım 1: Aynı endpoint'in pool'unda sıradaki anahtara geç ──
+            if self.provider and self.provider.rotate_key():
+                return True  # Pool içi rotasyon başarılı; log rotate_key() içinde yapılır
+
+            # ── Adım 2: Pool tükendi → bir sonraki MCP endpoint'ine geç ──
+            next_idx = failed_at_idx + 1
+            if next_idx >= len(self._all_endpoints):
+                app_logger.warning(
+                    f"Tüm endpoint'ler ve pool'ları tükendi "
+                    f"({failed_at_idx + 1}/{len(self._all_endpoints)}). "
+                    "Çeviri durduruluyor."
+                )
+                self._endpoint_exhausted = True
+                return False
+
+            kind, ep, key = self._all_endpoints[next_idx]
+            try:
+                from core.llm_provider import LLMProvider
+                if kind == "legacy":
+                    new_provider = LLMProvider(endpoint=ep, api_key=key)
+                else:
+                    new_provider = LLMProvider(endpoint=ep)
+                self.provider = new_provider
+                self._current_endpoint_idx = next_idx
+                app_logger.info(
+                    f"Endpoint geçişi başarılı → {ep.get('name', ep.get('id', '?'))} "
+                    f"(idx={next_idx}/{len(self._all_endpoints)})"
+                )
+                return True
+            except Exception as e:
+                app_logger.error(f"Endpoint geçişi başarısız [{ep.get('id')}]: {e}")
+                # Oluşturulamayan endpoint'i de geç, bir sonrakini dene
+                self._current_endpoint_idx = next_idx
+                return False
+
 
     def _init_cache_and_terminology(self):
         """Cache ve Terminology nesnelerini proje yoluna göre başlatır."""
@@ -188,6 +317,9 @@ class TranslationWorker(QObject):
                 time.sleep(0.5)
             if not self.is_running:
                 return None
+            # API çağrısından önce hangi endpoint'te olduğumuzu yakala (CAS için)
+            with self.data_lock:
+                my_ep_idx = self._current_endpoint_idx
             try:
                 result = self.provider.generate(full_prompt)
                 return result
@@ -203,10 +335,15 @@ class TranslationWorker(QObject):
                             return None
                         time.sleep(0.5)
                 elif ("429" in last_error) or ("ResourceExhausted" in last_error):
-                    with self.data_lock:
-                        self.global_error = f"API sınırına ulaşıldı. Lütfen bekleyin veya API kullanımınızı kontrol edin."
-                        self.is_running = False
-                    return None
+                    app_logger.warning(f"429 / ResourceExhausted (EP idx={my_ep_idx}) — sonraki endpoint'e geçiliyor...")
+                    if self._try_next_endpoint(my_ep_idx):
+                        retry_count = 0
+                        continue
+                    else:
+                        with self.data_lock:
+                            self.global_error = "Tüm API endpoint'leri tükendi. Çeviri durduruluyor."
+                            self.is_running = False
+                        return None
                 else:
                     app_logger.warning(f"API çağrısı başarısız: {last_error}")
                     return None
@@ -442,6 +579,10 @@ class TranslationWorker(QObject):
             if not self.is_running:
                 break
 
+            # API çağrısından önce hangi endpoint'te olduğumuzu yakala (CAS için)
+            with self.data_lock:
+                my_ep_idx = self._current_endpoint_idx
+
             try:
                 translated_text = self.provider.generate(full_prompt)
                 with self.data_lock:
@@ -461,18 +602,23 @@ class TranslationWorker(QObject):
                             break
                         time.sleep(0.5)
                 elif ("429" in last_error) or ("ResourceExhausted" in last_error):
-                    with self.data_lock:
-                        self.global_error = f"API sınırına ulaşıldı ({last_error}). Lütfen bekleyin veya API kullanımınızı kontrol edin."
-                        self.is_running = False
-                    api_limit_hit = True
-                    with self.data_lock:
-                        self.translation_errors[file_name] = f"Kota Aşıldı: {last_error}"
-                    try:
-                        with open(translated_file_path, 'w', encoding='utf-8') as f:
-                            f.write(f"Çeviri hatası (Kota aşıldı): {last_error}\n\nOrijinal Metin:\n{content_text[:500]}...")
-                    except:
-                        pass
-                    break
+                    app_logger.warning(f"429 / ResourceExhausted [{file_name}] (EP idx={my_ep_idx}) — sonraki endpoint'e geçiliyor...")
+                    if self._try_next_endpoint(my_ep_idx):
+                        retry_count = 0
+                        continue
+                    else:
+                        with self.data_lock:
+                            self.global_error = "Tüm API endpoint'leri tükendi. Çeviri durduruluyor."
+                            self.is_running = False
+                        api_limit_hit = True
+                        with self.data_lock:
+                            self.translation_errors[file_name] = f"Kota Aşıldı: {last_error}"
+                        try:
+                            with open(translated_file_path, 'w', encoding='utf-8') as f:
+                                f.write(f"Çeviri hatası (Kota aşıldı): {last_error}\n\nOrijinal Metin:\n{content_text[:500]}...")
+                        except:
+                            pass
+                        break
                 else:
                     with self.data_lock:
                         self.translation_errors[file_name] = f"Çeviri Hatası: {last_error}"
@@ -749,14 +895,18 @@ class TranslationWorker(QObject):
         batches = self.build_batches(pending)
         app_logger.info(f"Batch Çeviri: {len(pending)} dosya, {len(batches)} batch oluşturuldu.")
 
-        file_progress_idx = total_files - len(pending)
-        for batch_idx, batch in enumerate(batches):
-            if not self.is_running:
-                break
-            failed = self._process_batch(batch, batch_idx, len(batches), prompt_hash)
-            file_progress_idx += len(batch)
-            self.progress.emit(file_progress_idx, total_files)
+        _progress_counter = [total_files - len(pending)]  # thread-safe ilerleme sayacı (listeyle mutable closure)
 
+        def _run_single_batch(args):
+            """Tek bir batch'i işler: API çağrısı + fallback. Async executor ile uyumlu."""
+            batch_idx, batch = args
+            if not self.is_running:
+                return
+            failed = self._process_batch(batch, batch_idx, len(batches), prompt_hash)
+            with self.data_lock:
+                _progress_counter[0] += len(batch)
+                cur_progress = _progress_counter[0]
+            self.progress.emit(cur_progress, total_files)
             # Başarısız dosyaları tek tek dene
             for file_name in failed:
                 if not self.is_running:
@@ -764,6 +914,36 @@ class TranslationWorker(QObject):
                 app_logger.info(f"Batch fallback → tekli çeviri: {file_name}")
                 idx = files_to_translate.index(file_name) if file_name in files_to_translate else 0
                 self._process_single_file(idx, file_name, prompt_hash, total_files)
+
+        if self.async_enabled and len(batches) > 1:
+            # ── Batch + Async: Batch'ler ThreadPoolExecutor ile paralel işlenir ──
+            import concurrent.futures
+            app_logger.info(
+                f"Batch Async Modu: {self.async_threads} thread ile "
+                f"{len(batches)} batch paralel işleniyor."
+            )
+            with concurrent.futures.ThreadPoolExecutor(max_workers=self.async_threads) as executor:
+                future_to_idx = {
+                    executor.submit(_run_single_batch, (batch_idx, batch)): batch_idx
+                    for batch_idx, batch in enumerate(batches)
+                    if self.is_running
+                }
+                for fut in concurrent.futures.as_completed(future_to_idx):
+                    b_idx = future_to_idx[fut]
+                    try:
+                        fut.result()
+                    except Exception as be:
+                        app_logger.error(f"Batch async hatası [batch {b_idx}]: {be}")
+                    if not self.is_running:
+                        break
+        else:
+            # ── Sıralı Batch: async kapalı veya tek batch ──
+            if self.async_enabled:
+                app_logger.info("Batch Async Modu: Yalnızca 1 batch var, sıralı işleniyor.")
+            for batch_idx, batch in enumerate(batches):
+                if not self.is_running:
+                    break
+                _run_single_batch((batch_idx, batch))
 
         app_logger.info("Batch Çeviri tamamlandı.")
 

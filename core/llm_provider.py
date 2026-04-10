@@ -174,6 +174,14 @@ class LLMProvider:
             )
             self._single_key = None
 
+        # Kaç anahtar denendi (pool rotasyon takibi için)
+        # 1: İlk anahtar başlangıçta sayılır (_ensure_* çağrısında alınır)
+        self._tried_key_count = 1
+
+        # Thread-safe istemci yeniden başlatma kilidi
+        import threading
+        self._client_lock = threading.Lock()
+
         # Dahili istemciler (lazy init)
         self._gemini_model = None
         self._openai_client = None
@@ -191,9 +199,11 @@ class LLMProvider:
 
     def _ensure_gemini(self):
         if self._gemini_model is None:
-            from google import genai
-            self._gemini_client = genai.Client(api_key=self._get_api_key())
-            self._gemini_model = "initialized" # Bayrak olarak kullanıyoruz
+            with self._client_lock:
+                if self._gemini_model is None:  # double-checked locking
+                    from google import genai
+                    self._gemini_client = genai.Client(api_key=self._get_api_key())
+                    self._gemini_model = "initialized"  # Bayrak olarak kullanıyoruz
 
     def _gemini_generate(self, prompt: str) -> str:
         self._ensure_gemini()
@@ -219,15 +229,55 @@ class LLMProvider:
 
     def _ensure_openai(self):
         if self._openai_client is None:
-            try:
-                from openai import OpenAI
-            except ImportError:
-                raise ImportError("openai paketi yüklü değil.  Lütfen `pip install openai` ile yükleyin.")
-            self._openai_client = OpenAI(
-                api_key=self._get_api_key(),
-                base_url=self.base_url,
-                default_headers=self.headers if self.headers else None
+            with self._client_lock:
+                if self._openai_client is None:  # double-checked locking
+                    try:
+                        from openai import OpenAI
+                    except ImportError:
+                        raise ImportError("openai paketi yüklü değil.  Lütfen `pip install openai` ile yükleyin.")
+                    self._openai_client = OpenAI(
+                        api_key=self._get_api_key(),
+                        base_url=self.base_url,
+                        default_headers=self.headers if self.headers else None
+                    )
+
+    def rotate_key(self) -> bool:
+        """
+        Pool içinde bir sonraki API anahtarına geçer (429 sonrası çağrılır).
+
+        Dönüş değeri:
+          True  → Yeni anahtar mevcut, istemci sıfırlandı. Devam et.
+          False → Havuzdaki tüm anahtarlar tükendi. Endpoint değiştir.
+
+        NOT: Bu metot dışarıdan data_lock ile korunarak çağrılmalıdır.
+        """
+        # Tek anahtar modu: rotasyon yok
+        if self._single_key is not None:
+            return False
+        # Havuz yok veya boş
+        if self._key_pool is None or len(self._key_pool.keys) == 0:
+            return False
+        # Tüm anahtarlar denendi mi?
+        if self._tried_key_count >= len(self._key_pool.keys):
+            app_logger.info(
+                f"Pool tükendi: '{self.ep_name}' — "
+                f"{self._tried_key_count}/{len(self._key_pool.keys)} anahtar denendi."
             )
+            return False
+
+        self._tried_key_count += 1
+        # Gemini / OpenAI istemcisini sıfırla; bir sonraki _ensure_* çağrısında
+        # _key_pool.get_key() sıradaki anahtarı verecek.
+        with self._client_lock:
+            self._gemini_model = None
+            self._gemini_client = None
+            self._openai_client = None
+
+        app_logger.info(
+            f"Pool anahtarı rotasyonu: '{self.ep_name}' "
+            f"({self._tried_key_count}/{len(self._key_pool.keys)}. anahtar kullanılacak)"
+        )
+        return True
 
     def _openai_generate(self, prompt: str) -> str:
         self._ensure_openai()
