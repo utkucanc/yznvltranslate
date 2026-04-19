@@ -57,6 +57,7 @@ try:
         "tiktoken",
         "ebooklib",
         "ui",
+        "numpy",
         "core",
         "core.workers"
     ]
@@ -71,7 +72,6 @@ try:
 
     excludes = [
         "tkinter",
-        "numpy",
         "scipy",
         "pandas",
         "PIL",

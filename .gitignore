@@ -12,6 +12,7 @@ __pycache__/
 AppConfigs/
 .Python
 build/
+odyvar/
 develop-eggs/
 dist/
 downloads/

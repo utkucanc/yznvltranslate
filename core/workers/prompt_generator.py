@@ -230,7 +230,7 @@ class PromptGenWorker(QObject):
 
             info = provider.get_info()
             self.progress.emit(f"Prompt üretiliyor ({info['name']} — {info['model_id']})... Bu işlem 30-60 saniye sürebilir")
-            app_logger.warning(f"Debug - Model: {info['name']} ({info['model_id']}) API: {self.api_key}")  # Sağlayıcı bilgisi debug logunda
+            app_logger.warning(f"Debug - Model: {info['name']} ({info['model_id']}) ") 
             app_logger.info(f"Prompt üretiliyor ({info['name']} — {info['model_id']})... Bu işlem 30-60 saniye sürebilir")
             full_prompt = META_PROMPT_TEMPLATE.format(context=self.context)
             result = provider.generate(full_prompt)
