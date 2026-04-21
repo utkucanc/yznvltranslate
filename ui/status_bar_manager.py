@@ -3,6 +3,7 @@ StatusBarManager — Uygulama alt bilgi barı oluşturucu ve güncelleyici.
 """
 
 from PyQt6.QtWidgets import QFrame, QHBoxLayout, QLabel, QPushButton
+from PyQt6.QtCore import Qt
 
 
 class StatusBarManager:
@@ -13,14 +14,37 @@ class StatusBarManager:
         win = self.win
         status_frame = QFrame()
         status_frame.setFrameShape(QFrame.Shape.StyledPanel)
+        # Inline stil qt-material override'dan korur
         status_frame.setStyleSheet("""
-            QFrame { background-color: #263238; color: #B0BEC5; border-top: 1px solid #37474F; padding: 2px 8px; }
-            QLabel { color: #B0BEC5; font-size: 9pt; }
+            QFrame {
+                background-color: #11111B;
+                color: #A6ADC8;
+                border-top: 1px solid #252537;
+                padding: 0px 6px;
+            }
+            QLabel {
+                color: #A6ADC8;
+                font-size: 8pt;
+                background: transparent;
+                border: none;
+                padding: 0;
+            }
+            QPushButton {
+                color: #89DCEB;
+                background: transparent;
+                border: none;
+                font-size: 13pt;
+                font-weight: bold;
+                padding: 0 4px;
+                min-height: 0;
+                max-height: 24px;
+            }
+            QPushButton:hover { color: #74C7EC; }
         """)
-        status_frame.setFixedHeight(30)
+        status_frame.setFixedHeight(28)
         bar_layout = QHBoxLayout(status_frame)
         bar_layout.setContentsMargins(8, 0, 8, 0)
-        bar_layout.setSpacing(15)
+        bar_layout.setSpacing(14)
 
         win.sb_status_label = QLabel("🟢 Hazır")
         win.sb_model_label = QLabel("🤖 Model: -")
@@ -28,11 +52,11 @@ class StatusBarManager:
         win.sb_speed_label = QLabel("⚡ Hız: -")
         win.sb_requests_label = QLabel("📡 İstek: 0")
         win.sb_tokens_label = QLabel("📊 Token: 0")
-        win.sb_refresh_btn = QPushButton("↻")
-        win.sb_refresh_btn.setFixedWidth(30)
-        win.sb_refresh_btn.setStyleSheet("color: #80CBC4; background: transparent; border: none; font-size: 12pt;")
-        win.sb_refresh_btn.setToolTip("UI Yeniden Yükle")
-        win.sb_refresh_btn.clicked.connect(win.update_file_list_from_selection)
+        win.sb_refresh_btn = QPushButton("↻  UI Yenile")
+        win.sb_refresh_btn.setFixedHeight(22)
+        win.sb_refresh_btn.setToolTip("Dosya listesini yeniden yükle (UI Yenile)")
+        win.sb_refresh_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        win.sb_refresh_btn.clicked.connect(win.refresh_ui_and_theme)
 
         for w in [win.sb_status_label, win.sb_model_label, win.sb_api_label,
                    win.sb_speed_label, win.sb_requests_label, win.sb_tokens_label]:

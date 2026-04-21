@@ -85,6 +85,12 @@ class SeleniumMenuDialog(QDialog):
         self.booktoki_btn.setStyleSheet("background-color: #9E9E9E; color: #E0E0E0; padding: 10px; border-radius: 5px;")
         self.booktoki_btn.clicked.connect(lambda: self.start_download("booktoki"))
         layout.addWidget(self.booktoki_btn)
+
+        self.novelfire_btn = QPushButton("4. novelfire için indirmeyi başlat")
+        self.novelfire_btn.setEnabled(False)
+        self.novelfire_btn.setStyleSheet("background-color: #9E9E9E; color: #E0E0E0; padding: 10px; border-radius: 5px;")
+        self.novelfire_btn.clicked.connect(lambda: self.start_download("novelfire"))
+        layout.addWidget(self.novelfire_btn)
         
         self.cancel_btn = QPushButton("İptal et")
         self.cancel_btn.setStyleSheet("margin-top: 10px; padding: 5px;")
@@ -123,6 +129,8 @@ class SeleniumMenuDialog(QDialog):
         self.shuba_btn.setStyleSheet(blue_style)
         self.booktoki_btn.setEnabled(True)
         self.booktoki_btn.setStyleSheet(blue_style)
+        self.novelfire_btn.setEnabled(True)
+        self.novelfire_btn.setStyleSheet(blue_style)
         
         self.opened_btn.setEnabled(False)
         self.opened_btn.setText("✅ Bölüm Hazır")
@@ -136,6 +144,9 @@ class SeleniumMenuDialog(QDialog):
             self.worker.selenium_chapter_limit = count
             self.current_running_btn = self.booktoki_btn
             other_btn = self.shuba_btn
+        elif site == "novelfire":
+            self.current_running_btn = self.novelfire_btn
+            other_btn = self.booktoki_btn
         else:
             self.current_running_btn = self.shuba_btn
             other_btn = self.booktoki_btn

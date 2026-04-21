@@ -12,6 +12,7 @@ __pycache__/
 oydvar/
 AppConfigs/
 .Python
+oydvar/
 build/
 odyvar/
 develop-eggs/
@@ -188,3 +189,4 @@ cython_debug/
 #  refer to https://docs.cursor.com/context/ignore-files
 .cursorignore
 .cursorindexingignore
+/Kumo desu ga

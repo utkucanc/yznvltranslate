@@ -276,7 +276,7 @@ SHUBA69_JS_CONTENT = """\
 
         url = nextUrl;
         // Sunucuyu yormamak için bekleme süresini biraz artıralım
-        await new Promise(r => setTimeout(r, 2500)); 
+        await new Promise(r => setTimeout(r, 2000)); 
     }
 
     if (allText.length === 0) {

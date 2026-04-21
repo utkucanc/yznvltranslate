@@ -16,14 +16,14 @@ from PyQt6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QTextEdit, QLabel,
     QPushButton, QGroupBox, QRadioButton, QSpinBox,
     QMessageBox, QProgressBar, QTabWidget, QWidget, QFormLayout,
-    QApplication
+    QApplication, QSizePolicy
 )
 from PyQt6.QtGui import QFont
 from PyQt6.QtCore import Qt, QThread, pyqtSignal, QObject
 from logger import app_logger
 
 
-# ─────────────────────── Bağlam Derleme ───────────────────────
+# Bağlam Derleme
 
 class ContextBuilder:
     """Prompt üretimi için bağlam veri toplama."""
@@ -138,7 +138,7 @@ class ContextBuilder:
         return "\n\n".join(parts), total_tokens
 
 
-# ─────────────────────── Meta-Prompt ───────────────────────
+# Meta-Prompt
 
 META_PROMPT_TEMPLATE = """Sen bir profesyonel roman çeviri uzmanısın. 
 
@@ -183,7 +183,7 @@ Yanıtını TAM OLARAK şu formatta ver (her prompt arasında === ayırıcı kul
 """
 
 
-# ─────────────────────── Worker ───────────────────────
+# Worker
 
 class PromptGenWorker(QObject):
     """Arka planda prompt üretim işlemi."""
@@ -240,7 +240,7 @@ class PromptGenWorker(QObject):
             self.error.emit(f"Prompt üretim hatası: {str(e)}")
 
 
-# ─────────────────────── Prompt Ayrıştırma ───────────────────────
+# Prompt Ayrıştırma
 
 def parse_generated_prompts(raw_text: str) -> dict:
     """LLM yanıtından 3 promptu ayrıştırır."""
@@ -275,7 +275,7 @@ def parse_generated_prompts(raw_text: str) -> dict:
     return prompts
 
 
-# ─────────────────────── Dialog ───────────────────────
+# Dialog
 
 class PromptGeneratorDialog(QDialog):
     """Prompt Generator UI penceresi."""
@@ -292,17 +292,35 @@ class PromptGeneratorDialog(QDialog):
         self._worker = None
 
         layout = QVBoxLayout(self)
+        layout.setSpacing(8)
 
         # Wiki giriş alanı
-        wiki_group = QGroupBox("Wiki / Karakter Bilgileri (opsiyonel)")
+        wiki_group = QGroupBox()
+        wiki_group.setTitle("")
         wiki_layout = QVBoxLayout()
+        wiki_layout.setSpacing(5)
+        wiki_layout.setContentsMargins(8, 8, 8, 8)
+
+        # Başlık etiketi - OPSİYONEL vurgulu
+        wiki_title = QLabel(
+            "📚  Wiki / Karakter Bilgileri "
+            "<span style='color:#F9E2AF; font-size:9pt;'>(OPSİYONEL — Boş bırakılabilir)</span>"
+        )
+        wiki_title.setFont(QFont("Segoe UI", 11, QFont.Weight.Bold))
+        wiki_title.setTextFormat(Qt.TextFormat.RichText)
+        wiki_title.setStyleSheet("color: #89B4FA; margin-bottom: 4px;")
+        wiki_layout.addWidget(wiki_title)
+
         self.wiki_edit = QTextEdit()
         self.wiki_edit.setPlaceholderText(
             "Hikayenin evren kuralları, karakter isimleri, özel terimleri buraya girebilirsiniz.\n"
-            "Boş bırakılırsa otomatik olarak bölüm örnekleri kullanılır."
+            "Bu alan OPSİYONEL olup boş bırakılabilir.\n"
+            "Boş bırakılırsa otomatik olarak bolüm örnekleri kullanılır."
         )
-        self.wiki_edit.setMaximumHeight(150)
-        wiki_layout.addWidget(self.wiki_edit)
+        self.wiki_edit.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        self.wiki_edit.setMinimumHeight(140)
+        self.wiki_edit.setMaximumHeight(220)
+        wiki_layout.addWidget(self.wiki_edit)   
         wiki_group.setLayout(wiki_layout)
         layout.addWidget(wiki_group)
 

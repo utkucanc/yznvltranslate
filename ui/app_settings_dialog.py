@@ -15,7 +15,7 @@ from PyQt6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
     QComboBox, QSpinBox, QGroupBox, QFormLayout, QLineEdit,
     QListWidget, QListWidgetItem, QFileDialog, QMessageBox,
-    QTabWidget, QWidget, QFrame
+    QTabWidget, QWidget, QFrame, QInputDialog
 )
 from PyQt6.QtGui import QFont, QIcon
 from PyQt6.QtCore import Qt, pyqtSignal
@@ -33,9 +33,21 @@ DEFAULT_SETTINGS = {
 }
 
 THEMES = {
-    "dark": "Karanlık Mod",
-    "light": "Aydınlık Mod",
-    "system": "Sistem Varsayılanı",
+    "dark":          "Karanlık Mod (Material Teal)",
+    "dark_blue":     "Karanlık Mod (Material Blue)",
+    "dark_purple":   "Karanlık Mod (Material Purple)",
+    "dark_amber":    "Karanlık Mod (Material Amber)",
+    "light":         "Aydınlık Mod",
+    "system":        "Sistem Varsayılanı",
+}
+
+# qt-material tema XML eşlemeleri
+MATERIAL_THEME_MAP = {
+    "dark":        "dark_teal.xml",
+    "dark_blue":   "dark_blue.xml",
+    "dark_purple": "dark_purple.xml",
+    "dark_amber":  "dark_amber.xml",
+    "light":       "light_blue.xml",
 }
 
 
@@ -65,22 +77,79 @@ def save_app_settings(settings: dict):
 
 
 def apply_theme(app, theme_name: str):
-    """QSS temasını uygular. AppConfigs/themes/{theme_name}.qss dosyasını okur."""
+    """
+    Üç aşamalı tema motoru:
+      0. Özel JSON tema: ThemeEngine ile token → QSS dönüşümü (öncelikli)
+      1. qt-material: Kapsamlı Material Design base stili uygular (yerleşik temalar)
+      2. Özel QSS override: AppConfigs/themes/{theme_name}.qss ile
+         proje spesifik stilleri (buton renkleri, gradient progress bar vb.) üstüne bindirir.
+
+    qt-material yüklü değilse graceful fallback: sadece özel QSS kullanılır.
+    """
     if theme_name == "system":
         app.setStyleSheet("")
+        app_logger.info("Tema: Sistem varsayılanı uygulandı.")
         return
 
-    theme_file = os.path.join(os.getcwd(), "AppConfigs", "themes", f"{theme_name}.qss")
+    # ── Aşama 0: Özel JSON tema kontrolü ──
+    custom_json_file = os.path.join(os.getcwd(), "AppConfigs", "themes", f"{theme_name}.json")
+    if os.path.exists(custom_json_file) and theme_name not in ("dark", "light"):
+        try:
+            from core.theme_engine import load_theme_tokens, tokens_to_qss
+            tokens = load_theme_tokens(theme_name)
+            custom_qss = tokens_to_qss(tokens)
+            app.setStyleSheet(custom_qss)
+            app_logger.info(f"Özel JSON teması uygulandı: {theme_name}")
+            return
+        except Exception as e:
+            app_logger.error(f"Özel JSON teması uygulanamadı ({theme_name}): {e}")
+            # Fallback: yerleşik tema mantığına devam et
+
+    # Aşama 1: qt-material base tema
+    material_applied = False
+    material_theme = MATERIAL_THEME_MAP.get(theme_name)
+    if material_theme:
+        try:
+            from qt_material import apply_stylesheet
+            # extra: font ve yoğunluk ayarları
+            extra = {
+                'font_family':    'Segoe UI Variable, Segoe UI',
+                'font_size':      '10px',
+                'density_scale':  '-1',   # Kompakt görünüm
+                'button_shape':   'default',
+            }
+            apply_stylesheet(app, theme=material_theme, extra=extra)
+            material_applied = True
+            app_logger.info(f"qt-material teması uygulandı: {material_theme}")
+        except ImportError:
+            app_logger.warning(
+                "qt-material yüklü değil. Özel QSS'e geçiliyor. "
+                "Yüklemek için: pip install qt-material"
+            )
+        except Exception as e:
+            app_logger.error(f"qt-material uygulanamadı: {e}")
+
+    # Aşama 2: Özel QSS override katmanı 
+    # Hem material üstüne hem de fallback olarak uygulanır
+    # dark_blue, dark_purple, dark_amber varyantları için dark.qss override kullanılır
+    override_name = theme_name if theme_name in ("dark", "light") else (
+        "dark" if theme_name.startswith("dark") else "light"
+    )
+    theme_file = os.path.join(os.getcwd(), "AppConfigs", "themes", f"{override_name}.qss")
     if os.path.exists(theme_file):
         try:
             with open(theme_file, "r", encoding="utf-8") as f:
-                qss = f.read()
-            app.setStyleSheet(qss)
-            app_logger.info(f"Tema uygulandı: {theme_name}")
+                extra_qss = f.read()
+            # Mevcut stile ekle (material üstüne bindir)
+            current_ss = app.styleSheet() if material_applied else ""
+            app.setStyleSheet(current_ss + "\n" + extra_qss)
+            app_logger.info(f"QSS override katmanı uygulandı: {override_name}.qss")
         except Exception as e:
-            app_logger.error(f"Tema dosyası okunamadı ({theme_name}): {e}")
+            app_logger.error(f"Tema override dosyası okunamadı ({override_name}): {e}")
     else:
-        app_logger.warning(f"Tema dosyası bulunamadı: {theme_file}")
+        if not material_applied:
+            app_logger.warning(f"Tema dosyası bulunamadı ve qt-material yüklü değil: {theme_file}")
+
 
 
 class AppSettingsDialog(QDialog):
@@ -106,19 +175,30 @@ class AppSettingsDialog(QDialog):
         # Sekmeler
         tabs = QTabWidget()
 
-        # ── Sekme 1: Görünüm ──
+        # Aşama 1: Görünüm
         appearance_tab = QWidget()
         app_layout = QFormLayout(appearance_tab)
         app_layout.setSpacing(12)
 
         self.theme_combo = QComboBox()
-        for key, label in THEMES.items():
-            self.theme_combo.addItem(label, key)
-        current_theme = self.settings.get("theme", "dark")
-        idx = list(THEMES.keys()).index(current_theme) if current_theme in THEMES else 0
-        self.theme_combo.setCurrentIndex(idx)
+        self._refresh_theme_combo()
 
-        app_layout.addRow("🎨 Tema:", self.theme_combo)
+        # Tema combo + yönetici butonları yan yana
+        theme_row = QHBoxLayout()
+        theme_row.setSpacing(4)
+        theme_row.addWidget(self.theme_combo, 1)
+        theme_edit_btn = QPushButton("🖊️ Düzenle")
+        theme_edit_btn.setFixedWidth(90)
+        theme_edit_btn.setToolTip("Tema Yöneticisini aç")
+        theme_edit_btn.clicked.connect(self._open_theme_manager)
+        theme_row.addWidget(theme_edit_btn)
+        self._save_as_theme_btn = QPushButton("💾 Farklı Kaydet")
+        self._save_as_theme_btn.setFixedWidth(110)
+        self._save_as_theme_btn.setToolTip("Aktif temayı farklı isimle kaydet")
+        self._save_as_theme_btn.clicked.connect(self._save_theme_as)
+        theme_row.addWidget(self._save_as_theme_btn)
+
+        app_layout.addRow("🎨 Tema:", theme_row)
 
         self.notif_combo = QComboBox()
         self.notif_combo.addItems(["Etkin", "Devre Dışı"])
@@ -134,7 +214,7 @@ class AppSettingsDialog(QDialog):
 
         tabs.addTab(appearance_tab, "🎨 Görünüm")
 
-        # ── Sekme 2: ML / Terminoloji ──
+        # Sekme 2: ML / Terminoloji 
         ml_tab = QWidget()
         ml_layout = QFormLayout(ml_tab)
         ml_layout.setSpacing(12)
@@ -165,7 +245,7 @@ class AppSettingsDialog(QDialog):
 
         tabs.addTab(ml_tab, "🤖 ML / Terminoloji")
 
-        # ── Sekme 3: Özel JS Kaynaklar ──
+        # Sekme 3: Özel JS Kaynaklar
         js_tab = QWidget()
         js_layout = QVBoxLayout(js_tab)
 
@@ -212,8 +292,8 @@ class AppSettingsDialog(QDialog):
         btn_layout = QHBoxLayout()
         save_btn = QPushButton("💾 Kaydet ve Uygula")
         save_btn.setStyleSheet("background-color: #4CAF50; color: white; font-weight: bold; padding: 8px; border-radius: 4px;")
-        save_btn.clicked.connect(self._save_and_close)
-        cancel_btn = QPushButton("İptal")
+        save_btn.clicked.connect(self._apply_settings)
+        cancel_btn = QPushButton("Kapat")
         cancel_btn.setStyleSheet("padding: 8px; border-radius: 4px;")
         cancel_btn.clicked.connect(self.reject)
         btn_layout.addStretch()
@@ -221,7 +301,78 @@ class AppSettingsDialog(QDialog):
         btn_layout.addWidget(cancel_btn)
         layout.addLayout(btn_layout)
 
-    # ──────────── JS Kaynak Yönetimi ────────────
+    # Tema Yönetimi
+
+    def _refresh_theme_combo(self):
+        """Tema combo kutusunu tüm mevcut temalarla (yerleşik + özel) yeniler."""
+        try:
+            from core.theme_engine import list_themes as _list_themes
+            all_themes = _list_themes()
+        except Exception:
+            all_themes = [{"name": k, "label": v, "builtin": True} for k, v in THEMES.items()]
+
+        # System seçeneği her zaman ekle
+        current_theme = self.settings.get("theme", "dark")
+        self.theme_combo.blockSignals(True)
+        self.theme_combo.clear()
+        for t in all_themes:
+            self.theme_combo.addItem(t["label"], t["name"])
+        self.theme_combo.addItem("Sistem Varsayılanı", "system")
+
+        # Mevcut temayı seç
+        all_names = [self.theme_combo.itemData(i) for i in range(self.theme_combo.count())]
+        idx = all_names.index(current_theme) if current_theme in all_names else 0
+        self.theme_combo.setCurrentIndex(idx)
+        self.theme_combo.blockSignals(False)
+
+    def _open_theme_manager(self):
+        """Tema Yöneticisi diyalogunu açar."""
+        from ui.theme_manager_dialog import ThemeManagerDialog
+        current = self.settings.get("theme", "dark")
+        dlg = ThemeManagerDialog(current_theme=current, parent=self)
+        dlg.theme_applied.connect(self._on_theme_manager_applied)
+        dlg.exec()
+        # Kapandıktan sonra combo'yu yenile (yeni tema eklenmiş olabilir)
+        self._refresh_theme_combo()
+
+    def _on_theme_manager_applied(self, theme_name: str):
+        """Tema yöneticisinden varsayılan tema değiştiğinde combo'yu günceller."""
+        self.settings["theme"] = theme_name
+        self._refresh_theme_combo()
+
+    def _save_theme_as(self):
+        """Aktif temayı farklı isimle özel tema olarak kaydeder."""
+        from core.theme_engine import (
+            load_theme_tokens, save_custom_theme, BUILTIN_THEMES
+        )
+        current = self.settings.get("theme", "dark")
+        name, ok = QInputDialog.getText(
+            self, "Temayı Farklı Kaydet",
+            "Yeni tema adı (boşluksuz, İngilizce):",
+            text=f"{current}_kopya"
+        )
+        if not ok or not name.strip():
+            return
+        name = name.strip().lower().replace(" ", "_")
+        if name in BUILTIN_THEMES:
+            QMessageBox.warning(self, "Hata", "Bu isim yerleşik bir tema için ayrılmıştır.")
+            return
+        label, ok2 = QInputDialog.getText(
+            self, "Temayı Farklı Kaydet",
+            "Görünür etiket:",
+            text=name.replace("_", " ").title()
+        )
+        if not ok2:
+            return
+        tokens = load_theme_tokens(current)
+        if save_custom_theme(name, label.strip() or name, current if current not in ("system",) else "dark", tokens):
+            self._refresh_theme_combo()
+            QMessageBox.information(self, "Kaydedildi",
+                                    f"'{label}' adıyla özel tema olarak kaydedildi.")
+        else:
+            QMessageBox.critical(self, "Hata", "Farklı kaydetme başarısız.")
+
+    # JS Kaynak Yönetimi
 
     def _refresh_js_list(self):
         self.js_list_widget.clear()
@@ -266,9 +417,9 @@ class AppSettingsDialog(QDialog):
             sources.pop(row)
             self._refresh_js_list()
 
-    # ──────────── Kaydet ────────────
+    # Kaydet 
 
-    def _save_and_close(self):
+    def _apply_settings(self):
         self.settings["theme"] = self.theme_combo.currentData()
         self.settings["notifications_enabled"] = self.notif_combo.currentIndex() == 0
         self.settings["log_level"] = self.log_combo.currentText()
@@ -281,8 +432,7 @@ class AppSettingsDialog(QDialog):
             f"ml_max_tokens={self.settings['ml_max_tokens']}, "
             f"promt_generator_max_tokens={self.settings['promt_generator_max_tokens']}"
         )
-        QMessageBox.information(self, "Kaydedildi", "Ayarlar kaydedildi.\nTema değişikliği hemen uygulanacaktır.")
-        self.accept()
+        QMessageBox.information(self, "Kaydedildi", "Ayarlar başarıyla kaydedildi ve uygulandı.")
 
     def get_settings(self) -> dict:
         return self.settings

@@ -53,8 +53,13 @@ class NewProjectDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Yeni Proje Oluştur")
-        self.setMinimumWidth(500)
+        self.setMinimumWidth(520)
+        self.resize(560, 620)
         layout = QFormLayout(self)
+        layout.setSpacing(8)
+        layout.setContentsMargins(14, 10, 14, 10)
+        layout.setLabelAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+        layout.setFieldGrowthPolicy(QFormLayout.FieldGrowthPolicy.ExpandingFieldsGrow)
         
         self.projectNameInput = QLineEdit(self)
         self.projectLinkInput = QLineEdit(self)
@@ -96,7 +101,12 @@ class NewProjectDialog(QDialog):
         promt_layout.addWidget(self.edit_promt_btn)
 
         self.startpromtinput = QTextEdit(self)
-        self.startpromtinput.setPlaceholderText("Seçilen veya manuel girilen promt buraya gelecek...")
+        self.startpromtinput.setPlaceholderText(
+            "Seçilen veya manuel girilen prompt metni buraya gelecek...\n"
+            "(Prompt seçenerek veya Prompt Editörü'nden seçebilirsiniz)"
+        )
+        self.startpromtinput.setMinimumHeight(120)
+        self.startpromtinput.setMaximumHeight(200)
         
         # --- MCP Endpoint Seçimi ---
         mcp_group = QGroupBox("Yapay Zeka Kaynağı (MCP)")

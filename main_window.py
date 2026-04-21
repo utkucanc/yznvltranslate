@@ -6,10 +6,11 @@ from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QListWidget,
     QTableWidget, QTableWidgetItem, QHBoxLayout,
     QVBoxLayout, QHeaderView, QSizePolicy, QLineEdit,
-    QMessageBox, QPushButton, QLabel
+    QMessageBox, QPushButton, QLabel, QFrame
 )
-from PyQt6.QtGui import QFont, QIcon, QDesktopServices 
-from PyQt6.QtCore import Qt, QUrl
+from PyQt6.QtGui import QFont, QIcon, QDesktopServices
+from PyQt6.QtCore import Qt, QUrl, QTimer, QPropertyAnimation, QEasingCurve
+from PyQt6.QtWidgets import QGraphicsOpacityEffect
 
 # Kendi oluşturduğumuz modülleri içe aktarıyoruz
 from dialogs import (
@@ -34,12 +35,16 @@ from core.process_controller import (
     CleaningController, SplitController, EpubController,
     ErrorCheckController, ChapterCheckController, MLTerminologyController
 )
+from ui.toast_widget import _ToastWidget
+
+
+
 
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Novel Çeviri Aracı V2.1.0")
+        self.setWindowTitle("Novel Çeviri Aracı V2.4.0")
         self.setWindowIcon(QIcon("logo256.ico"))
         self.setGeometry(100, 100, 1400, 800)
 
@@ -55,7 +60,7 @@ class MainWindow(QMainWindow):
         self.config = configparser.ConfigParser()
         self.project_token_cache = {}
 
-        # ── Controller'ları oluştur ──
+        # Controller'ları oluştur
         self.download_ctrl = DownloadController(self)
         self.translation_ctrl = TranslationController(self)
         self.merge_ctrl = MergeController(self)
@@ -67,7 +72,7 @@ class MainWindow(QMainWindow):
         self.chapter_check_ctrl = ChapterCheckController(self)
         self.ml_terminology_ctrl = MLTerminologyController(self)
 
-        # ── UI oluştur ──
+        # UI oluştur
         self.central_widget = QWidget()
         self.setCentralWidget(self.central_widget)
         self.outer_layout = QVBoxLayout(self.central_widget)
@@ -105,7 +110,7 @@ class MainWindow(QMainWindow):
         self._tray_icon = None
         self._setup_tray_icon()
 
-    # ─────────────── Uygulama Yapısı ───────────────
+    # Uygulama Yapısı
     def _ensure_app_structure(self):
         base_path = os.getcwd()
         paths = [
@@ -113,6 +118,7 @@ class MainWindow(QMainWindow):
             os.path.join(base_path, "AppConfigs", "Promts"),
             os.path.join(base_path, "AppConfigs", "APIKeys"),
             os.path.join(base_path, "AppConfigs", "APIKeys", "MCP"),
+            os.path.join(base_path, "AppConfigs", "themes"),
         ]
         try:
             for p in paths:
@@ -120,6 +126,12 @@ class MainWindow(QMainWindow):
                     os.makedirs(p)
         except Exception as e:
             QMessageBox.critical(self, "Hata", f"Klasör yapısı oluşturulamadı: {e}")
+        # Varsayılan tema dosyalarını oluştur (build'de eksik olabilir)
+        try:
+            from core.theme_defaultCreate import ensure_default_themes
+            ensure_default_themes(base_path)
+        except Exception as e:
+            app_logger.warning(f"Tema dosyaları oluşturulamadı: {e}")
         mcp_file = os.path.join(base_path, "AppConfigs", "MCP_Endpoints.json")
         if not os.path.exists(mcp_file):
             try:
@@ -137,61 +149,74 @@ class MainWindow(QMainWindow):
             return config.get("Version", "model_name", fallback="gemini-2.5-flash")
         return "gemini-2.5-flash"
 
-    # ─────────────── Panel Oluşturma ───────────────
+    # Panel Oluşturma 
     def _create_left_panel(self):
         left_layout = QVBoxLayout()
         left_layout.addWidget(QLabel("Projeler:"))
         search_layout = QHBoxLayout()
+        search_layout.setSpacing(4)
         self.project_search_input = QLineEdit()
         self.project_search_input.setPlaceholderText("🔍 Proje ara...")
         self.project_search_input.textChanged.connect(self.file_table_interactions.filter_project_list)
         self.project_search_clear_btn = QPushButton("✕")
-        self.project_search_clear_btn.setFixedWidth(30)
+        self.project_search_clear_btn.setProperty("class", "btn-clear")
+        self.project_search_clear_btn.setFixedSize(22, 22)
+        self.project_search_clear_btn.setToolTip("Aramayı temizle")
+        self.project_search_clear_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         self.project_search_clear_btn.clicked.connect(lambda: self.project_search_input.clear())
         search_layout.addWidget(self.project_search_input)
         search_layout.addWidget(self.project_search_clear_btn)
         left_layout.addLayout(search_layout)
         self.project_list = QListWidget()
-        self.project_list.setFont(QFont("Arial", 10))
+        self.project_list.setFont(QFont("Segoe UI", 9))
         self.project_list.currentItemChanged.connect(self.update_file_list_from_selection)
         self.project_list.setSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Expanding)
-        self.project_list.setMaximumWidth(250)
+        self.project_list.setMaximumWidth(220)
         left_layout.addWidget(self.project_list)
         self.main_layout.addLayout(left_layout, 1)
 
     def _create_center_panel(self):
         center_layout = QVBoxLayout()
         file_search_layout = QHBoxLayout()
+        file_search_layout.setSpacing(4)
         self.file_search_input = QLineEdit()
         self.file_search_input.setPlaceholderText("🔍 Dosya ara...")
         self.file_search_input.textChanged.connect(self.file_table_interactions.filter_file_table)
         self.file_search_clear_btn = QPushButton("✕")
-        self.file_search_clear_btn.setFixedWidth(30)
+        self.file_search_clear_btn.setProperty("class", "btn-clear")
+        self.file_search_clear_btn.setFixedSize(22, 22)
+        self.file_search_clear_btn.setToolTip("Dosya aramasını temizle")
+        self.file_search_clear_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         self.file_search_clear_btn.clicked.connect(lambda: self.file_search_input.clear())
         file_search_layout.addWidget(self.file_search_input)
         file_search_layout.addWidget(self.file_search_clear_btn)
         center_layout.addLayout(file_search_layout)
         self.file_table = QTableWidget()
         self.file_table.setColumnCount(8)
-        headers = ["Seç", "Orijinal Dosya", "Çevrilen Dosya", "Oluşturma Tarihi", "Boyut", "Durum", "Orijinal Token", "Çevrilen Token"]
+        # Kısaltılmış başlıklar - dar sütunlarda okunabilirlik için
+        headers = ["☑", "Orijinal", "Çevrilen", "Tarih", "Boyut", "Durum", "Orig.Token", "Trsl.Token"]
         self.file_table.setHorizontalHeaderLabels(headers)
+        self.file_table.horizontalHeader().setFont(QFont("Segoe UI", 8))
+        self.file_table.horizontalHeader().setDefaultSectionSize(80)
         for i, mode in enumerate([
             QHeaderView.ResizeMode.ResizeToContents,
             QHeaderView.ResizeMode.Stretch,
             QHeaderView.ResizeMode.Stretch,
             QHeaderView.ResizeMode.ResizeToContents,
             QHeaderView.ResizeMode.ResizeToContents,
-            QHeaderView.ResizeMode.Stretch,
+            QHeaderView.ResizeMode.ResizeToContents,
             QHeaderView.ResizeMode.ResizeToContents,
             QHeaderView.ResizeMode.ResizeToContents,
         ]):
             self.file_table.horizontalHeader().setSectionResizeMode(i, mode)
         self.file_table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
         self.file_table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+        self.file_table.setAlternatingRowColors(True)
+        self.file_table.verticalHeader().setDefaultSectionSize(26)  # 10pt font ile uyumlu satır yüksekliği
+        self.file_table.verticalHeader().setVisible(True)  
         center_layout.addWidget(self.file_table)
         self.main_layout.addLayout(center_layout, 4)
 
-    # ─────────────── Delegasyon Metotları ───────────────
     # Controller'lara yönlendirme (butonlar bu metotlara bağlı)
     def start_download_process(self):
         self.download_ctrl.start()
@@ -232,7 +257,7 @@ class MainWindow(QMainWindow):
     def show_api_stats_dialog(self):
         show_api_stats_dialog(self)
 
-    # ─────────────── Dialog Açma ───────────────
+    # Diyalog Açma
     def open_prompt_editor(self):
         PromptEditorDialog(self).exec()
 
@@ -250,11 +275,23 @@ class MainWindow(QMainWindow):
         dialog.settings_changed.connect(self._on_app_settings_changed)
         dialog.exec()
 
+    def open_theme_manager_dialog(self):
+        from ui.theme_manager_dialog import ThemeManagerDialog
+        current = load_app_settings().get("theme", "dark")
+        dlg = ThemeManagerDialog(current_theme=current, parent=self)
+        dlg.theme_applied.connect(self._on_theme_manager_default_changed)
+        dlg.exec()
+
+    def _on_theme_manager_default_changed(self, theme_name: str):
+        """Tema yöneticisinden varsayılan tema değiştiğinde anında uygula."""
+        apply_theme(QApplication.instance(), theme_name)
+        app_logger.info(f"Tema Yöneticisinden tema uygulandı: {theme_name}")
+
     def _on_app_settings_changed(self, settings: dict):
         apply_theme(QApplication.instance(), settings.get("theme", "dark"))
         app_logger.info("Uygulama ayarları güncellendi.")
 
-    # ─────────────── Proje Yönetimi ───────────────
+    # Proje Yönetimi
     def load_existing_projects(self):
         self.project_list.clear()
         current_dir = os.getcwd()
@@ -418,7 +455,7 @@ class MainWindow(QMainWindow):
             except Exception as e:
                 QMessageBox.critical(self, "Kaydetme Hatası", f"Ayarlar kaydedilirken bir hata oluştu:\n{e}")
 
-    # ─────────────── Dosya Listesi Güncelleme ───────────────
+    # Dosya Listesi Güncelle
     def sync_database_if_exists(self):
         """Toplu dosya işlemleri (Çeviri, İndirme, Bölme) bitiminde veritabanını diske göre günceller."""
         if not hasattr(self, 'current_project_path') or not self.current_project_path:
@@ -434,6 +471,13 @@ class MainWindow(QMainWindow):
         except Exception as e:
             from logger import app_logger
             app_logger.error(f"UI DB Sync Hatası: {e}")
+
+    def refresh_ui_and_theme(self):
+        """UI'yi ve aktif temayı yeniden yükler."""
+        self.update_file_list_from_selection()
+        app_settings = load_app_settings()
+        apply_theme(QApplication.instance(), app_settings.get("theme", "dark"))
+        self.show_toast("UI Yenilendi", "Dosya listesi ve tema başarıyla yeniden yüklendi.")
 
     def update_file_list_from_selection(self):
         self.file_table.setRowCount(0)
@@ -495,7 +539,7 @@ class MainWindow(QMainWindow):
         if hasattr(self, 'token_progress_bar'):
             self.token_progress_bar.setVisible(False)
 
-    # ─────────────── UI State Yardımcıları ───────────────
+    # UI Yardımcıları
     def _set_ui_state_on_process_start(self, button, text, bg_color, text_color, max_progress, status_text):
         self.startButton.setEnabled(False)
         self.splitButton.setEnabled(False)
@@ -551,7 +595,7 @@ class MainWindow(QMainWindow):
         
     def add_file_to_table(self, file_path, file_name):
         pass    
-    # ─────────────── Yardımcı Metotlar ───────────────
+    # Yardımcı Metotlar
 
     def on_shutdown_checkbox_toggled(self, checked):
         if checked:
@@ -572,39 +616,51 @@ class MainWindow(QMainWindow):
         QMessageBox.about(self, "Hakkında",
                           "Novel Çeviri Aracı.\n\n"
                           "Bu uygulama UtkuCanC tarafından webnovel çevirilerini yapay zeka desteği ile çevirisininin yapılması amacıyla geliştirilmiştir.\n\n"
-                          "Sürüm: 1.9.7 (Toplu bölüm ekleme özelliği eklendi.)\n"
-                          "Sürüm: 1.9.8 (Çalışmayı etkileyen genel hatalar giderildi.)\n"
                           "Sürüm: 1.9.9 (Uygulama genelinde loglama sistemi eklendi. Token sayımı donma ve veri kaybolma hataları giderildi.)\n\n"
                           "Sürüm: 2.0.0 (MCP-API Desteği, JS Selenium İndirme, Cache Desteği, Terminoloji Desteği ve daha fazlası)\n\n"
                           "Sürüm: 2.1.0 (SRP yeniden yapılandırma, Batch Sistemi(Geliştirilmekte), Asenkron Sistemi, Proje Bazlı SQLite, Sistem iyileştirmesi)\n\n"
+                          "Sürüm: 2.2.0 (Toplu Çeviri (Batch Mode) ile Asenkron Çeviri aynı anda kullanılabilir hale getirildi (Daha hızlı çeviri imkanı.). API Pool ve MCP Endpoint rotasyonu eklendi. Bazı sorunlar giderildi.)\n\n"
+                          "Sürüm: 2.3.0 (Yeni bir arayüz ve iyileştirmelerle birlikte daha stabil ve hızlı bir deneyim sunuldu. Tema düzenleme paneli eklendi.)\n\n"
                           "Geliştirici: UtkuCanC\n"
                           "Mart 2026\n")
 
     
-    # ─────────────── Toast Bildirimi ───────────────
+    # Toast Bildirimi — Saf Qt Widget (System Tray showMessage KULLANILMAZ)
+    # Nedeni: QSystemTrayIcon.showMessage() Windows native bildirimi oluşturur.
+    # Tıklandığında Windows, bildirimi python.exe ile ilişkilendirir ve yeni
+    # bir konsol penceresi açar. Bu davranış Qt sinyalleriyle engellenemez.
+
     def _setup_tray_icon(self):
+        """Tray ikonu kurar (sadece simge için — showMessage kullanmıyoruz)."""
         try:
             from PyQt6.QtWidgets import QSystemTrayIcon
             if QSystemTrayIcon.isSystemTrayAvailable():
                 self._tray_icon = QSystemTrayIcon(self)
                 icon = QIcon("logo256.ico") if os.path.exists("logo256.ico") else QIcon()
                 self._tray_icon.setIcon(icon)
+                self._tray_icon.activated.connect(self._on_tray_activated)
                 self._tray_icon.show()
-                app_logger.info("Sistem tray ikon kuruldu.")
         except Exception as e:
             app_logger.warning(f"Tray ikon kurulamadı: {e}")
 
+    def _on_tray_activated(self, reason):
+        from PyQt6.QtWidgets import QSystemTrayIcon
+        if reason == QSystemTrayIcon.ActivationReason.DoubleClick:
+            self.showNormal()
+            self.activateWindow()
+            self.raise_()
+
     def show_toast(self, title: str, message: str):
+        """Ekranın sağ altında kayan Qt toast bildirimi gösterir."""
         try:
             settings = load_app_settings()
             if not settings.get("notifications_enabled", True):
                 return
-            from PyQt6.QtWidgets import QSystemTrayIcon
-            if self._tray_icon and self._tray_icon.isVisible():
-                self._tray_icon.showMessage(title, message, QSystemTrayIcon.MessageIcon.Information, 5000)
-                app_logger.info(f"Toast bildirimi gönderildi: {title} — {message}")
+            toast = _ToastWidget(title, message, parent=None)
+            toast.show_toast()
+            app_logger.info(f"Toast bildirimi gösterildi: {title} — {message}")
         except Exception as e:
-            app_logger.debug(f"Toast bildirimi gönderilemedi: {e}")
+            app_logger.debug(f"Toast gösterilemedi: {e}")
 
     def _notify_translation_complete(self, total_files: int):
         self.show_toast("✅ Çeviri Tamamlandı", f"{total_files} dosya başarıyla çevrildi.")

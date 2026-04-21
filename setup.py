@@ -22,14 +22,21 @@ try:
         "core.workers.merging_worker",
         "core.workers.epub_worker",
         "core.workers.token_counter",
+        "core.workers.token_count_worker",
+        "core.workers.local_token_count_worker",   
         "core.workers.prompt_generator",
         "core.workers.split_worker",
         "core.workers.jsonoutput",
         "core.workers.ml_terminology_extractor",
+        "core.workers.ml_terminology_worker",       
         "core.chapter_check_worker",
         "core.utils",
         "core.llm_provider",
         "core.js_create",
+        "core.token_controller",                    
+        "core.theme_defaultCreate",                 
+        "core.file_list_manager",
+        "core.process_controller",
         "ui.request_counter_manager",
         "ui.text_editor_dialog",
         "ui.api_stats_dialog",
@@ -39,6 +46,9 @@ try:
         "ui.status_bar_manager",
         "ui.file_table_interactions",
         "ui.file_table_manager",
+        "ui.mcp_server_dialog",                     
+        "ui.terminology_dialog",                    
+        "ui.ml_terminology_range_dialog",           
         "cache.translation_cache",
         "terminology.terminology_manager",
     ]
@@ -58,14 +68,24 @@ try:
         "ebooklib",
         "ui",
         "core",
-        "core.workers"
+        "numpy",
+        "core.workers",
+        "qt_material",   
     ]
 
     # --- Dahil Edilecek Ek Dosyalar ---
     include_files = [
         "logo64.ico",
-        "logo256.ico"
+        "logo256.ico",
+        ("AppConfigs/themes", "AppConfigs/themes"),
     ]
+    try:
+        import qt_material
+        import os as _os
+        qt_material_dir = qt_material.__path__[0]
+        include_files.append((qt_material_dir, "qt_material"))
+    except ImportError:
+        print("[UYARI] qt-material bulunamadı. Tema dosyaları dahil edilmedi.")
 
     # --- Hariç Tutulacaklar ---
 
@@ -106,8 +126,8 @@ try:
     #python setup.py bdist_msi
     setup(
         name="NovelCeviriAraci",
-        version="2.2.1",  
-        description="Novel Çeviri Aracı v2.2.1",
+        version="2.4.0",  
+        description="Novel Çeviri Aracı v2.4.0",
         author="UtkuCanC",
         author_email="utkucancanatan@gmail.com",
         options={"build_exe": build_exe_options},

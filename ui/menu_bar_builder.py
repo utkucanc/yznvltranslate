@@ -43,6 +43,9 @@ def build_menu_bar(main_window):
     gemini_version_action.triggered.connect(win.open_gemini_version_dialog)
     mcp_action = settings_menu.addAction("Yapay Zeka Kaynağı (MCP)")
     mcp_action.triggered.connect(win.open_mcp_dialog)
+    settings_menu.addSeparator()
+    theme_manager_action = settings_menu.addAction("🎨 Tema Yöneticisi")
+    theme_manager_action.triggered.connect(win.open_theme_manager_dialog)
     app_settings_action = settings_menu.addAction("⚙️ Uygulama Ayarları")
     app_settings_action.triggered.connect(win.open_app_settings_dialog)
 

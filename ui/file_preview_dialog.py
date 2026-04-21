@@ -8,7 +8,7 @@ Tam editörde açma butonu sunar.
 import os
 from PyQt6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QTextEdit, QLabel,
-    QPushButton, QFrame
+    QPushButton, QFrame, QSizePolicy
 )
 from PyQt6.QtGui import QFont
 from PyQt6.QtCore import Qt
@@ -26,32 +26,38 @@ class FilePreviewDialog(QDialog):
         file_name = os.path.basename(file_path)
 
         self.setWindowTitle(f"📄 Önizleme — {file_name}")
-        self.resize(700, 500)
+        self.resize(820, 650)
         self.setWindowFlags(self.windowFlags() | Qt.WindowType.WindowMaximizeButtonHint)
 
         layout = QVBoxLayout(self)
+        layout.setSpacing(4)
+        layout.setContentsMargins(6, 6, 6, 6)
 
         # Bilgi şeridi
         info_frame = QFrame()
-        info_frame.setStyleSheet("background-color: #37474F; border-radius: 4px; padding: 4px 8px;")
+        info_frame.setStyleSheet("background-color: #1A2730; border-radius: 4px; padding: 2px 6px;")
+        info_frame.setFixedHeight(28)
         info_layout = QHBoxLayout(info_frame)
-        info_layout.setContentsMargins(8, 4, 8, 4)
+        info_layout.setContentsMargins(6, 2, 6, 2)
+        info_layout.setSpacing(8)
         self.file_label = QLabel(f"📄 {file_name}")
-        self.file_label.setFont(QFont("Arial", 10, QFont.Weight.Bold))
-        self.file_label.setStyleSheet("color: #80CBC4;")
+        self.file_label.setFont(QFont("Segoe UI", 9, QFont.Weight.Bold))
+        self.file_label.setStyleSheet("color: #80CBC4; background: transparent;")
         self.size_label = QLabel("")
-        self.size_label.setStyleSheet("color: #90A4AE; font-size: 9pt;")
+        self.size_label.setStyleSheet("color: #78909C; font-size: 8pt; background: transparent;")
         info_layout.addWidget(self.file_label)
         info_layout.addStretch()
         info_layout.addWidget(self.size_label)
         layout.addWidget(info_frame)
 
-        # Metin görünümü
+        # Metin görünümü — ANA ALAN
         self.text_view = QTextEdit()
         self.text_view.setReadOnly(True)
         self.text_view.setFont(QFont("Consolas", 10))
         self.text_view.setLineWrapMode(QTextEdit.LineWrapMode.WidgetWidth)
-        layout.addWidget(self.text_view)
+        self.text_view.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        self.text_view.setMinimumHeight(300)
+        layout.addWidget(self.text_view, 1)  # stretch=1 -> bütün boşluk buraya
 
         # Butonlar
         btn_layout = QHBoxLayout()

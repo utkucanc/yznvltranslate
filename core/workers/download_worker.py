@@ -90,6 +90,9 @@ class DownloadWorker(QObject):
             if self.selenium_command == "shuba":
                 actual_js_path = os.path.join(os.getcwd(), "69shuba.js")
                 self.status_message.emit("69shuba scripti hazırlanıyor...")
+            elif self.selenium_command == "novelfire":
+                actual_js_path = os.path.join(os.getcwd(), "novelfire.js")
+                self.status_message.emit("novelfire scripti hazırlanıyor...")
             elif self.selenium_command == "booktoki":
                 actual_js_path = os.path.join(os.getcwd(), "booktoki.js")
                 self.status_message.emit("Booktoki scripti hazırlanıyor...")

@@ -6,7 +6,7 @@ ve tekli bölüm çevirisi yapma imkanı sunar.
 import os
 from PyQt6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QTextEdit, QLabel,
-    QPushButton, QMessageBox, QGroupBox, QComboBox, QStatusBar, QWidget
+    QPushButton, QMessageBox, QGroupBox, QComboBox, QStatusBar, QWidget, QFrame, QSizePolicy
 )
 from PyQt6.QtGui import QFont, QShortcut, QKeySequence
 from PyQt6.QtCore import Qt, QThread, pyqtSignal, QObject
@@ -73,21 +73,34 @@ class TextEditorDialog(QDialog):
         self.resize(800, 650)
 
         layout = QVBoxLayout(self)
+        layout.setSpacing(4)
+        layout.setContentsMargins(6, 6, 6, 6)
 
-        # Dosya bilgisi
-        info_layout = QHBoxLayout()
+        # Dosya bilgisi — KOMPAKT BANT (tek satır)
+        info_frame = QFrame()
+        info_frame.setFrameShape(QFrame.Shape.NoFrame)
+        info_frame.setStyleSheet(
+            "QFrame { background-color: #1A2730; border-radius: 4px; padding: 2px 6px; }"
+            "QLabel { color: #80CBC4; font-size: 9pt; background: transparent; }"
+        )
+        info_frame.setMaximumHeight(28)
+        info_layout = QHBoxLayout(info_frame)
+        info_layout.setContentsMargins(6, 2, 6, 2)
+        info_layout.setSpacing(6)
         self.file_label = QLabel(f"📄 {file_name}")
-        self.file_label.setFont(QFont("Arial", 10, QFont.Weight.Bold))
+        self.file_label.setFont(QFont("Segoe UI", 9, QFont.Weight.Bold))
         info_layout.addWidget(self.file_label)
         info_layout.addStretch()
-        layout.addLayout(info_layout)
+        layout.addWidget(info_frame)
 
-        # Metin düzenleyici
+        # Metin düzenleyici — ANA ALAN
         self.text_edit = QTextEdit()
-        self.text_edit.setFont(QFont("Consolas", 11))
+        self.text_edit.setFont(QFont("Consolas", 10))
         self.text_edit.setLineWrapMode(QTextEdit.LineWrapMode.WidgetWidth)
+        self.text_edit.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        self.text_edit.setMinimumHeight(300)
         self.text_edit.textChanged.connect(self.on_text_changed)
-        layout.addWidget(self.text_edit)
+        layout.addWidget(self.text_edit, 1)  # stretch=1 → tam ekran kapla
 
         # İstatistik barı
         stats_layout = QHBoxLayout()
