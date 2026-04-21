@@ -496,10 +496,26 @@ class MLTerminologyController:
             QMessageBox.warning(self.win, "Çalışıyor", "Terminoloji işlemi zaten devam ediyor.")
             return
 
-        self.thread = MLTerminologyWorker(project_path)
+        # ── Bölüm Aralığı Diyalogunu Aç ──
+        from ui.ml_terminology_range_dialog import MLTerminologyRangeDialog
+        from PyQt6.QtWidgets import QDialog
+        dlg = MLTerminologyRangeDialog(project_path, parent=self.win)
+        if dlg.exec() != QDialog.DialogCode.Accepted:
+            return  # Kullanıcı iptal etti
+
+        start_ch, end_ch, max_tokens = dlg.get_values()
+
+        # NOT: _save_last_operation işlem bittikten sonra gerçek son bölümle çağrılır.
+        # (Başlangıçta kaydedilirse, token limiti nedeniyle erken durulduğunda yanlış değer kalır.)
+
+        self.thread = MLTerminologyWorker(project_path, start_chapter=start_ch,
+                                          end_chapter=end_ch, max_tokens=max_tokens)
         self.thread.progress_update.connect(lambda msg: self.win.statusLabel.setText(f"Durum: {msg}"))
         self.thread.error_signal.connect(self._on_error)
-        self.thread.finished_signal.connect(self._on_finished)
+        # finished_signal(int) → gerçekte işlenen son bölüm numarasını taşır
+        self.thread.finished_signal.connect(
+            lambda actual_end_ch: self._on_finished(project_path, start_ch, actual_end_ch)
+        )
 
         self.win._set_ui_state_on_process_start(
             self.win.generateTerminologyButton, "Terminoloji Üretiliyor...",
@@ -508,19 +524,44 @@ class MLTerminologyController:
         self.win.progressBar.setMaximum(0)
         self.thread.start()
 
+    def _save_last_operation(self, project_path: str, start_ch: int, end_ch: int):
+        """Son terminoloji işleminin bölüm numaralarını proje config.ini'sine yazar."""
+        import configparser
+        config_path = os.path.join(project_path, "config", "config.ini")
+        cfg = configparser.ConfigParser()
+        try:
+            if os.path.exists(config_path):
+                cfg.read(config_path, encoding="utf-8")
+            if "TerminologyOp" not in cfg:
+                cfg["TerminologyOp"] = {}
+            cfg["TerminologyOp"]["last_start_chapter"] = str(start_ch)
+            cfg["TerminologyOp"]["last_end_chapter"] = str(end_ch)
+            with open(config_path, "w", encoding="utf-8") as f:
+                cfg.write(f)
+        except Exception as e:
+            from logger import app_logger
+            app_logger.warning(f"Terminoloji bölüm bilgisi config.ini'ye yazılamadı: {e}")
+
     def _on_error(self, err):
         QMessageBox.critical(self.win, "Terminoloji Hatası", str(err))
         self.win._set_ui_state_on_process_end(
-            self.win.generateTerminologyButton, "Yapay Zeka İle Terminoloji Üret",
+            self.win.generateTerminologyButton, "YZ İle Terminoloji Üret",
             "#E91E63", "white", f"Durum: Hata - {err}"
         )
         self.thread = None
 
-    def _on_finished(self):
-        QMessageBox.information(self.win, "Başarılı", "Yapay Zeka ile terminoloji çıkarımı başarıyla tamamlandı. Sözlüğe yeni terimler eklendi.")
+    def _on_finished(self, project_path: str, start_ch: int, actual_end_ch: int):
+        """İşlem bittiğinde gerçek son bölüm numarasıyla config.ini'yi günceller."""
+        # Gerçekte işlenen son bölümü kaydet (kullanıcının girdiği değil)
+        self._save_last_operation(project_path, start_ch, actual_end_ch)
+
+        QMessageBox.information(self.win, "Başarılı",
+                                f"Yapay Zeka ile terminoloji çıkarımı başarıyla tamamlandı.\n"
+                                f"İşlenen bölümler: {start_ch} → {actual_end_ch}\n"
+                                f"Sözlüğe yeni terimler eklendi.")
         self.win._set_ui_state_on_process_end(
-            self.win.generateTerminologyButton, "Yapay Zeka İle Terminoloji Üret",
-            "#E91E63", "white", "Durum: Hazır"
+            self.win.generateTerminologyButton, "YZ İle Terminoloji Üret",
+            "#E91E63", "white", f"Durum: Hazır (Son bölüm: {actual_end_ch})"
         )
         self.thread = None
 

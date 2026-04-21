@@ -5,25 +5,24 @@ Sorumluluklar:
   - Token sayma thread/worker oluşturma ve yaşam döngüsü yönetimi
   - Token cache yönetimi
   - Tablo güncelleme mantığı (token sütunları)
+
+v2.4.0: API gerektirmeyen yerel sayıma (LocalTokenCountWorker) geçildi.
 """
 
 import os
-import configparser
-from PyQt6.QtCore import Qt, QThread
+from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QColor
 from PyQt6.QtWidgets import QMessageBox, QTableWidgetItem
 
 from core.workers.token_counter import save_token_data
-from core.workers.token_count_worker import TokenCountWorker
 from logger import app_logger
 
 
 class TokenController:
-    """Token sayma işlemlerini yönetir."""
+    """Token sayma işlemlerini yönetir (yerel, API gerektirmez)."""
 
     def __init__(self, main_window):
         self.win = main_window
-        self.thread = None
         self.worker = None
 
     def start(self):
@@ -51,29 +50,6 @@ class TokenController:
             QMessageBox.warning(self.win, "Uyarı", "Lütfen token hesaplanmasını istediğiniz dosyaları kutucuklarından işaretleyin.")
             return
 
-        config_path = os.path.join(self.win.current_project_path, 'config', 'config.ini')
-        api_key = ""
-        mcp_endpoint_id = None
-        if os.path.exists(config_path):
-            try:
-                self.win.config.read(config_path)
-                api_key = self.win.config.get('API', 'gemini_api_key', fallback="")
-                mcp_endpoint_id = self.win.config.get('MCP', 'endpoint_id', fallback=None)
-            except configparser.Error:
-                api_key = ""
-                mcp_endpoint_id = None
-
-        if not api_key and not mcp_endpoint_id:
-            QMessageBox.warning(self.win, "API Anahtarı / MCP Eksik", "Token sayımı için Gemini API anahtarı veya MCP bağlantısı gereklidir. Lütfen proje ayarlarına girerek yapılandırın.")
-            self.win.total_tokens_label.setText("Toplam Token: API Anahtarı Yok")
-            self.win.total_original_tokens_label.setText("Orijinal Token: API Anahtarı Yok")
-            self.win.total_translated_tokens_label.setText("Çevrilen Token: API Anahtarı Yok")
-            self.win.token_progress_bar.setVisible(False)
-            self.win.total_tokens_label.setVisible(True)
-            self.win.total_original_tokens_label.setVisible(True)
-            self.win.total_translated_tokens_label.setVisible(True)
-            return
-
         # UI butonlarını devre dışı bırak
         self.win.startButton.setEnabled(False)
         self.win.translateButton.setEnabled(False)
@@ -86,7 +62,7 @@ class TokenController:
         self.win.token_progress_bar.setValue(0)
         self.win.token_progress_bar.setMaximum(0)
         self.win.token_progress_bar.setVisible(True)
-        self.win.statusLabel.setText("Durum: Token'lar hesaplanıyor...")
+        self.win.statusLabel.setText("Durum: Token'lar yerel olarak hesaplanıyor...")
         self.win.total_tokens_label.setText("Toplam Token: Hesaplıyor...")
         self.win.total_original_tokens_label.setText("Orijinal Token: Hesaplıyor...")
         self.win.total_translated_tokens_label.setText("Çevrilen Token: Hesaplıyor...")
@@ -94,23 +70,19 @@ class TokenController:
         self.win.total_original_tokens_label.setVisible(True)
         self.win.total_translated_tokens_label.setVisible(True)
 
-        self.thread = QThread()
-        gemini_version = self.win.get_gemini_model_version()
-        self.worker = TokenCountWorker(
-            self.win.current_project_path, api_key, self.win.project_token_cache,
-            gemini_version, selected_files, endpoint_id=mcp_endpoint_id
+        download_folder = os.path.join(self.win.current_project_path, 'dwnld')
+        translated_folder = os.path.join(self.win.current_project_path, 'trslt')
+
+        from core.workers.local_token_count_worker import LocalTokenCountWorker
+        self.worker = LocalTokenCountWorker(
+            self.win.current_project_path, selected_files,
+            download_folder, translated_folder
         )
-        self.worker.moveToThread(self.thread)
-
-        self.thread.started.connect(self.worker.run)
-        self.worker.finished.connect(self._on_finished)
         self.worker.progress.connect(self._on_progress)
+        self.worker.finished.connect(self._on_finished)
         self.worker.error.connect(self._on_error)
-        self.worker.finished.connect(self.thread.quit)
-        self.thread.finished.connect(self._cleanup)
-
-        self.thread.start()
-        app_logger.info("Token sayım thread'i başlatıldı.")
+        self.worker.start()
+        app_logger.info("Yerel token sayım worker'ı başlatıldı.")
 
     def _on_progress(self, current, total):
         self.win.token_progress_bar.setMaximum(total)
@@ -127,15 +99,40 @@ class TokenController:
         self.win.token_count_button.setStyleSheet("background-color: #673AB7; color: white; border-radius: 5px; padding: 10px;")
         self.win._set_all_buttons_enabled_state(True)
 
-        # Önbelleği güncelleyelim
-        self.win.project_token_cache = results
+        # Mevcut cache ile birleştir (yeni sayılanlar üzerine yaz, diğerlerini koru)
+        existing_cache = self.win.project_token_cache or {}
+        existing_file_data = existing_cache.get("file_token_data", {})
+        new_file_data = results.get("file_token_data", {})
+
+        for fname, data in new_file_data.items():
+            existing_entry = existing_file_data.get(fname, {})
+            existing_entry.update(data)
+            existing_file_data[fname] = existing_entry
+
+        # Toplam token sayılarını tüm cache üzerinden yeniden hesapla
+        total_original = sum(
+            v.get("original_tokens", 0) for v in existing_file_data.values()
+            if isinstance(v.get("original_tokens"), int)
+        )
+        total_translated = sum(
+            v.get("translated_tokens", 0) for v in existing_file_data.values()
+            if isinstance(v.get("translated_tokens"), int)
+        )
+
+        merged_results = {
+            "file_token_data": existing_file_data,
+            "total_original_tokens": total_original,
+            "total_translated_tokens": total_translated,
+            "total_combined_tokens": total_original + total_translated,
+        }
+        self.win.project_token_cache = merged_results
         config_folder_path = os.path.join(self.win.current_project_path, 'config')
         save_token_data(config_folder_path, self.win.project_token_cache)
 
-        file_tokens = results['file_token_data']
-        total_original = results['total_original_tokens']
-        total_translated = results['total_translated_tokens']
-        total_combined = results['total_combined_tokens']
+        file_tokens = merged_results['file_token_data']
+        total_original = merged_results['total_original_tokens']
+        total_translated = merged_results['total_translated_tokens']
+        total_combined = merged_results['total_combined_tokens']
 
         # Tablo güncelleme (performans optimizeli)
         self.win.file_table.setSortingEnabled(False)
@@ -185,7 +182,7 @@ class TokenController:
         self.win.total_tokens_label.setVisible(True)
         self.win.total_original_tokens_label.setVisible(True)
         self.win.total_translated_tokens_label.setVisible(True)
-        app_logger.info(f"[PERF] Token sayımı UI güncellemesi tamamlandı: {_time.time()-_t0:.3f}s")
+        app_logger.info(f"[PERF] Yerel token sayımı UI güncellemesi tamamlandı: {_time.time()-_t0:.3f}s")
 
     def _on_error(self, message):
         app_logger.error(f"Token sayım hatası: {message}")
@@ -202,27 +199,15 @@ class TokenController:
         self.win.total_original_tokens_label.setVisible(True)
         self.win.total_translated_tokens_label.setVisible(True)
 
-    def _cleanup(self):
-        """Token sayım thread'ini güvenli şekilde temizler."""
-        app_logger.info("Token sayım thread'i temizleniyor...")
-        if self.worker:
-            self.worker.deleteLater()
-            self.worker = None
-        if self.thread:
-            self.thread.deleteLater()
-            self.thread = None
-        app_logger.info("Token sayım thread'i temizlendi.")
-
     def _stop_existing(self):
-        if self.thread and self.thread.isRunning():
+        if self.worker and self.worker.isRunning():
             self.worker.stop()
-            self.thread.quit()
-            self.thread.wait(1000)
-            self.thread = None
+            self.worker.quit()
+            self.worker.wait(1000)
             self.worker = None
 
     def is_running(self):
-        return self.thread is not None and self.thread.isRunning()
+        return self.worker is not None and self.worker.isRunning()
 
     def stop(self):
         if self.worker:

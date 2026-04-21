@@ -128,7 +128,33 @@ class TerminologyDialog(QDialog):
 
         layout.addLayout(btn_layout)
 
+        # ── Son ML İşlem Bilgisi ──
+        self.last_op_label = QLabel("")
+        self.last_op_label.setAlignment(Qt.AlignmentFlag.AlignLeft)
+        self.last_op_label.setStyleSheet("color: #888; font-size: 9pt; margin-top: 4px;")
+        layout.addWidget(self.last_op_label)
+
         self._refresh_table()
+        self._refresh_last_operation_label()
+
+    def _refresh_last_operation_label(self):
+        """Proje config.ini'den son terminoloji işlemi bilgisini okur ve QLabel'ı günceller."""
+        try:
+            import configparser
+            config_path = os.path.join(self.project_path, "config", "config.ini")
+            if os.path.exists(config_path):
+                cfg = configparser.ConfigParser()
+                cfg.read(config_path, encoding="utf-8")
+                last_start = cfg.getint("TerminologyOp", "last_start_chapter", fallback=0)
+                last_end = cfg.getint("TerminologyOp", "last_end_chapter", fallback=0)
+                if last_start > 0 and last_end > 0:
+                    self.last_op_label.setText(
+                        f"Son İşlem: Başlangıç Bölümü: {last_start}, Bitiş Bölümü: {last_end}"
+                    )
+                    return
+        except Exception:
+            pass
+        self.last_op_label.setText("Son İşlem: —")
 
     def _refresh_table(self):
         from PyQt6.QtWidgets import QTableWidgetItem

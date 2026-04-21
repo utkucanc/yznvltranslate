@@ -82,7 +82,7 @@ def build_right_panel(main_window):
     win.limit_spinbox.setMaximum(99999)
     win.limit_spinbox.setValue(20)
     win.limit_spinbox.setEnabled(True)
-    win.limit_spinbox.setFixedWidth(70)
+    win.limit_spinbox.setFixedWidth(100)
     win.limit_checkbox.toggled.connect(win.limit_spinbox.setEnabled)
     limit_layout.addWidget(win.limit_checkbox)
     limit_layout.addStretch()

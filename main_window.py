@@ -44,7 +44,7 @@ from ui.toast_widget import _ToastWidget
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Novel Çeviri Aracı V2.3.0")
+        self.setWindowTitle("Novel Çeviri Aracı V2.4.0")
         self.setWindowIcon(QIcon("logo256.ico"))
         self.setGeometry(100, 100, 1400, 800)
 
@@ -118,6 +118,7 @@ class MainWindow(QMainWindow):
             os.path.join(base_path, "AppConfigs", "Promts"),
             os.path.join(base_path, "AppConfigs", "APIKeys"),
             os.path.join(base_path, "AppConfigs", "APIKeys", "MCP"),
+            os.path.join(base_path, "AppConfigs", "themes"),
         ]
         try:
             for p in paths:
@@ -125,6 +126,12 @@ class MainWindow(QMainWindow):
                     os.makedirs(p)
         except Exception as e:
             QMessageBox.critical(self, "Hata", f"Klasör yapısı oluşturulamadı: {e}")
+        # Varsayılan tema dosyalarını oluştur (build'de eksik olabilir)
+        try:
+            from core.theme_defaultCreate import ensure_default_themes
+            ensure_default_themes(base_path)
+        except Exception as e:
+            app_logger.warning(f"Tema dosyaları oluşturulamadı: {e}")
         mcp_file = os.path.join(base_path, "AppConfigs", "MCP_Endpoints.json")
         if not os.path.exists(mcp_file):
             try:

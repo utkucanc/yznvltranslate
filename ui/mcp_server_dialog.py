@@ -90,28 +90,39 @@ class MCPServerDialog(QDialog):
         
         form = QFormLayout()
         self.id_input = QLineEdit()
-        self.id_input.setPlaceholderText("benzersiz_kimlik")
+        self.id_input.setPlaceholderText("benzersiz_kimlik [Listeleme için gerekli. Önemsiz.]")
         self.name_input = QLineEdit()
-        self.name_input.setPlaceholderText("Sunucu Adı")
+        self.name_input.setPlaceholderText("Sunucu Adı [Listeleme için gerekli. Önemsiz.]")
         
+        # ── Tür Seçimi ──
         self.type_combo = QComboBox()
         self.type_combo.addItems(["gemini", "openai_compatible"])
+        self.type_combo.currentTextChanged.connect(self._on_type_changed)
         
+        # ── Model Seçimi (gemini → combo, openai → text) ──
+        # Gemini model combo
+        self.model_combo = QComboBox()
+        self.model_combo.setEditable(True)
+        self._populate_gemini_models()
+
+        # OpenAI uyumlu için manuel giriş
         self.model_input = QLineEdit()
-        self.model_input.setPlaceholderText("model-id (ör: gemini-2.5-flash)")
-        
+        self.model_input.setPlaceholderText("model-id (ör: gpt-4o, llama-3.3-70b)")
+
+        # ── URL Girişi ──
         self.url_input = QLineEdit()
-        self.url_input.setPlaceholderText("https://api.example.com/v1 (boş = varsayılan)")
+        self.url_input.setPlaceholderText("https://api.example.com/v1 (Zorunlu!)")
         
         self.rotation_check = QCheckBox("Anahtar Rotasyonu (Key Rotation)")
         self.rotation_check.setChecked(True)
         
         self.headers_input = QLineEdit()
-        self.headers_input.setPlaceholderText('{"HTTP-Referer": "...", "X-Title": "..."}')
+        self.headers_input.setPlaceholderText('{"HTTP-Referer": "...", "X-Title": "..."} [Kaynak zorunlu kılmadıysa boş bırakın.]')
         
         form.addRow("ID:", self.id_input)
         form.addRow("Ad:", self.name_input)
         form.addRow("Tür:", self.type_combo)
+        form.addRow("Model:", self.model_combo)
         form.addRow("Model ID:", self.model_input)
         form.addRow("Base URL:", self.url_input)
         form.addRow(self.rotation_check)
@@ -125,7 +136,13 @@ class MCPServerDialog(QDialog):
         self.keys_edit.setMaximumHeight(120)
         right_layout.addWidget(self.keys_edit)
         
-        # Butonlar
+        # ── API Aktar Butonu (üstte) ──
+        self.import_api_btn = QPushButton("📥 API Editöründen API Aktar")
+        self.import_api_btn.setStyleSheet("background-color: #607D8B; color: white; font-weight: bold; padding: 6px;")
+        self.import_api_btn.clicked.connect(self.import_from_api_editor)
+        right_layout.addWidget(self.import_api_btn)
+
+        # Butonlar (Kaydet ve Bağlantı Testi — import butonunun altında)
         action_layout = QHBoxLayout()
         self.save_btn = QPushButton("💾 Kaydet")
         self.save_btn.setStyleSheet("background-color: #2196F3; color: white; font-weight: bold; padding: 6px;")
@@ -148,8 +165,117 @@ class MCPServerDialog(QDialog):
         main_layout.addLayout(left_layout, 1)
         main_layout.addLayout(right_layout, 2)
         
+        # Başlangıç durumu: gemini seçili
+        self._on_type_changed("gemini")
         self._load_list()
-    
+
+    # ── Tür Değişince Model ve URL Göster/Gizle ──
+    def _on_type_changed(self, type_text: str):
+        """Tür seçimine göre model alanı ve URL alanını göster/gizle."""
+        is_gemini = (type_text == "gemini")
+        self.model_combo.setVisible(is_gemini)
+        self.model_input.setVisible(not is_gemini)
+        self.url_input.setVisible(not is_gemini)
+
+    def _populate_gemini_models(self):
+        """Gemini model listesini API'den veya varsayılan listeden doldurur."""
+        models = []
+        try:
+            from google import genai
+            keys_folder = get_config_path("APIKeys")
+            if os.path.exists(keys_folder):
+                api_keys = [f for f in os.listdir(keys_folder) if f.endswith('.txt')]
+                if api_keys:
+                    key_path = os.path.join(keys_folder, api_keys[0])
+                    with open(key_path, 'r', encoding='utf-8') as f:
+                        api_key = f.read().strip()
+                    if api_key:
+                        client = genai.Client(api_key=api_key)
+                        for m in client.models.list():
+                            if 'generateContent' in m.supported_actions:
+                                name = m.name.replace("models/", "")
+                                models.append(name)
+        except Exception as e:
+            app_logger.debug(f"Gemini model listesi alınamadı (MCP): {e}")
+
+        if not models:
+            models = [
+                "gemini-2.5-flash",
+                "gemini-2.5-pro",
+                "gemini-2.0-flash",
+                "gemini-2.0-flash-lite",
+                "gemini-1.5-flash",
+                "gemini-1.5-pro",
+            ]
+        self.model_combo.clear()
+        self.model_combo.addItems(models)
+
+    def import_from_api_editor(self):
+        """API Editöründeki kayıtlı anahtarlardan seçim yaparak keys_edit'e ekler."""
+        keys_folder = get_config_path("APIKeys")
+        if not os.path.exists(keys_folder):
+            QMessageBox.warning(self, "Uyarı", "API Editöründe kayıtlı anahtar bulunamadı.")
+            return
+
+        key_files = [f for f in os.listdir(keys_folder) if f.endswith('.txt')]
+        if not key_files:
+            QMessageBox.warning(self, "Uyarı", "API Editöründe kayıtlı anahtar bulunamadı.")
+            return
+
+        # Anahtar adlarını listele
+        key_names = [f.replace('.txt', '') for f in key_files]
+
+        # Çoklu seçim diyalogu
+        from PyQt6.QtWidgets import QListWidget, QListWidgetItem, QDialogButtonBox
+        dlg = QDialog(self)
+        dlg.setWindowTitle("API Anahtarı Seç")
+        dlg.resize(350, 300)
+        dlg_layout = QVBoxLayout(dlg)
+        dlg_layout.addWidget(QLabel("İçe aktarmak istediğiniz anahtarları seçin:"))
+
+        list_widget = QListWidget()
+        list_widget.setSelectionMode(QListWidget.SelectionMode.MultiSelection)
+        for name in key_names:
+            list_widget.addItem(name)
+        dlg_layout.addWidget(list_widget)
+
+        buttons = QDialogButtonBox(
+            QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel,
+            dlg
+        )
+        buttons.accepted.connect(dlg.accept)
+        buttons.rejected.connect(dlg.reject)
+        dlg_layout.addWidget(buttons)
+
+        if dlg.exec() != QDialog.DialogCode.Accepted:
+            return
+
+        selected_items = list_widget.selectedItems()
+        if not selected_items:
+            return
+
+        added_keys = []
+        for item in selected_items:
+            name = item.text()
+            key_path = os.path.join(keys_folder, name + ".txt")
+            try:
+                with open(key_path, 'r', encoding='utf-8') as f:
+                    key_value = f.read().strip()
+                if key_value:
+                    added_keys.append(key_value)
+            except Exception as e:
+                app_logger.warning(f"Anahtar okunamadı ({name}): {e}")
+
+        if added_keys:
+            existing = self.keys_edit.toPlainText().strip()
+            existing_list = [k.strip() for k in existing.split('\n') if k.strip()]
+            for k in added_keys:
+                if k not in existing_list:
+                    existing_list.append(k)
+            self.keys_edit.setText('\n'.join(existing_list))
+            QMessageBox.information(self, "Başarılı", f"{len(added_keys)} anahtar içe aktarıldı.")
+
+    # ── Mevcut endpoint seçilince formu doldur ──
     def _load_list(self):
         """Endpoint listesini yükler."""
         self.endpoint_list.clear()
@@ -180,8 +306,16 @@ class MCPServerDialog(QDialog):
             ep = endpoints[idx]
             self.id_input.setText(ep.get("id", ""))
             self.name_input.setText(ep.get("name", ""))
-            self.type_combo.setCurrentText(ep.get("type", "gemini"))
-            self.model_input.setText(ep.get("model_id", ""))
+            ep_type = ep.get("type", "gemini")
+            self.type_combo.setCurrentText(ep_type)
+            self._on_type_changed(ep_type)
+
+            model_id = ep.get("model_id", "")
+            if ep_type == "gemini":
+                self.model_combo.setCurrentText(model_id)
+            else:
+                self.model_input.setText(model_id)
+
             self.url_input.setText(ep.get("base_url", "") or "")
             self.rotation_check.setChecked(ep.get("use_key_rotation", True))
             import json
@@ -200,12 +334,14 @@ class MCPServerDialog(QDialog):
         self.id_input.clear()
         self.name_input.clear()
         self.type_combo.setCurrentIndex(0)
+        self.model_combo.setCurrentIndex(0)
         self.model_input.clear()
         self.url_input.clear()
         self.rotation_check.setChecked(True)
         self.headers_input.clear()
         self.keys_edit.clear()
         self.test_result_label.clear()
+        self._on_type_changed("gemini")
     
     def save_endpoint(self):
         ep_id = self.id_input.text().strip()
@@ -224,13 +360,21 @@ class MCPServerDialog(QDialog):
             except _json.JSONDecodeError:
                 QMessageBox.warning(self, "Hata", "Headers alanı geçerli JSON formatında olmalıdır.")
                 return
-        
+
+        ep_type = self.type_combo.currentText()
+        if ep_type == "gemini":
+            model_id = self.model_combo.currentText().strip()
+            base_url = None
+        else:
+            model_id = self.model_input.text().strip()
+            base_url = self.url_input.text().strip() or None
+
         new_ep = {
             "id": ep_id,
             "name": ep_name,
-            "type": self.type_combo.currentText(),
-            "model_id": self.model_input.text().strip(),
-            "base_url": self.url_input.text().strip() or None,
+            "type": ep_type,
+            "model_id": model_id,
+            "base_url": base_url,
             "use_key_rotation": self.rotation_check.isChecked(),
             "headers": headers
         }
@@ -240,7 +384,6 @@ class MCPServerDialog(QDialog):
             data = load_endpoints()
             endpoints = data.get("endpoints", [])
             
-            # Mevcut endpoint'i güncelle veya yeni ekle
             found = False
             for i, ep in enumerate(endpoints):
                 if ep["id"] == ep_id:
@@ -253,7 +396,6 @@ class MCPServerDialog(QDialog):
             data["endpoints"] = endpoints
             save_endpoints(data)
             
-            # Anahtarları kaydet
             keys_text = self.keys_edit.toPlainText().strip()
             keys = [k.strip() for k in keys_text.split("\n") if k.strip()]
             save_api_keys(ep_id, keys)
@@ -279,7 +421,6 @@ class MCPServerDialog(QDialog):
             if 0 <= idx < len(endpoints):
                 removed = endpoints.pop(idx)
                 data["endpoints"] = endpoints
-                # Aktif endpoint silindiyse sıfırla
                 if data.get("active_endpoint_id") == removed.get("id"):
                     data["active_endpoint_id"] = endpoints[0]["id"] if endpoints else ""
                 save_endpoints(data)
@@ -320,10 +461,17 @@ class MCPServerDialog(QDialog):
             self.test_result_label.setStyleSheet("color: red;")
             return
         
-        # Rastgele bir anahtar seç
         import random
         test_key = random.choice(keys)
         
+        ep_type = self.type_combo.currentText()
+        if ep_type == "gemini":
+            model_id = self.model_combo.currentText().strip()
+            base_url = None
+        else:
+            model_id = self.model_input.text().strip()
+            base_url = self.url_input.text().strip() or None
+
         try:
             from core.llm_provider import LLMProvider
             import json as _json
@@ -337,9 +485,9 @@ class MCPServerDialog(QDialog):
             ep_config = {
                 "id": ep_id,
                 "name": self.name_input.text().strip(),
-                "type": self.type_combo.currentText(),
-                "model_id": self.model_input.text().strip(),
-                "base_url": self.url_input.text().strip() or None,
+                "type": ep_type,
+                "model_id": model_id,
+                "base_url": base_url,
                 "use_key_rotation": False,
                 "headers": headers
             }

@@ -7,6 +7,7 @@ import time
 
 from core.utils import format_file_size, natural_sort_key
 from core.workers.token_counter import load_token_data
+from logger import app_logger
 
 class FileListManager:
     """Projedeki dosyaları tarar, eşleştirir ve durumlarını derler."""
@@ -41,7 +42,6 @@ class FileListManager:
         cleaning_errors = self._load_json_silent(os.path.join(self.translated_folder, 'cleaning_errors.json'))
 
         file_data_map = {}
-
         # 1. Downloaded (Orijinal) Dosyalar
         if os.path.exists(self.download_folder):
             dwnld_files = sorted([f for f in os.listdir(self.download_folder) if f.endswith('.txt')])
@@ -133,9 +133,9 @@ class FileListManager:
 
         # 3. Completed (Birleştirilmiş) Dosyalar
         if os.path.exists(self.completed_folder):
-            cmplt_files = sorted([f for f in os.listdir(self.completed_folder) if f.endswith('.txt')])
+            cmplt_files = sorted([f for f in os.listdir(self.completed_folder) if f.endswith(('.txt', '.json', '.epub'))])
             for file_name in cmplt_files:
-                merged_file_base = f"merged_{file_name.replace('.txt', '')}"
+                merged_file_base = f"merged_{file_name.replace('.txt', '').replace('.json', '').replace('.epub', '')}"
                 file_path = os.path.join(self.completed_folder, file_name)
 
                 try:
@@ -183,8 +183,15 @@ class FileListManager:
 
             entry["display_status"] = final_status
 
-        sorted_entries = sorted(file_data_map.values(), key=lambda x: natural_sort_key(x["sort_key"]))
-
+        sorted_entries = sorted(
+            file_data_map.values(),
+            key=lambda x: (
+                # Birleştirilmiş dosyalar (cmplt) en başa
+                0 if x["translation_status"] == "Birleştirildi" else 1,
+                natural_sort_key(x["sort_key"])
+            )
+        )
+        app_logger.info(f"FileListManager: {len(sorted_entries)} dosya bulundu ve işlendi (Legacy Yöntem).")
         return {
             "sorted_entries": sorted_entries,
             "project_token_cache": token_cache
@@ -213,7 +220,14 @@ class FileListManager:
         token_cache = load_token_data(self.config_folder)
         # Sort işlemi (veritabanından çekerken her ihtimale karşı UI için sıralanır)
         from core.utils import natural_sort_key
-        sorted_entries = sorted(db_entries, key=lambda x: natural_sort_key(x["sort_key"]))
+        sorted_entries = sorted(
+            db_entries,
+            key=lambda x: (
+                # Birleştirilmiş dosyalar (cmplt) en başa
+                0 if x.get("translation_status") == "Birleştirildi" else 1,
+                natural_sort_key(x["sort_key"])
+            )
+        )
         
         return {
             "sorted_entries": sorted_entries,

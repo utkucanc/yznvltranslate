@@ -200,7 +200,7 @@ class ProjectSettingsDialog(QDialog):
         features_layout = QVBoxLayout()
         features_layout.setSpacing(4)
         features_layout.setContentsMargins(8, 6, 8, 6)
-        self.cache_checkbox = QCheckBox("Çeviri Önbelleği (Translation Cache)")
+        self.cache_checkbox = QCheckBox("Çeviri Önbelleği (Translation Cache) [Tekrardan Geliştirilecektir.]")
         self.cache_checkbox.setChecked(cache_enabled)
         self.cache_checkbox.setToolTip("Aynı metin tekrar çevrildiğinde API çağrısı yapmadan önbellekten döner.")
         self.terminology_checkbox = QCheckBox("Terminoloji Hafızası (Terminology Memory)")
@@ -216,7 +216,7 @@ class ProjectSettingsDialog(QDialog):
         advanced_layout.setSpacing(6)
         advanced_layout.setContentsMargins(8, 6, 8, 6)
         
-        self.async_checkbox = QCheckBox("Asenkron Çeviri [Test Aşamasında]")
+        self.async_checkbox = QCheckBox("Asenkron Çeviri [RPM Değeri Önemli]")
         self.async_checkbox.setChecked(async_enabled)
         self.async_checkbox.setToolTip("Çevirileri aynı anda başlatarak performansı ciddi oranda arttırır.")
         
@@ -229,7 +229,7 @@ class ProjectSettingsDialog(QDialog):
         self.async_checkbox.toggled.connect(self.async_threads_spinbox.setEnabled)
 
         # Toplu Çeviri (Batch Mode)
-        self.batch_checkbox = QCheckBox("Toplu Çeviri / Batch Mode [Test Aşamasında]")
+        self.batch_checkbox = QCheckBox("Toplu Çeviri / Batch Mode [TPM Değeri Önemli]")
         self.batch_checkbox.setChecked(batch_enabled)
         self.batch_checkbox.setToolTip(
             "Birden fazla bölümü tek API isteğine gruplayarak RPD kotasından daha fazla bölüm çevirir."
@@ -303,21 +303,6 @@ class ProjectSettingsDialog(QDialog):
 
     def _on_batch_toggled(self, checked: bool):
         """Batch modu açılırken uyarı gösterir."""
-        if checked:
-            ret = QMessageBox.warning(
-                self, "⚠️ Test Aşamasında — Toplu Çeviri",
-                "<b>Toplu Çeviri (Batch Mode)</b> geliştirilmekte olan bir özelliktir.<br><br>"
-                "• Hatalı veya eksik çeviri üretebilir.<br>"
-                "• Parse başarısız olursa bölümler tekli moda düşer.<br><br>"
-                "Devam etmek istiyor musunuz?",
-                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-                QMessageBox.StandardButton.No,
-            )
-            if ret != QMessageBox.StandardButton.Yes:
-                self.batch_checkbox.blockSignals(True)
-                self.batch_checkbox.setChecked(False)
-                self.batch_checkbox.blockSignals(False)
-                checked = False
         self.batch_chars_spinbox.setEnabled(checked)
         self.batch_chapters_spinbox.setEnabled(checked)
 
