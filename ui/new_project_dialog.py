@@ -17,6 +17,9 @@ from logger import app_logger
 try:
     from ui.app_settings_dialog import AppSettingsDialog
     from ui.file_preview_dialog import FilePreviewDialog
+    from ui.prompt_editor_dialog import PromptEditorDialog
+    from ui.api_key_editor_dialog import ApiKeyEditorDialog
+    from ui.mcp_server_dialog import MCPServerDialog
 except ImportError:
     pass  # ui paketi henüz mevcut değilse sessizce geç
 
