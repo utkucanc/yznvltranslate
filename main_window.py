@@ -35,6 +35,7 @@ from core.process_controller import (
     CleaningController, SplitController, EpubController,
     ErrorCheckController, ChapterCheckController, MLTerminologyController
 )
+from core.workflow_controller import WorkflowController
 from ui.toast_widget import _ToastWidget
 
 
@@ -71,6 +72,7 @@ class MainWindow(QMainWindow):
         self.error_check_ctrl = ErrorCheckController(self)
         self.chapter_check_ctrl = ChapterCheckController(self)
         self.ml_terminology_ctrl = MLTerminologyController(self)
+        self.workflow_ctrl = WorkflowController(self)
 
         # UI oluştur
         self.central_widget = QWidget()
@@ -247,6 +249,9 @@ class MainWindow(QMainWindow):
 
     def start_ml_terminology_process(self):
         self.ml_terminology_ctrl.start()
+
+    def start_workflow_process(self):
+        self.workflow_ctrl.start()
 
     def start_token_counting_manually(self):
         self.token_ctrl.start()
@@ -551,6 +556,8 @@ class MainWindow(QMainWindow):
         self.token_count_button.setEnabled(False)
         self.errorCheckButton.setEnabled(False)
         self.generateTerminologyButton.setEnabled(False)
+        if hasattr(self, 'workflowButton'):
+            self.workflowButton.setEnabled(False)
         button.setEnabled(False)
         button.setText(text)
         button.setStyleSheet(f"background-color: {bg_color}; color: {text_color}; border-radius: 5px; padding: 10px;")
@@ -575,6 +582,8 @@ class MainWindow(QMainWindow):
         self.token_count_button.setEnabled(True)
         self.errorCheckButton.setEnabled(True)
         self.generateTerminologyButton.setEnabled(True)
+        if hasattr(self, 'workflowButton'):
+            self.workflowButton.setEnabled(True)
         button.setEnabled(True)
         button.setText(text)
         button.setStyleSheet(f"background-color: {bg_color}; color: {text_color}; border-radius: 5px; padding: 10px;")
@@ -670,7 +679,8 @@ class MainWindow(QMainWindow):
         controllers = [
             self.download_ctrl, self.translation_ctrl, self.cleaning_ctrl,
             self.merge_ctrl, self.token_ctrl, self.chapter_check_ctrl,
-            self.epub_ctrl, self.error_check_ctrl, self.split_ctrl
+            self.epub_ctrl, self.error_check_ctrl, self.split_ctrl,
+            self.workflow_ctrl
         ]
         running = [c for c in controllers if c.is_running()]
         if running:

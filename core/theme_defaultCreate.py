@@ -90,6 +90,10 @@ QPushButton[class="btn-pink"] { background-color: #880E4F; color: #ffffff; borde
 QPushButton[class="btn-pink"]:hover { background-color: #AD1457; }
 QPushButton[class="btn-pink"]:pressed { background-color: #560027; }
 
+QPushButton[class="btn-workflow"] { background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #FF6F00, stop:0.5 #AB47BC, stop:1 #7C4DFF); color: #ffffff; border: 1px solid #FF8F00; border-radius: 6px; font-weight: bold; font-size: 10pt; }
+QPushButton[class="btn-workflow"]:hover { background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #FF8F00, stop:0.5 #CE93D8, stop:1 #B388FF); border: 1px solid #FFB74D; }
+QPushButton[class="btn-workflow"]:pressed { background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #E65100, stop:0.5 #7B1FA2, stop:1 #512DA8); }
+
 QPushButton[class="btn-steel"] { background-color: #37474F; color: #ffffff; border: none; }
 QPushButton[class="btn-steel"]:hover { background-color: #455A64; }
 
@@ -310,6 +314,10 @@ QPushButton[class="btn-deep-purple"]:hover { background-color: #5E35B1; }
 
 QPushButton[class="btn-pink"] { background-color: #AD1457; color: #fff; border: none; }
 QPushButton[class="btn-pink"]:hover { background-color: #C2185B; }
+
+QPushButton[class="btn-workflow"] { background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #FF8F00, stop:0.5 #BA68C8, stop:1 #7E57C2); color: #ffffff; border: 1px solid #FFB74D; border-radius: 6px; font-weight: bold; font-size: 10pt; }
+QPushButton[class="btn-workflow"]:hover { background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #FFA000, stop:0.5 #CE93D8, stop:1 #9575CD); border: 1px solid #FFCC80; }
+QPushButton[class="btn-workflow"]:pressed { background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #E65100, stop:0.5 #8E24AA, stop:1 #5E35B1); }
 
 QPushButton[class="btn-steel"] { background-color: #546E7A; color: #fff; border: none; }
 QPushButton[class="btn-steel"]:hover { background-color: #607D8B; }

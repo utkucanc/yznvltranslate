@@ -503,6 +503,8 @@ QPushButton[class="btn-steel"] {{ background-color: {c(b,'btn_steel_bg')}; color
 QPushButton[class="btn-steel"]:hover {{ background-color: {c(b,'btn_steel_hover')}; }}
 QPushButton[class="btn-ocean"] {{ background-color: {c(b,'btn_ocean_bg')}; color: #ffffff; border: none; }}
 QPushButton[class="btn-ocean"]:hover {{ background-color: {c(b,'btn_ocean_hover')}; }}
+QPushButton[class="btn-workflow"] {{ background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #FF6F00, stop:0.5 #AB47BC, stop:1 #7C4DFF); color: #ffffff; border: 1px solid #FF8F00; border-radius: 6px; font-weight: bold; font-size: 10pt; }}
+QPushButton[class="btn-workflow"]:hover {{ background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #FF8F00, stop:0.5 #CE93D8, stop:1 #B388FF); border: 1px solid #FFB74D; }}
 QPushButton[class="btn-clear"] {{
     background-color: transparent; color: #6C7086;
     border: 1px solid {c(g,'border_color')}; border-radius: 4px;

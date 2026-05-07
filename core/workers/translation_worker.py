@@ -485,7 +485,8 @@ class TranslationWorker(QObject):
 
         with self.data_lock:
             if self.file_limit is not None and self.translated_count_session >= self.file_limit:
-                app_logger.info(f"Belirlenen limit ({self.file_limit}) sayısına ulaşıldı.")
+                app_logger.info(f"Belirlenen limit ({self.file_limit}) sayısına ulaşıldı. Çeviri durduruluyor.")
+                self.is_running = False
                 return
 
         original_file_path = os.path.join(self.input_folder, file_name)
@@ -911,6 +912,12 @@ class TranslationWorker(QObject):
             for file_name in failed:
                 if not self.is_running:
                     break
+                # Limit kontrolü
+                with self.data_lock:
+                    if self.file_limit is not None and self.translated_count_session >= self.file_limit:
+                        app_logger.info(f"Batch fallback: Limit ({self.file_limit}) aşıldı, kalan dosyalar atlanıyor.")
+                        self.is_running = False
+                        break
                 app_logger.info(f"Batch fallback → tekli çeviri: {file_name}")
                 idx = files_to_translate.index(file_name) if file_name in files_to_translate else 0
                 self._process_single_file(idx, file_name, prompt_hash, total_files)
@@ -923,11 +930,18 @@ class TranslationWorker(QObject):
                 f"{len(batches)} batch paralel işleniyor."
             )
             with concurrent.futures.ThreadPoolExecutor(max_workers=self.async_threads) as executor:
-                future_to_idx = {
-                    executor.submit(_run_single_batch, (batch_idx, batch)): batch_idx
-                    for batch_idx, batch in enumerate(batches)
-                    if self.is_running
-                }
+                future_to_idx = {}
+                for batch_idx, batch in enumerate(batches):
+                    if not self.is_running:
+                        break
+                    # Limit kontrolü — görev göndermeden önce
+                    with self.data_lock:
+                        if self.file_limit is not None and self.translated_count_session >= self.file_limit:
+                            app_logger.info(f"Batch Async: Limit ({self.file_limit}) aşıldı, kalan batch'ler atlanıyor.")
+                            self.is_running = False
+                            break
+                    fut = executor.submit(_run_single_batch, (batch_idx, batch))
+                    future_to_idx[fut] = batch_idx
                 for fut in concurrent.futures.as_completed(future_to_idx):
                     b_idx = future_to_idx[fut]
                     try:
@@ -992,6 +1006,12 @@ class TranslationWorker(QObject):
                         if not self.is_running:
                             app_logger.warning(f"Async: is_running=False — görev gönderimi durduruldu ({i}/{total_files})")
                             break
+                        # Limit kontrolü — görev göndermeden önce
+                        with self.data_lock:
+                            if self.file_limit is not None and self.translated_count_session >= self.file_limit:
+                                app_logger.info(f"Async: Limit ({self.file_limit}) aşıldı, kalan görevler gönderilmeyecek.")
+                                self.is_running = False
+                                break
                         fut = executor.submit(self._process_single_file, i, file_name, prompt_hash, total_files)
                         futures[fut] = file_name
                     
