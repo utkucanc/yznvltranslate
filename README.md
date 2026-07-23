@@ -2,13 +2,8 @@
 [![GitHub Issues](https://img.shields.io/github/issues/utkucanc/yznvltranslate?label=Open%20Issues)](https://github.com/utkucanc/yznvltranslate/issues)
 [![downloads](https://img.shields.io/github/downloads/utkucanc/yznvltranslate/total?label=Total%20Downloads)](https://github.com/utkucanc/yznvltranslate/releases)
 [![downloads-latest](https://img.shields.io/github/downloads/utkucanc/yznvltranslate/latest/total?label=Latest%20release)](https://github.com/utkucanc/yznvltranslate/releases/latest)
-<<<<<<< Updated upstream
-[![Seslee-Sohbet-Kanalı](https://img.shields.io/badge/Seslee-Seslee%20Sohbet%20Kanal%C4%B1-blue)](https://www.seslee.com/8hR8XHVH)
-Discord : Utkucanc
-=======
 
 Discord : Utkucan#5700
->>>>>>> Stashed changes
 # NCA
 
 Bu proje, yabancı dildeki (özellikle İngilizce, Korece, Çince gibi) web romanlarını (novel) indirmek, Google Gemini API kullanarak yerel bağlantıda toplu çevirisini yapmak ve sonrasında bu metinleri temizleyip EPUB veya benzeri formatlarda birleştirmek için tasarlanmış, PyQt6 tabanlı masaüstü bir uygulamadır.
