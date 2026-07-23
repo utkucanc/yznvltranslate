@@ -54,18 +54,6 @@ def build_right_panel(main_window):
     win.startButton.setGraphicsEffect(_make_glow("#2E7D32", blur=16, offset_y=2))
     right_layout.addWidget(win.startButton)
 
-<<<<<<< Updated upstream
-=======
-    # ── Tam Otomatik İşlem (Workflow) Butonu ──
-    win.workflowButton = QPushButton(tr("right_panel.btn_workflow", "🚀  Tam Otomatik İşlem"))
-    win.workflowButton.setFont(QFont("Segoe UI", 9, QFont.Weight.Bold))
-    win.workflowButton.setProperty("class", "btn-workflow")
-    win.workflowButton.setCursor(Qt.CursorShape.PointingHandCursor)
-    win.workflowButton.clicked.connect(win.start_workflow_process)
-    win.workflowButton.setGraphicsEffect(_make_glow("#FF6F00", blur=20, offset_y=3))
-    right_layout.addWidget(win.workflowButton)
-
->>>>>>> Stashed changes
     # ── Toplu Bölüm Ekle ──
     win.splitButton = QPushButton(tr("right_panel.btn_split", "✂  Toplu Bölüm Ekle"))
     win.splitButton.setFont(QFont("Segoe UI", 9, QFont.Weight.Bold))
