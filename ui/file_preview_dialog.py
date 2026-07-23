@@ -12,6 +12,7 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtGui import QFont
 from PyQt6.QtCore import Qt
+from core.localization import tr
 
 
 class FilePreviewDialog(QDialog):
@@ -25,7 +26,7 @@ class FilePreviewDialog(QDialog):
         self.project_path = project_path
         file_name = os.path.basename(file_path)
 
-        self.setWindowTitle(f"📄 Önizleme — {file_name}")
+        self.setWindowTitle(tr("file_preview.window_title", "📄 Önizleme — {}").format(file_name))
         self.resize(820, 650)
         self.setWindowFlags(self.windowFlags() | Qt.WindowType.WindowMaximizeButtonHint)
 
@@ -61,13 +62,13 @@ class FilePreviewDialog(QDialog):
 
         # Butonlar
         btn_layout = QHBoxLayout()
-        self.open_editor_btn = QPushButton("✏️ Tam Editörde Aç")
+        self.open_editor_btn = QPushButton(tr("file_preview.btn_open_editor", "✏️ Tam Editörde Aç"))
         self.open_editor_btn.setStyleSheet(
             "background-color: #2196F3; color: white; font-weight: bold; "
             "padding: 7px 14px; border-radius: 4px;"
         )
         self.open_editor_btn.clicked.connect(self._open_in_editor)
-        close_btn = QPushButton("Kapat")
+        close_btn = QPushButton(tr("app_settings.btn_close", "Kapat"))
         close_btn.setStyleSheet("padding: 7px 14px; border-radius: 4px;")
         close_btn.clicked.connect(self.close)
         self.truncate_label = QLabel("")
@@ -82,7 +83,7 @@ class FilePreviewDialog(QDialog):
 
     def _load_file(self):
         if not os.path.exists(self.file_path):
-            self.text_view.setPlainText("Dosya bulunamadı.")
+            self.text_view.setPlainText(tr("text_editor.placeholder_not_found", "Dosya bulunamadı."))
             return
         try:
             file_size = os.path.getsize(self.file_path)
@@ -92,13 +93,12 @@ class FilePreviewDialog(QDialog):
             if len(content) > self.PREVIEW_CHARS:
                 self.text_view.setPlainText(content[: self.PREVIEW_CHARS])
                 self.truncate_label.setText(
-                    f"⚠️ İlk {self.PREVIEW_CHARS:,} karakter gösteriliyor "
-                    f"(toplam: {len(content):,})"
+                    tr("file_preview.msg_truncated", "⚠️ İlk {show_chars:,} karakter gösteriliyor (toplam: {total_chars:,})").format(show_chars=self.PREVIEW_CHARS, total_chars=len(content))
                 )
             else:
                 self.text_view.setPlainText(content)
         except Exception as e:
-            self.text_view.setPlainText(f"Dosya okunamadı: {e}")
+            self.text_view.setPlainText(tr("prompt_editor.msg_read_error", "Dosya okunamadı: {}").format(e))
 
     def _open_in_editor(self):
         """Tam editörde açar."""
@@ -109,4 +109,4 @@ class FilePreviewDialog(QDialog):
             editor.exec()
         except Exception as e:
             from PyQt6.QtWidgets import QMessageBox
-            QMessageBox.critical(self, "Hata", f"Editör açılamadı: {e}")
+            QMessageBox.critical(self, tr("main_window.msg_structure_error_title", "Hata"), tr("file_preview.msg_editor_open_fail", "Editör açılamadı: {}").format(e))

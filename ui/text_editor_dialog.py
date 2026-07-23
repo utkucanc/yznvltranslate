@@ -11,6 +11,7 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtGui import QFont, QShortcut, QKeySequence
 from PyQt6.QtCore import Qt, QThread, pyqtSignal, QObject
 from logger import app_logger
+from core.localization import tr
 
 
 class RetranslateWorker(QObject):
@@ -53,7 +54,7 @@ class RetranslateWorker(QObject):
             if translated:
                 self.finished.emit(translated)
             else:
-                self.error.emit("API bolunanı yanit döndürmedi.")
+                self.error.emit(tr("text_editor.api_no_response", "API yanit döndürmedi."))
         except Exception as e:
             self.error.emit(str(e))
 
@@ -69,7 +70,7 @@ class TextEditorDialog(QDialog):
         self.has_unsaved_changes = False
 
         file_name = os.path.basename(file_path)
-        self.setWindowTitle(f"Düzenleyici — {file_name}")
+        self.setWindowTitle(tr("text_editor.window_title", "Düzenleyici — {}").format(file_name))
         self.resize(800, 650)
 
         layout = QVBoxLayout(self)
@@ -104,9 +105,9 @@ class TextEditorDialog(QDialog):
 
         # İstatistik barı
         stats_layout = QHBoxLayout()
-        self.char_count_label = QLabel("Karakter: 0")
-        self.word_count_label = QLabel("Kelime: 0")
-        self.line_count_label = QLabel("Satır: 0")
+        self.char_count_label = QLabel(tr("text_editor.char_count", "Karakter: 0"))
+        self.word_count_label = QLabel(tr("text_editor.word_count", "Kelime: 0"))
+        self.line_count_label = QLabel(tr("text_editor.line_count", "Satır: 0"))
         self.change_indicator = QLabel("")
         self.change_indicator.setStyleSheet("color: #F44336; font-weight: bold;")
 
@@ -122,15 +123,15 @@ class TextEditorDialog(QDialog):
         # Butonlar
         btn_layout = QHBoxLayout()
 
-        self.save_btn = QPushButton("💾 Kaydet (Ctrl+S)")
+        self.save_btn = QPushButton(tr("text_editor.btn_save", "💾 Kaydet (Ctrl+S)"))
         self.save_btn.setStyleSheet("background-color: #4CAF50; color: white; font-weight: bold; padding: 8px; border-radius: 4px;")
         self.save_btn.clicked.connect(self.save_file)
 
-        self.retranslate_btn = QPushButton("🔄 Tekrar Çevir")
+        self.retranslate_btn = QPushButton(tr("text_editor.btn_retranslate", "🔄 Tekrar Çevir"))
         self.retranslate_btn.setStyleSheet("background-color: #2196F3; color: white; font-weight: bold; padding: 8px; border-radius: 4px;")
         self.retranslate_btn.clicked.connect(self.retranslate_chapter)
 
-        self.close_btn = QPushButton("Kapat")
+        self.close_btn = QPushButton(tr("app_settings.btn_close", "Kapat"))
         self.close_btn.setStyleSheet("padding: 8px; border-radius: 4px;")
         self.close_btn.clicked.connect(self.close)
 
@@ -158,14 +159,14 @@ class TextEditorDialog(QDialog):
                 self.has_unsaved_changes = False
                 self.update_stats()
             else:
-                self.text_edit.setPlaceholderText("Dosya bulunamadı.")
+                self.text_edit.setPlaceholderText(tr("text_editor.placeholder_not_found", "Dosya bulunamadı."))
         except Exception as e:
-            QMessageBox.critical(self, "Hata", f"Dosya okunamadı: {e}")
+            QMessageBox.critical(self, tr("main_window.msg_structure_error_title", "Hata"), tr("prompt_editor.msg_read_error", "Dosya okunamadı: {}").format(e))
 
     def on_text_changed(self):
         """Metin değiştiğinde çağrılır."""
         self.has_unsaved_changes = (self.text_edit.toPlainText() != self.original_content)
-        self.change_indicator.setText("● Değişiklik var" if self.has_unsaved_changes else "")
+        self.change_indicator.setText(tr("text_editor.unsaved_changes", "● Değişiklik var") if self.has_unsaved_changes else "")
         self.update_stats()
 
     def update_stats(self):
@@ -175,9 +176,9 @@ class TextEditorDialog(QDialog):
         words = len(text.split()) if text.strip() else 0
         lines = text.count('\n') + 1 if text else 0
 
-        self.char_count_label.setText(f"Karakter: {chars:,}")
-        self.word_count_label.setText(f"Kelime: {words:,}")
-        self.line_count_label.setText(f"Satır: {lines:,}")
+        self.char_count_label.setText(tr("text_editor.char_count_val", "Karakter: {count}").format(count=chars))
+        self.word_count_label.setText(tr("text_editor.word_count_val", "Kelime: {count}").format(count=words))
+        self.line_count_label.setText(tr("text_editor.line_count_val", "Satır: {count}").format(count=lines))
 
     def save_file(self):
         """Dosyayı kaydeder."""
@@ -187,7 +188,7 @@ class TextEditorDialog(QDialog):
                 f.write(content)
             self.original_content = content
             self.has_unsaved_changes = False
-            self.change_indicator.setText("✓ Kaydedildi")
+            self.change_indicator.setText(tr("text_editor.saved", "✓ Kaydedildi"))
             self.change_indicator.setStyleSheet("color: #4CAF50; font-weight: bold;")
             # 2 saniye sonra geri al
             from PyQt6.QtCore import QTimer
@@ -196,18 +197,18 @@ class TextEditorDialog(QDialog):
                 self.change_indicator.setStyleSheet("color: #F44336; font-weight: bold;")
             ))
         except Exception as e:
-            QMessageBox.critical(self, "Kayıt Hatası", f"Dosya kaydedilemedi: {e}")
+            QMessageBox.critical(self, tr("menu_bar.msg_save_error_title", "Kayıt Hatası"), tr("text_editor.msg_save_fail", "Dosya kaydedilemedi: {}").format(e))
 
     def retranslate_chapter(self):
         """Tek bölümü arka planda (QThread) tekrar çevirir — terminoloji entegre."""
         if not self.project_path:
-            QMessageBox.warning(self, "Uyarı", "Proje yolu belirlenmemiş.")
+            QMessageBox.warning(self, tr("new_project.msg_warning_title", "Uyarı"), tr("text_editor.msg_no_project_path", "Proje yolu belirlenmemiş."))
             return
 
         if self.has_unsaved_changes:
             reply = QMessageBox.question(
-                self, "Kaydet",
-                "Kaydedilmemiş değişiklikler var. Önce kaydetmek ister misiniz?",
+                self, tr("text_editor.save_confirm_title", "Kaydet"),
+                tr("text_editor.save_confirm_body", "Kaydedilmemiş değişiklikler var. Önce kaydetmek ister misiniz?"),
                 QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No | QMessageBox.StandardButton.Cancel
             )
             if reply == QMessageBox.StandardButton.Yes:
@@ -223,7 +224,7 @@ class TextEditorDialog(QDialog):
             original_path = self.file_path
 
         if not os.path.exists(original_path):
-            QMessageBox.warning(self, "Orijinal Dosya Yok", f"Orijinal dosya bulunamadı:\n{original_path}")
+            QMessageBox.warning(self, tr("text_editor.msg_no_original_title", "Orijinal Dosya Yok"), tr("text_editor.msg_no_original_body", "Orijinal dosya bulunamadı:\n{}").format(original_path))
             return
 
         try:
@@ -238,11 +239,11 @@ class TextEditorDialog(QDialog):
             startpromt = config.get("Startpromt", "startpromt", fallback="")
 
             if not api_key:
-                QMessageBox.warning(self, "API Anahtarı Yok", "Proje ayarlarında API anahtarı tanımlı değil.")
+                QMessageBox.warning(self, tr("text_editor.msg_no_api_key_title", "API Anahtarı Yok"), tr("text_editor.msg_no_api_key_body", "Proje ayarlarında API anahtarı tanımlı değil."))
                 return
 
             self.retranslate_btn.setEnabled(False)
-            self.retranslate_btn.setText("⏳ Çevriliyor...")
+            self.retranslate_btn.setText(tr("text_editor.translating", "⏳ Çevriliyor..."))
 
             self._retranslate_thread = QThread()
             self._retranslate_worker = RetranslateWorker(self.project_path, original_path, startpromt, api_key)
@@ -258,26 +259,26 @@ class TextEditorDialog(QDialog):
             self._retranslate_thread.start()
 
         except Exception as e:
-            QMessageBox.critical(self, "Çeviri Hatası", f"Tekrar çeviri başlatılamadı:\n{e}")
+            QMessageBox.critical(self, tr("text_editor.msg_translate_error_title", "Çeviri Hatası"), tr("text_editor.msg_translate_start_fail", "Tekrar çeviri başlatılamadı:\n{}").format(e))
             self.retranslate_btn.setEnabled(True)
-            self.retranslate_btn.setText("🔄 Tekrar Çevir")
+            self.retranslate_btn.setText(tr("text_editor.btn_retranslate", "🔄 Tekrar Çevir"))
 
     def _on_retranslate_done(self, translated: str):
         """Arka plan çevirisi tamamlandığında çağrılır."""
         self.text_edit.setPlainText(translated)
         self.has_unsaved_changes = True
-        self.change_indicator.setText("● Yeni çeviri — kaydedin")
-        QMessageBox.information(self, "Çeviri Tamamlandı", "Bölüm başarıyla tekrar çevrildi.\nTerminoloji kuralları uygulandı.")
+        self.change_indicator.setText(tr("text_editor.new_translation_indicator", "● Yeni çeviri — kaydedin"))
+        QMessageBox.information(self, tr("text_editor.msg_translate_success_title", "Çeviri Tamamlandı"), tr("text_editor.msg_translate_success_body", "Bölüm başarıyla tekrar çevrildi.\nTerminoloji kuralları uygulandı."))
         self.retranslate_btn.setEnabled(True)
-        self.retranslate_btn.setText("🔄 Tekrar Çevir")
+        self.retranslate_btn.setText(tr("text_editor.btn_retranslate", "🔄 Tekrar Çevir"))
         self._retranslate_worker = None
         self._retranslate_thread = None
 
     def _on_retranslate_error(self, msg: str):
         """Arka plan çevirisi hata verdiğinde çağrılır."""
-        QMessageBox.critical(self, "Çeviri Hatası", f"Tekrar çeviri sırasında hata:\n{msg}")
+        QMessageBox.critical(self, tr("text_editor.msg_translate_error_title", "Çeviri Hatası"), tr("text_editor.msg_translate_fail_body", "Tekrar çeviri sırasında hata:\n{}").format(msg))
         self.retranslate_btn.setEnabled(True)
-        self.retranslate_btn.setText("🔄 Tekrar Çevir")
+        self.retranslate_btn.setText(tr("text_editor.btn_retranslate", "🔄 Tekrar Çevir"))
         self._retranslate_worker = None
         self._retranslate_thread = None
 
@@ -286,8 +287,8 @@ class TextEditorDialog(QDialog):
         """Kapatma sırasında değişiklik kontrolü."""
         if self.has_unsaved_changes:
             reply = QMessageBox.question(
-                self, "Kaydedilmemiş Değişiklikler",
-                "Kaydedilmemiş değişiklikler var. Ne yapmak istersiniz?",
+                self, tr("text_editor.msg_unsaved_confirm_title", "Kaydedilmemiş Değişiklikler"),
+                tr("text_editor.msg_unsaved_confirm_body", "Kaydedilmemiş değişiklikler var. Ne yapmak istersiniz?"),
                 QMessageBox.StandardButton.Save | QMessageBox.StandardButton.Discard | QMessageBox.StandardButton.Cancel
             )
             if reply == QMessageBox.StandardButton.Save:
@@ -304,8 +305,8 @@ class TextEditorDialog(QDialog):
         """ESC tuşu ile kapatma sırasında değişiklik kontrolü."""
         if self.has_unsaved_changes:
             reply = QMessageBox.question(
-                self, "Kaydedilmemiş Değişiklikler",
-                "Kaydedilmemiş değişiklikler var. Ne yapmak istersiniz?",
+                self, tr("text_editor.msg_unsaved_confirm_title", "Kaydedilmemiş Değişiklikler"),
+                tr("text_editor.msg_unsaved_confirm_body", "Kaydedilmemiş değişiklikler var. Ne yapmak istersiniz?"),
                 QMessageBox.StandardButton.Save | QMessageBox.StandardButton.Discard | QMessageBox.StandardButton.Cancel
             )
             if reply == QMessageBox.StandardButton.Save:

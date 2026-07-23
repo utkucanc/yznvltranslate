@@ -9,6 +9,8 @@ from logger import app_logger
 KOREAN_PATTERN = re.compile(r'[\uac00-\ud7a3\u1100-\u11ff\u3130-\u318f]')
 CHINESE_PATTERN = re.compile(r'[\u4e00-\u9fff]')
 
+from core.workers.translation_quality_checker import TranslationQualityChecker
+
 class TranslationWorker(QObject):
     """
     Dosya çeviri işlemini arayüzü dondurmadan arka planda yürüten işçi sınıfı.
@@ -29,7 +31,8 @@ class TranslationWorker(QObject):
                  terminology_section="",
                  project_path=None, cache_enabled=True, terminology_enabled=True,
                  async_enabled=False, async_threads=3,
-                 batch_enabled=False, max_batch_chars=33000, max_chapters_per_batch=5):
+                 batch_enabled=False, max_batch_chars=33000, max_chapters_per_batch=5,
+                 source_lang="en"):
         super().__init__()
         self.input_folder = input_folder
         self.output_folder = output_folder
@@ -44,6 +47,10 @@ class TranslationWorker(QObject):
         self.error_log_path = os.path.join(self.output_folder, 'translation_errors.json')
         self.shutdown_on_finish = False
         self.terminology_section = terminology_section  # Eski uyumluluk (manuel)
+        self.source_lang = source_lang
+
+        # Kalite Kontrolcüsü
+        self.quality_checker = TranslationQualityChecker(source_lang=self.source_lang)
 
         # Otomatik özellikler
         self.project_path = project_path
@@ -306,6 +313,12 @@ class TranslationWorker(QObject):
         cjk_ratio = (korean_count + chinese_count) / total_chars
         return cjk_ratio > threshold
 
+    def is_translation_failed(self, original: str, translated: str, file_name: str = "") -> bool:
+        """Çevirinin kalite kontrol kriterlerini (CJK, benzerlik %80+, dil tespiti) karşılayıp karşılamadığını kontrol eder."""
+        if hasattr(self, 'quality_checker') and self.quality_checker:
+            return self.quality_checker.is_translation_failed(original, translated, file_name)
+        return self._has_excessive_cjk(translated)
+
     def _call_api_with_retry(self, full_prompt: str) -> str | None:
         """
         Verilen prompt'u API'ye gönderir, retry + duraklatma/durdurma mantığıyla.
@@ -512,7 +525,7 @@ class TranslationWorker(QObject):
         # ─────────── Paragraf Bazlı Çeviri (Cache bağımsız standart akış) ───────────
         para_result = self._translate_paragraphs(content_text, prompt_hash)
         if para_result is not None:
-            if not self._has_excessive_cjk(para_result):
+            if not self.is_translation_failed(content_text, para_result, file_name):
                 with open(translated_file_path, 'w', encoding='utf-8') as f:
                     f.write(para_result)
                 with self.data_lock:
@@ -523,7 +536,7 @@ class TranslationWorker(QObject):
                 self.progress.emit(i + 1, total_files)
                 return
             else:
-                app_logger.warning(f"Paragraf bazlı çeviri CJK kontrolünden geçemedi: {file_name}")
+                app_logger.warning(f"Paragraf bazlı çeviri kalite kontrolünden geçemedi: {file_name}")
 
         # ─────────── Klasik Tam Dosya Çeviri Akışı ───────────
         cached_translation = None
@@ -531,8 +544,8 @@ class TranslationWorker(QObject):
             cached_translation = self._cache.get_paragraph(content_text, self.model_version, prompt_hash)
 
         if cached_translation is not None:
-            if self._has_excessive_cjk(cached_translation):
-                app_logger.warning(f"Cache hit ancak CJK oranı yüksek, cache atlanıyor: {file_name}")
+            if self.is_translation_failed(content_text, cached_translation, file_name):
+                app_logger.warning(f"Cache hit ancak kalite kontrol başarısız, cache atlanıyor: {file_name}")
                 try:
                     with self.data_lock:
                         self._cache.remove(content_text, self.model_version, prompt_hash)
@@ -633,10 +646,10 @@ class TranslationWorker(QObject):
             return
 
         if translated_text is not None:
-            if self._has_excessive_cjk(translated_text):
-                app_logger.warning(f"Çeviri sonucu CJK yüksek: {file_name}")
+            if self.is_translation_failed(content_text, translated_text, file_name):
+                app_logger.warning(f"Çeviri sonucu kalite kontrolünden geçemedi: {file_name}")
                 with self.data_lock:
-                    self.translation_errors[file_name] = "Çeviri Hatası: Çince/Korece karakter oranı çok yüksek (çevrilmemiş içerik)"
+                    self.translation_errors[file_name] = "Çeviri Hatası: Çeviri kalite kontrol başarısız (çevrilmemiş metin / benzerlik >= %80 / CJK)"
             else:
                 with open(translated_file_path, 'w', encoding='utf-8') as f:
                     f.write(translated_text)

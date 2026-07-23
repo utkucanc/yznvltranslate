@@ -2,8 +2,13 @@
 [![GitHub Issues](https://img.shields.io/github/issues/utkucanc/yznvltranslate?label=Open%20Issues)](https://github.com/utkucanc/yznvltranslate/issues)
 [![downloads](https://img.shields.io/github/downloads/utkucanc/yznvltranslate/total?label=Total%20Downloads)](https://github.com/utkucanc/yznvltranslate/releases)
 [![downloads-latest](https://img.shields.io/github/downloads/utkucanc/yznvltranslate/latest/total?label=Latest%20release)](https://github.com/utkucanc/yznvltranslate/releases/latest)
+<<<<<<< Updated upstream
 [![Seslee-Sohbet-Kanalı](https://img.shields.io/badge/Seslee-Seslee%20Sohbet%20Kanal%C4%B1-blue)](https://www.seslee.com/8hR8XHVH)
 Discord : Utkucanc
+=======
+
+Discord : Utkucan#5700
+>>>>>>> Stashed changes
 # NCA
 
 Bu proje, yabancı dildeki (özellikle İngilizce, Korece, Çince gibi) web romanlarını (novel) indirmek, Google Gemini API kullanarak yerel bağlantıda toplu çevirisini yapmak ve sonrasında bu metinleri temizleyip EPUB veya benzeri formatlarda birleştirmek için tasarlanmış, PyQt6 tabanlı masaüstü bir uygulamadır.
@@ -20,7 +25,7 @@ Bu proje, yabancı dildeki (özellikle İngilizce, Korece, Çince gibi) web roma
   - Sınırsız sayıda API Anahtarından oluşan rotasyonlu Key Pool desteği.
   - Otomatik **Translation Cache** ve **Terminology Memory** ile maliyet tasarrufu ve terim tutarlılığı.
   - **Prompt Generator (PromtGen)** ile projeye özel (Literal/Natural/Balanced) çeviri promptlarının AI tarafından otomatik çıkarılması.
-  - Çevirilerde Çince/Korece (CJK) oranını tarayarak hatalı çıktıları engelleyen karakter koruma sistemi.
+  - **Çeviri Hata ve Kalite Kontrolü (v2.5.0):** Çince/Korece CJK taramasının yanı sıra İngilizce gibi Latin alfabeli diller için **Metin Benzerlik Oranı (%80+)** (`difflib`) ve **`langdetect` Dil Tespiti** entegrasyonu. Çevrilmeden kaydedilen dosyaları otomatik tespit eder.
   - **Paragraf Bazlı Çeviri (v2.1.0):** Cache aktif olsun olmasın her dosya otomatik olarak paragraflara bölünür; her paragraf bağımsız çevrilip birleştirilir. Büyük dosyalarda token verimliliğini artırır.
   - **Asenkron Çeviri (V2.1.0):** Proje ayarları kısmından sayısı düzenlenebilir paralel çeviri sistemi. Aynı anda API isteği göndererek birden fazla dosyanın çeviri yapılabilmesine imkan sağlar.(Gemini için worker sayısı 3 tavsiye edilmektedir. 3 Worker RPM değeri 11-12 aralığındadır.)
   - **Toplu Çeviri / Batch Mode (v2.1.0 - Test):** Birden fazla bölümü `===CHAPTER_START===` / `===CHAPTER_END===` ayraçlarıyla tek bir API isteğine paketler. Aynı RPD kotasıyla daha fazla bölüm çevrilmesini sağlar. Parse başarısız olursa otomatik tekli moda düşer.
@@ -133,6 +138,8 @@ CAS: başka thread zaten geçti mi?
 
 | Sürüm | Değişiklikler |
 |-------|--------------| 
+| 2.6.0 | **Gelişmiş Çeviri Hata Kontrolü:** İngilizce ve Latin alfabesi kullanan kaynak diller için **Metin Benzerlik Oranı (%80+)** ve **`langdetect` Dil Tespiti** entegrasyonu sağlandı. Orijinal dosya ile çeviri dosyası karşılaştırılarak çevrilmeden kaydedilen dosyalar tespit ediliyor ve raporlanıyor. |
+| 2.5.0 | **Lokalizasyon çalışması başlatıldı:** İngilizce ve Türkçe dil seçenekleri eklendi. Mevcut durumda tamamlanmadı. Eksikler olabilir. Dil seçeneği değiştirildiğinde hedef çeviri dili ayarlanan dil olarak kabul ediliyor. |
 | 2.4.0 | **Token Say** butonu API gerektirmeden yerel (offline) sayıma geçirildi. **Tema dosyaları** artık build'de otomatik oluşturuluyor (`dark.qss`, `light.qss` vb.). **MCP Diyalogu** iyileştirildi: Gemini seçilince model listesi açılıyor, URL alanı gizleniyor; "API Editöründen API Aktar" butonu eklendi. **Dosya Listesi** sıralaması düzeltildi: birleştirilmiş (cmplt) dosyalar artık listenin başında görünüyor. **ML Terminoloji** işlemine bölüm aralığı seçim diyalogu eklendi; son işlem bilgisi kaydediliyor ve terminoloji penceresinde gösteriliyor. |
 | 2.3.0 | Yeni bir arayüz ve iyileştirmelerle birlikte daha stabil ve hızlı bir deneyim sunuldu. Tema düzenleme paneli eklendi. |
 | 2.1.0 | **SRP** yeniden yapılandırma. **Paragraf Bazlı Çeviri** standart hale getirildi (cache bağımsız). **Toplu Çeviri (Batch Mode)** eklendi: birden fazla bölümü tek API isteğinde göndererek aynı RPD ile daha fazla bölüm çevirme. **Asenkron Çeviri** eklendi. Aynı anda birden fazla API isteği göndererek daha hızlı çeviri yapılabilir. Proje Ayarlarından aktif/deaktif edilebilir. |

@@ -22,8 +22,9 @@ webdriver-manager>=3.8.5
 google-genai>=0.8.0
 openai>=1.0.0
 
-# --- ML / Terminoloji ---
+# --- ML / Terminoloji / Çeviri Kalite ---
 transformers>=4.30.0
+langdetect>=1.0.9
 
 # --- EPUB Dışa Aktarma ---
 ebooklib>=0.18

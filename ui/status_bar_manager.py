@@ -4,6 +4,7 @@ StatusBarManager — Uygulama alt bilgi barı oluşturucu ve güncelleyici.
 
 from PyQt6.QtWidgets import QFrame, QHBoxLayout, QLabel, QPushButton
 from PyQt6.QtCore import Qt
+from core.localization import tr
 
 
 class StatusBarManager:
@@ -46,35 +47,35 @@ class StatusBarManager:
         bar_layout.setContentsMargins(8, 0, 8, 0)
         bar_layout.setSpacing(14)
 
-        win.sb_status_label = QLabel("🟢 Hazır")
-        win.sb_model_label = QLabel("🤖 Model: -")
-        win.sb_api_label = QLabel("🔑 API: -")
-        win.sb_speed_label = QLabel("⚡ Hız: -")
-        win.sb_requests_label = QLabel("📡 İstek: 0")
-        win.sb_tokens_label = QLabel("📊 Token: 0")
-        win.sb_refresh_btn = QPushButton("↻  UI Yenile")
+        win.sb_status_label = QLabel(f"🟢 {tr('status_bar.ready', 'Hazır')}")
+        win.sb_model_label = QLabel(f"🤖 {tr('status_bar.model', 'Model')}: -")
+        win.sb_api_label = QLabel(f"🔑 {tr('status_bar.api', 'API')}: -")
+        win.sb_speed_label = QLabel(f"⚡ {tr('status_bar.speed', 'Hız')}: -")
+        win.sb_requests_label = QLabel(f"📡 {tr('status_bar.requests', 'İstek')}: 0")
+        win.sb_tokens_label = QLabel(f"📊 {tr('status_bar.tokens', 'Token')}: 0")
+        win.sb_refresh_btn = QPushButton(tr("status_bar.btn_refresh", "↻  UI Yenile"))
         win.sb_refresh_btn.setFixedHeight(22)
-        win.sb_refresh_btn.setToolTip("Dosya listesini yeniden yükle (UI Yenile)")
+        win.sb_refresh_btn.setToolTip(tr("status_bar.btn_refresh_tooltip", "Dosya listesini yeniden yükle (UI Yenile)"))
         win.sb_refresh_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         win.sb_refresh_btn.clicked.connect(win.refresh_ui_and_theme)
 
         for w in [win.sb_status_label, win.sb_model_label, win.sb_api_label,
                    win.sb_speed_label, win.sb_requests_label, win.sb_tokens_label]:
-            bar_layout.addWidget(w)
+             bar_layout.addWidget(w)
         bar_layout.addStretch()
         bar_layout.addWidget(win.sb_refresh_btn)
         win.outer_layout.addWidget(status_frame)
 
     def update(self):
         win = self.win
-        status_icon = "🟢" if win._current_status == "Hazır" else "🟡"
+        status_icon = "🟢" if win._current_status == tr("right_panel.status_ready", "Hazır") else "🟡"
         win.sb_status_label.setText(f"{status_icon} {win._current_status}")
-        win.sb_model_label.setText(f"🤖 Model: {win._current_model or '-'}")
-        win.sb_api_label.setText(f"🔑 API: {win._current_api_name or '-'}")
+        win.sb_model_label.setText(f"🤖 {tr('status_bar.model', 'Model')}: {win._current_model or '-'}")
+        win.sb_api_label.setText(f"🔑 {tr('status_bar.api', 'API')}: {win._current_api_name or '-'}")
         current_req_count = win.request_counter_manager.get_count(win._current_model, win._current_api_name)
-        win.sb_requests_label.setText(f"📡 İstek: {current_req_count}")
-        win.sb_tokens_label.setText(f"📊 Token: {win._api_token_count}")
+        win.sb_requests_label.setText(f"📡 {tr('status_bar.requests', 'İstek')}: {current_req_count}")
+        win.sb_tokens_label.setText(f"📊 {tr('status_bar.tokens', 'Token')}: {win._api_token_count}")
         if win._translation_speed > 0:
-            win.sb_speed_label.setText(f"⚡ Hız: {win._translation_speed:.1f} dk/bölüm")
+            win.sb_speed_label.setText(tr("status_bar.speed_val", "⚡ Hız: {:.1f} dk/bölüm").format(win._translation_speed))
         else:
-            win.sb_speed_label.setText("⚡ Hız: -")
+            win.sb_speed_label.setText(f"⚡ {tr('status_bar.speed', 'Hız')}: -")

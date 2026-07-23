@@ -10,6 +10,7 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtGui import QIntValidator, QFont, QIcon, QAction
 from PyQt6.QtCore import Qt, QThread, pyqtSignal, QObject, QSize
 from logger import app_logger
+from core.localization import tr
 
 # ─── V2.1.0 Geriye Uyumluluk Re-export'lar ───
 # ui/ paketine taşınan sınıflar burada da erişilebilir kalır.
@@ -35,7 +36,7 @@ def load_files_to_combo(combobox, subfolder):
     """Belirtilen klasördeki txt dosyalarını combobox'a yükler."""
     folder = get_config_path(subfolder)
     combobox.clear()
-    combobox.addItem("Seçiniz...", None)
+    combobox.addItem(tr("new_project.combo_select", "Seçiniz..."), None)
     if os.path.exists(folder):
         files = sorted([f for f in os.listdir(folder) if f.endswith('.txt')])
         for f in files:
@@ -55,17 +56,17 @@ class PostDownloadDialog(QDialog):
         super().__init__(parent)
         self.file_path = file_path
         self.file_name = file_name
-        self.setWindowTitle("İndirme Tamamlandı")
+        self.setWindowTitle(tr("post_download.window_title", "İndirme Tamamlandı"))
         self.setFixedWidth(450)
         
         layout = QVBoxLayout(self)
         
         # Bilgi Mesajı
-        title_label = QLabel("✅ İndirme İşlemi Başarılı")
+        title_label = QLabel(tr("post_download.title", "✅ İndirme İşlemi Başarılı"))
         title_label.setStyleSheet("font-size: 16px; font-weight: bold; color: #4CAF50; margin-bottom: 5px;")
         layout.addWidget(title_label)
         
-        info_label = QLabel(f"İndirilen dosya:\n{self.file_name}")
+        info_label = QLabel(tr("post_download.info", "İndirilen dosya:\n{filename}").format(filename=self.file_name))
         info_label.setWordWrap(True)
         info_label.setStyleSheet("margin-bottom: 20px; color: #E0E0E0;")
         layout.addWidget(info_label)
@@ -73,17 +74,17 @@ class PostDownloadDialog(QDialog):
         # Butonlar
         btn_layout = QVBoxLayout()
         
-        self.open_path_btn = QPushButton("📁 Dosya Yolunu Aç")
+        self.open_path_btn = QPushButton(tr("post_download.btn_open_folder", "📁 Dosya Yolunu Aç"))
         self.open_path_btn.setStyleSheet("padding: 10px; background-color: #2196F3; color: white;")
         self.open_path_btn.clicked.connect(self.open_folder)
         btn_layout.addWidget(self.open_path_btn)
         
-        self.split_btn = QPushButton("✂️ Bölümleri Ayır (Split)")
+        self.split_btn = QPushButton(tr("post_download.btn_split", "✂️ Bölümleri Ayır (Split)"))
         self.split_btn.setStyleSheet("padding: 10px; background-color: #9C27B0; color: white;")
         self.split_btn.clicked.connect(self.start_splitting)
         btn_layout.addWidget(self.split_btn)
         
-        self.close_btn = QPushButton("🚪 Kapat - Ana Ekrana Dön")
+        self.close_btn = QPushButton(tr("post_download.btn_close", "🚪 Kapat - Ana Ekrana Dön"))
         self.close_btn.setStyleSheet("padding: 10px; margin-top: 10px;")
         self.close_btn.clicked.connect(self.accept)
         btn_layout.addWidget(self.close_btn)
@@ -119,7 +120,7 @@ class PostDownloadDialog(QDialog):
                     import subprocess
                     subprocess.Popen(["xdg-open", folder])
             except:
-                QMessageBox.warning(self, "Hata", f"Klasör açılamadı: {e}")
+                QMessageBox.warning(self, tr("main_window.msg_structure_error_title", "Hata"), tr("post_download.msg_folder_open_error", "Klasör açılamadı: {}").format(e))
 
     def start_splitting(self):
         """SplitWorker başlatarak bölümleri ayırır."""
@@ -155,6 +156,7 @@ class PostDownloadDialog(QDialog):
         self.split_thread.quit()
         self.split_thread.wait()
         # Orijinal dosyayı cmplt klasörüne taşı
+        dest_path = ""
         try:
             import shutil
             # Proje yolunu dwnld klasöründen iki üst dizin olarak bul
@@ -170,11 +172,11 @@ class PostDownloadDialog(QDialog):
             app_logger.warning(f"PostDownloadDialog: Dosya taşıma hatası: {e}")
         self.progress_bar.setVisible(False)
         msg_box = QMessageBox(self)
-        msg_box.setWindowTitle("Bölümler Ayrıldı")
-        msg_box.setText(f"Bölümler başarıyla ayrıldı.\nOrijinal tüm bölümler dosyası 'cmplt' klasörüne taşındı:\n\n{dest_path}\n\nBu dosya saklansin mı, silinsin mi?")
+        msg_box.setWindowTitle(tr("post_download.msg_split_finished_title", "Bölümler Ayrıldı"))
+        msg_box.setText(tr("post_download.msg_split_finished_body", "Bölümler başarıyla ayrıldı.\nOrijinal tüm bölümler dosyası 'cmplt' klasörüne taşındı:\n\n{path}\n\nBu dosya saklansın mı, silinsin mi?").format(path=dest_path))
         msg_box.setIcon(QMessageBox.Icon.Question)
-        keep_btn = msg_box.addButton("Sakla", QMessageBox.ButtonRole.AcceptRole)
-        delete_btn = msg_box.addButton("Sil", QMessageBox.ButtonRole.DestructiveRole)
+        keep_btn = msg_box.addButton(tr("post_download.btn_keep", "Sakla"), QMessageBox.ButtonRole.AcceptRole)
+        delete_btn = msg_box.addButton(tr("post_download.btn_delete", "Sil"), QMessageBox.ButtonRole.DestructiveRole)
         msg_box.setDefaultButton(keep_btn)
         msg_box.exec()
         if msg_box.clickedButton() == delete_btn:
@@ -195,5 +197,5 @@ class PostDownloadDialog(QDialog):
         self.split_btn.setEnabled(True)
         self.close_btn.setEnabled(True)
         self.progress_bar.setVisible(False)
-        QMessageBox.critical(self, "Hata", f"Ayırma hatası: {message}")
+        QMessageBox.critical(self, tr("main_window.msg_structure_error_title", "Hata"), tr("post_download.msg_split_error", "Ayırma hatası: {}").format(message))
         app_logger.error(f"PostDownloadDialog: Ayırma hatası -> {message}")

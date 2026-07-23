@@ -63,6 +63,7 @@ yznvltranslate-main/
 - `token_count_worker.py`: Token tahmini için asenkron işçi.
 - `token_counter.py`: Token sayma uygulaması.
 - `translation_error_check_worker.py`: Çeviri sonrası hata tespiti.
+- `translation_quality_checker.py`: Metin benzerliği (%80+), langdetect ve CJK ile çok katmanlı kalite kontrolü.
 - `translation_worker.py`: LLM çağrılarını yürüten ana işçi.
 
 ## UI Bileşenleri (`/ui`)

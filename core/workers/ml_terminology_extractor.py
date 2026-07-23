@@ -3,7 +3,11 @@ import re
 import json
 import argparse
 import logging
+import threading
 from collections import defaultdict, Counter
+from core.localization import tr
+
+_terminology_save_lock = threading.Lock()
 
 # Proje içerisindeki token_counter modülünü dahil et
 try:
@@ -23,21 +27,7 @@ except ImportError as e:
     logger.error("llm_provider.py bulunamadı. Lütfen aracın yznvltranslate-main klasöründe olduğundan emin olun.")
     raise e
 
-EXTRACT_PROMPT_V2 = """Aşağıda sana çevrilmemiş bir web romanının/hikayesinin bağlamını veriyorum.
-Lütfen bu metni analiz et ve metinde geçen EN ÖNEMLİ özel karakter isimlerini, yer isimlerini, unvanları ve özel yetenek/teknik isimlerini tespit et.
-Bu terimlerin hikaye bağlamına en uygun Türkçe çevirilerini belirle.
-
-LÜTFEN ŞUNU YAP:
-1. Yalnızca hikayenin temel taşlarını oluşturan net özel isimleri ve terimleri (isim, yer, teknik vb.) dahil et.
-2. Basit kelimeleri listeye EKLEME.
-3. Terimleri SADECE 'Kaynak_Dil_Terimi → Türkçe_Çevirisi' formatında listele. Başka hiçbir açıklama yapma, madde imi kullanma.
-
-KAYNAK METİN:
-{source_text}
-
-YANIT FORMATI:
-source_term → target_translation
-"""
+EXTRACT_PROMPT_V2 = tr("ml_terminology_extractor.promt_part1","") + "{source_text}" + tr("ml_terminology_extractor.promt_part2","")
 
 class MLTerminologyExtractor:
     """
@@ -228,45 +218,45 @@ class MLTerminologyExtractor:
 
 
     def _save_results(self, new_terms: list, append: bool):
-        os.makedirs(self.config_dir, exist_ok=True)
-        terms_file = os.path.join(self.config_dir, "terminology.json")
-        
-        existing_terms = []
-        if append and os.path.exists(terms_file):
-            try:
-                with open(terms_file, 'r', encoding='utf-8') as f:
-                    existing_terms = json.load(f)
-            except Exception as e:
-                logger.warning(f"Mevcut terminoloji okunamadı: {e}")
-                
-        if append:
-            existing_sources = {t["source"].lower() for t in existing_terms}
-            added_terms = []
-            skipped_terms = []
-            for nt in new_terms:
-                if nt["source"].lower() not in existing_sources:
-                    existing_terms.append(nt)
-                    added_terms.append(nt)
-                else:
-                    skipped_terms.append(nt)
-            final_list = existing_terms
-            added_count = len(added_terms)
-            logger.info(f"Mevcut listeye {added_count} adet yeni terim eklendi.")
-        else:
-            final_list = new_terms
-            added_terms = new_terms
-            skipped_terms = []
-
-
+        with _terminology_save_lock:
+            os.makedirs(self.config_dir, exist_ok=True)
+            terms_file = os.path.join(self.config_dir, "terminology.json")
             
-        try:
-            with open(terms_file, 'w', encoding='utf-8') as f:
-                json.dump(final_list, f, indent=2, ensure_ascii=False)
+            existing_terms = []
+            if append and os.path.exists(terms_file):
+                try:
+                    with open(terms_file, 'r', encoding='utf-8') as f:
+                        existing_terms = json.load(f)
+                except Exception as e:
+                    logger.warning(f"Mevcut terminoloji okunamadı: {e}")
+                    
+            if append:
+                existing_sources = {t["source"].lower() for t in existing_terms}
+                added_terms = []
+                skipped_terms = []
+                for nt in new_terms:
+                    if nt["source"].lower() not in existing_sources:
+                        existing_terms.append(nt)
+                        added_terms.append(nt)
+                    else:
+                        skipped_terms.append(nt)
+                final_list = existing_terms
+                added_count = len(added_terms)
+                logger.info(f"Mevcut listeye {added_count} adet yeni terim eklendi.")
+            else:
+                final_list = new_terms
+                added_terms = new_terms
+                skipped_terms = []
+    
                 
-            action = "Kayıt mevcut dosyaya EKLENDİ" if append else "YENİ DOSYA YARATILDI"
-            logger.info(f"İşlem Tamamlandı: {terms_file} [{action}]")
-        except Exception as e:
-            logger.error(f"Terminoloji dosyası kaydedilemedi: {e}")
+            try:
+                with open(terms_file, 'w', encoding='utf-8') as f:
+                    json.dump(final_list, f, indent=2, ensure_ascii=False)
+                    
+                action = "Kayıt mevcut dosyaya EKLENDİ" if append else "YENİ DOSYA YARATILDI"
+                logger.info(f"İşlem Tamamlandı: {terms_file} [{action}]")
+            except Exception as e:
+                logger.error(f"Terminoloji dosyası kaydedilemedi: {e}")
 
 
 

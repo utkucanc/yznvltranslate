@@ -11,6 +11,7 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtGui import QIntValidator, QFont, QIcon, QAction
 from PyQt6.QtCore import Qt, QThread, pyqtSignal, QObject, QSize
 from logger import app_logger
+from core.localization import tr
 
 # ─── V2.1.0 Geriye Uyumluluk Re-export'lar ───
 # ui/ paketine taşınan sınıflar burada da erişilebilir kalır.
@@ -38,7 +39,7 @@ def load_files_to_combo(combobox, subfolder):
     """Belirtilen klasördeki txt dosyalarını combobox'a yükler."""
     folder = get_config_path(subfolder)
     combobox.clear()
-    combobox.addItem("Seçiniz...", None)
+    combobox.addItem(tr("new_project.combo_select", "Seçiniz..."), None)
     if os.path.exists(folder):
         files = sorted([f for f in os.listdir(folder) if f.endswith('.txt')])
         for f in files:
@@ -59,7 +60,7 @@ class ProjectSettingsDialog(QDialog):
                  async_enabled=False, async_threads=3,
                  batch_enabled=False, max_batch_chars=33000, max_chapters_per_batch=5):
         super().__init__(parent)
-        self.setWindowTitle(f"'{project_name}' Ayarları")
+        self.setWindowTitle(tr("project_settings.window_title", "'{}' Ayarları").format(project_name))
         self.setMinimumWidth(520)
         self.setMaximumWidth(880)
         # Ekran yüksekliğinin %85'ini geç
@@ -122,12 +123,12 @@ class ProjectSettingsDialog(QDialog):
         self.maxRetriesInput.setToolTip("Bir API hatası alındığında (Örn. 500) tekrar deneme sayısı.")
         
         # MCP Endpoint Seçimi
-        mcp_group = QGroupBox("Yapay Zeka Kaynağı (MCP)")
+        mcp_group = QGroupBox(tr("project_settings.group_mcp", "Yapay Zeka Kaynağı (MCP)"))
         mcp_layout = QVBoxLayout()
         mcp_layout.setSpacing(5)
         mcp_layout.setContentsMargins(8, 6, 8, 6)
         
-        self.use_custom_endpoint = QCheckBox("Bu proje için özel bağlantı kullan")
+        self.use_custom_endpoint = QCheckBox(tr("project_settings.checkbox_custom_mcp", "Bu proje için özel bağlantı kullan"))
         mcp_layout.addWidget(self.use_custom_endpoint)
         
         ep_layout = QHBoxLayout()
@@ -136,7 +137,7 @@ class ProjectSettingsDialog(QDialog):
         self.endpoint_combo.setEnabled(False)
         self._load_endpoints(mcp_endpoint_id)
         
-        self.mcp_manage_btn = QPushButton("MCP Yönet")
+        self.mcp_manage_btn = QPushButton(tr("project_settings.btn_mcp_manage", "MCP Yönet"))
         self.mcp_manage_btn.setFixedWidth(85)
         self.mcp_manage_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         self.mcp_manage_btn.clicked.connect(self.open_mcp_dialog)
@@ -160,7 +161,7 @@ class ProjectSettingsDialog(QDialog):
         self.api_key_input.setText(api_key)
         self.api_key_input.setEchoMode(QLineEdit.EchoMode.Password)
         
-        self.edit_keys_btn = QPushButton("Düzenle")
+        self.edit_keys_btn = QPushButton(tr("app_settings.btn_edit", "Düzenle"))
         self.edit_keys_btn.setFixedWidth(70)
         self.edit_keys_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         self.edit_keys_btn.clicked.connect(self.open_key_editor)
@@ -174,7 +175,7 @@ class ProjectSettingsDialog(QDialog):
         self.promt_combo = QComboBox()
         self.promt_combo.currentIndexChanged.connect(self.on_promt_combo_changed)
         
-        self.edit_promt_btn = QPushButton("Düzenle")
+        self.edit_promt_btn = QPushButton(tr("app_settings.btn_edit", "Düzenle"))
         self.edit_promt_btn.setFixedWidth(70)
         self.edit_promt_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         self.edit_promt_btn.clicked.connect(self.open_promt_editor)
@@ -187,7 +188,7 @@ class ProjectSettingsDialog(QDialog):
         self.startpromtinput.setFixedHeight(130)
 
         # Prompt Generator Butonu 
-        self.prompt_gen_btn = QPushButton("⚡ Prompt Oluşturucu (Generator)")
+        self.prompt_gen_btn = QPushButton(tr("project_settings.btn_prompt_gen", "⚡ Prompt Oluşturucu (Generator)"))
         self.prompt_gen_btn.setStyleSheet(
             "background-color: #880E4F; color: white; font-weight: bold; "
             "padding: 4px 10px; border-radius: 4px; font-size: 9pt;"
@@ -196,29 +197,29 @@ class ProjectSettingsDialog(QDialog):
         self.prompt_gen_btn.clicked.connect(self.open_prompt_generator)
 
         # Otomatik Özellikler (Cache & Terminology) 
-        features_group = QGroupBox("Otomatik Özellikler")
+        features_group = QGroupBox(tr("project_settings.group_features", "Otomatik Özellikler"))
         features_layout = QVBoxLayout()
         features_layout.setSpacing(4)
         features_layout.setContentsMargins(8, 6, 8, 6)
-        self.cache_checkbox = QCheckBox("Çeviri Önbelleği (Translation Cache) [Tekrardan Geliştirilecektir.]")
+        self.cache_checkbox = QCheckBox(tr("project_settings.checkbox_cache", "Çeviri Önbelleği (Translation Cache) [Tekrardan Geliştirilecektir.]"))
         self.cache_checkbox.setChecked(cache_enabled)
-        self.cache_checkbox.setToolTip("Aynı metin tekrar çevrildiğinde API çağrısı yapmadan önbellekten döner.")
-        self.terminology_checkbox = QCheckBox("Terminoloji Hafızası (Terminology Memory)")
+        self.cache_checkbox.setToolTip(tr("project_settings.checkbox_cache_tooltip", "Aynı metin tekrar çevrildiğinde API çağrısı yapmadan önbellekten döner."))
+        self.terminology_checkbox = QCheckBox(tr("project_settings.checkbox_terminology", "Terminoloji Hafızası (Terminology Memory)"))
         self.terminology_checkbox.setChecked(terminology_enabled)
-        self.terminology_checkbox.setToolTip("Proje terminoloji sözlüğünü otomatik olarak prompta ekler.")
+        self.terminology_checkbox.setToolTip(tr("project_settings.checkbox_terminology_tooltip", "Proje terminoloji sözlüğünü otomatik olarak prompta ekler."))
         features_layout.addWidget(self.cache_checkbox)
         features_layout.addWidget(self.terminology_checkbox)
         features_group.setLayout(features_layout)
 
         # Gelişmiş Özellikler
-        advanced_group = QGroupBox("Performans ve Altyapı")
+        advanced_group = QGroupBox(tr("project_settings.group_advanced", "Performans ve Altyapı"))
         advanced_layout = QFormLayout()
         advanced_layout.setSpacing(6)
         advanced_layout.setContentsMargins(8, 6, 8, 6)
         
-        self.async_checkbox = QCheckBox("Asenkron Çeviri [RPM Değeri Önemli]")
+        self.async_checkbox = QCheckBox(tr("project_settings.checkbox_async", "Asenkron Çeviri [RPM Değeri Önemli]"))
         self.async_checkbox.setChecked(async_enabled)
-        self.async_checkbox.setToolTip("Çevirileri aynı anda başlatarak performansı ciddi oranda arttırır.")
+        self.async_checkbox.setToolTip(tr("project_settings.checkbox_async_tooltip", "Çevirileri aynı anda başlatarak performansı ciddi oranda arttırır."))
         
         self.async_threads_spinbox = QSpinBox()
         self.async_threads_spinbox.setMinimum(1)
@@ -229,10 +230,10 @@ class ProjectSettingsDialog(QDialog):
         self.async_checkbox.toggled.connect(self.async_threads_spinbox.setEnabled)
 
         # Toplu Çeviri (Batch Mode)
-        self.batch_checkbox = QCheckBox("Toplu Çeviri / Batch Mode [TPM Değeri Önemli]")
+        self.batch_checkbox = QCheckBox(tr("project_settings.checkbox_batch", "Toplu Çeviri / Batch Mode [TPM Değeri Önemli]"))
         self.batch_checkbox.setChecked(batch_enabled)
         self.batch_checkbox.setToolTip(
-            "Birden fazla bölümü tek API isteğine gruplayarak RPD kotasından daha fazla bölüm çevirir."
+            tr("project_settings.checkbox_batch_tooltip", "Birden fazla bölümü tek API isteğine gruplayarak RPD kotasından daha fazla bölüm çevirir.")
         )
         self.batch_checkbox.toggled.connect(self._on_batch_toggled)
 
@@ -242,7 +243,7 @@ class ProjectSettingsDialog(QDialog):
         self.batch_chars_spinbox.setSingleStep(1000)
         self.batch_chars_spinbox.setValue(max_batch_chars)
         self.batch_chars_spinbox.setEnabled(batch_enabled)
-        self.batch_chars_spinbox.setToolTip("Bir batch'te gönderilebilecek maksimum karakter sayısı.")
+        self.batch_chars_spinbox.setToolTip(tr("project_settings.checkbox_batch_tooltip_chars", "Bir batch'te gönderilebilecek maksimum karakter sayısı."))
 
         self.batch_chapters_spinbox = QSpinBox()
         self.batch_chapters_spinbox.setMinimum(1)
@@ -250,18 +251,18 @@ class ProjectSettingsDialog(QDialog):
         self.batch_chapters_spinbox.setSingleStep(1)
         self.batch_chapters_spinbox.setValue(max_chapters_per_batch)
         self.batch_chapters_spinbox.setEnabled(batch_enabled)
-        self.batch_chapters_spinbox.setToolTip("Bir batch'e konabilecek maksimum bölüm sayısı.")
+        self.batch_chapters_spinbox.setToolTip(tr("project_settings.checkbox_batch_tooltip_chapters", "Bir batch'e konabilecek maksimum bölüm sayısı."))
 
         advanced_layout.addRow(self.async_checkbox)
-        advanced_layout.addRow("Thread sayısı:", self.async_threads_spinbox)
+        advanced_layout.addRow(tr("project_settings.label_async_threads", "Thread sayısı:"), self.async_threads_spinbox)
         advanced_layout.addRow(self.batch_checkbox)
-        advanced_layout.addRow("Maks karakter/batch:", self.batch_chars_spinbox)
-        advanced_layout.addRow("Maks bölüm/batch:", self.batch_chapters_spinbox)
+        advanced_layout.addRow(tr("project_settings.label_max_chars_batch", "Maks karakter/batch:"), self.batch_chars_spinbox)
+        advanced_layout.addRow(tr("project_settings.label_max_chapters_batch", "Maks bölüm/batch:"), self.batch_chapters_spinbox)
         
         # Veritabanı Taşıma
         from core.database_manager import DatabaseManager
         self.db_mgr = DatabaseManager(os.path.join(os.getcwd(), self.project_name))
-        self.db_migrate_btn = QPushButton("📦 Eski Projeyi Veritabanına Taşı (Hızlandır)")
+        self.db_migrate_btn = QPushButton(tr("project_settings.btn_db_migrate", "📦 Eski Projeyi Veritabanına Taşı (Hızlandır)"))
         self.db_migrate_btn.setStyleSheet(
             "background-color: #0D47A1; color: white; "
             "padding: 4px 10px; border-radius: 4px; font-size: 9pt;"
@@ -276,7 +277,7 @@ class ProjectSettingsDialog(QDialog):
         advanced_group.setLayout(advanced_layout)
 
         # Terminoloji Sözlüğü Butonu
-        self.terminology_manage_btn = QPushButton("📖 Terminoloji Sözlüğünü Yönet / Düzenle")
+        self.terminology_manage_btn = QPushButton(tr("project_settings.btn_terminology_manage", "📖 Terminoloji Sözlüğünü Yönet / Düzenle"))
         self.terminology_manage_btn.setStyleSheet(
             "background-color: #6A1B9A; color: white; font-weight: bold; "
             "padding: 4px 10px; border-radius: 4px; font-size: 9pt;"
@@ -285,15 +286,15 @@ class ProjectSettingsDialog(QDialog):
         self.terminology_manage_btn.clicked.connect(self.open_terminology_dialog)
         
         # Form'u doldur 
-        layout.addRow("Proje Adı:", self.projectNameLabel)
-        layout.addRow("Proje Linki:", self.projectLinkInput)
-        layout.addRow("Maks. Sayfa:", self.maxPagesInput)
-        layout.addRow("Maks. Deneme:", self.maxRetriesInput)
+        layout.addRow(tr("project_settings.label_project_name", "Proje Adı:"), self.projectNameLabel)
+        layout.addRow(tr("project_settings.label_project_link", "Proje Linki:"), self.projectLinkInput)
+        layout.addRow(tr("project_settings.label_max_pages", "Maks. Sayfa:"), self.maxPagesInput)
+        layout.addRow(tr("project_settings.label_max_retries", "Maks. Deneme:"), self.maxRetriesInput)
         layout.addRow(mcp_group)
-        layout.addRow("API Key Seç:", key_layout)
-        layout.addRow("Mevcut API Key:", self.api_key_input)
-        layout.addRow("Prompt Seç:", promt_layout)
-        layout.addRow("Prompt İçeriği:", self.startpromtinput)
+        layout.addRow(tr("project_settings.label_api_key_select", "API Key Seç:"), key_layout)
+        layout.addRow(tr("project_settings.label_current_api_key", "Mevcut API Key:"), self.api_key_input)
+        layout.addRow(tr("project_settings.label_prompt_select", "Prompt Seç:"), promt_layout)
+        layout.addRow(tr("project_settings.label_prompt_content", "Prompt İçeriği:"), self.startpromtinput)
         layout.addRow(self.prompt_gen_btn)
         layout.addRow(self.terminology_manage_btn)
         layout.addRow(features_group)
@@ -309,7 +310,7 @@ class ProjectSettingsDialog(QDialog):
     def _load_endpoints(self, selected_id=None):
         """MCP endpoint listesini combo'ya yükler."""
         self.endpoint_combo.clear()
-        self.endpoint_combo.addItem("Global Aktif Endpoint", None)
+        self.endpoint_combo.addItem(tr("new_project.combo_global_endpoint", "Global Aktif Endpoint"), None)
         try:
             from core.llm_provider import load_endpoints
             data = load_endpoints()
@@ -336,16 +337,16 @@ class ProjectSettingsDialog(QDialog):
                 if generated:
                     self.startpromtinput.setText(generated)
         except ImportError:
-            QMessageBox.warning(self, "Uyarı", "Prompt Generator modülü henüz yüklenmemiş.")
+            QMessageBox.warning(self, tr("main_window.msg_structure_error_title", "Hata"), tr("project_settings.prompt_gen_missing", "Prompt Generator modülü henüz yüklenmemiş."))
         except Exception as e:
-            QMessageBox.critical(self, "Hata", f"Prompt Generator açılamadı: {e}")
+            QMessageBox.critical(self, tr("main_window.msg_structure_error_title", "Hata"), f"Prompt Generator: {e}")
 
     def open_terminology_dialog(self):
         try:
             dlg = TerminologyDialog(os.path.join(os.getcwd(), self.project_name), self)
             dlg.exec()
         except Exception as e:
-            QMessageBox.critical(self, "Hata", f"Terminoloji penceresi açılamadı: {e}")
+            QMessageBox.critical(self, tr("main_window.msg_structure_error_title", "Hata"), f"Terminology: {e}")
 
     def refresh_combos(self):
         load_files_to_combo(self.api_key_combo, "APIKeys")
@@ -380,7 +381,7 @@ class ProjectSettingsDialog(QDialog):
             mcp_endpoint_id = self.endpoint_combo.currentData()
             
         api_key_name = self.api_key_combo.currentText()
-        if api_key_name == "Seçiniz...":
+        if api_key_name == tr("new_project.combo_select", "Seçiniz..."):
             api_key_name = ""
         
         return {
@@ -403,7 +404,7 @@ class ProjectSettingsDialog(QDialog):
     def run_db_migration(self):
         """Mevcut dizindekileri yavaş scan ile okuyup veritabanına geçirir."""
         from core.file_list_manager import FileListManager
-        self.db_migrate_btn.setText("Taşınıyor... Lütfen bekleyin")
+        self.db_migrate_btn.setText(tr("project_settings.btn_db_migrate_running", "Taşınıyor... Lütfen bekleyin"))
         self.db_migrate_btn.setEnabled(False)
         QApplication.processEvents()
         
@@ -412,15 +413,15 @@ class ProjectSettingsDialog(QDialog):
             success = self.db_mgr.sync_directory_to_db(legacy_flm)
             if success:
                 QMessageBox.information(
-                    self, "Başarılı", 
-                    "Eski veriler başarıyla veritabanına taşındı!\nArtık dosya listeleri anında açılacak."
+                    self, tr("project_settings.msg_db_migrate_success_title", "Başarılı"), 
+                    tr("project_settings.msg_db_migrate_success_body", "Eski veriler başarıyla veritabanına taşındı!\nArtık dosya listeleri anında açılacak.")
                 )
                 self.db_migrate_btn.setVisible(False)
             else:
-                QMessageBox.warning(self, "Hata", "Veritabanına taşıma işlemi sırasında bir hata oluştu.")
-                self.db_migrate_btn.setText("📦 Eski Projeyi Veritabanına Taşı (Hızlandır)")
+                QMessageBox.warning(self, tr("project_settings.msg_db_migrate_error_title", "Hata"), tr("project_settings.msg_db_migrate_error_body", "Veritabanına taşıma işlemi sırasında bir hata oluştu."))
+                self.db_migrate_btn.setText(tr("project_settings.btn_db_migrate", "📦 Eski Projeyi Veritabanına Taşı (Hızlandır)"))
                 self.db_migrate_btn.setEnabled(True)
         except Exception as e:
-            QMessageBox.critical(self, "Hata", f"Beklenmeyen bir hata oluştu:\n{e}")
-            self.db_migrate_btn.setText("📦 Eski Projeyi Veritabanına Taşı (Hızlandır)")
+            QMessageBox.critical(self, tr("project_settings.msg_db_migrate_fail_title", "Hata"), tr("project_settings.msg_db_migrate_fail_body", "Beklenmeyen bir hata oluştu:\n{}").format(e))
+            self.db_migrate_btn.setText(tr("project_settings.btn_db_migrate", "📦 Eski Projeyi Veritabanına Taşı (Hızlandır)"))
             self.db_migrate_btn.setEnabled(True)

@@ -10,6 +10,7 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtGui import QIntValidator, QFont, QIcon, QAction
 from PyQt6.QtCore import Qt, QThread, pyqtSignal, QObject, QSize
 from logger import app_logger
+from core.localization import tr
 
 # ─── V2.1.0 Geriye Uyumluluk Re-export'lar ───
 # ui/ paketine taşınan sınıflar burada da erişilebilir kalır.
@@ -35,7 +36,7 @@ def load_files_to_combo(combobox, subfolder):
     """Belirtilen klasördeki txt dosyalarını combobox'a yükler."""
     folder = get_config_path(subfolder)
     combobox.clear()
-    combobox.addItem("Seçiniz...", None)
+    combobox.addItem(tr("new_project.combo_select", "Seçiniz..."), None)
     if os.path.exists(folder):
         files = sorted([f for f in os.listdir(folder) if f.endswith('.txt')])
         for f in files:
@@ -52,7 +53,7 @@ def load_files_to_combo(combobox, subfolder):
 class NewProjectDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setWindowTitle("Yeni Proje Oluştur")
+        self.setWindowTitle(tr("new_project.window_title", "Yeni Proje Oluştur"))
         self.setMinimumWidth(520)
         self.resize(560, 620)
         layout = QFormLayout(self)
@@ -81,7 +82,7 @@ class NewProjectDialog(QDialog):
         self.api_key_input.setPlaceholderText("Manuel giriş veya listeden seçin...")
         self.api_key_input.setEchoMode(QLineEdit.EchoMode.Password)
         
-        self.edit_keys_btn = QPushButton("Düzenle")
+        self.edit_keys_btn = QPushButton(tr("app_settings.btn_edit", "Düzenle"))
         self.edit_keys_btn.setFixedWidth(60)
         self.edit_keys_btn.clicked.connect(self.open_key_editor)
         
@@ -93,7 +94,7 @@ class NewProjectDialog(QDialog):
         self.promt_combo = QComboBox()
         self.promt_combo.currentIndexChanged.connect(self.on_promt_combo_changed)
         
-        self.edit_promt_btn = QPushButton("Düzenle")
+        self.edit_promt_btn = QPushButton(tr("app_settings.btn_edit", "Düzenle"))
         self.edit_promt_btn.setFixedWidth(60)
         self.edit_promt_btn.clicked.connect(self.open_promt_editor)
         
@@ -102,17 +103,18 @@ class NewProjectDialog(QDialog):
 
         self.startpromtinput = QTextEdit(self)
         self.startpromtinput.setPlaceholderText(
+            tr("new_project.placeholder_prompt_content",
             "Seçilen veya manuel girilen prompt metni buraya gelecek...\n"
-            "(Prompt seçenerek veya Prompt Editörü'nden seçebilirsiniz)"
+            "(Prompt seçerek veya Prompt Editörü'nden seçebilirsiniz)")
         )
         self.startpromtinput.setMinimumHeight(120)
         self.startpromtinput.setMaximumHeight(200)
         
         # --- MCP Endpoint Seçimi ---
-        mcp_group = QGroupBox("Yapay Zeka Kaynağı (MCP)")
+        mcp_group = QGroupBox(tr("new_project.group_mcp", "Yapay Zeka Kaynağı (MCP)"))
         mcp_layout = QVBoxLayout()
         
-        self.use_custom_endpoint = QCheckBox("Bu proje için özel bağlantı kullan")
+        self.use_custom_endpoint = QCheckBox(tr("new_project.checkbox_custom_mcp", "Bu proje için özel bağlantı kullan"))
         mcp_layout.addWidget(self.use_custom_endpoint)
         
         ep_layout = QHBoxLayout()
@@ -120,7 +122,7 @@ class NewProjectDialog(QDialog):
         self.endpoint_combo.setEnabled(False)
         self._load_endpoints()
         
-        self.mcp_manage_btn = QPushButton("MCP Yönet")
+        self.mcp_manage_btn = QPushButton(tr("new_project.btn_mcp_manage", "MCP Yönet"))
         self.mcp_manage_btn.setFixedWidth(100)
         self.mcp_manage_btn.clicked.connect(self.open_mcp_dialog)
         
@@ -131,15 +133,15 @@ class NewProjectDialog(QDialog):
         
         self.use_custom_endpoint.toggled.connect(self.endpoint_combo.setEnabled)
         
-        layout.addRow("Proje Adı:", self.projectNameInput)
-        layout.addRow("Proje Linki:", self.projectLinkInput)
-        layout.addRow("Maksimum Sayfa:", self.maxPagesInput)
-        layout.addRow("Maksimum Deneme:", self.maxRetriesInput)
+        layout.addRow(tr("new_project.label_project_name", "Proje Adı:"), self.projectNameInput)
+        layout.addRow(tr("new_project.label_project_link", "Proje Linki:"), self.projectLinkInput)
+        layout.addRow(tr("new_project.label_max_pages", "Maksimum Sayfa:"), self.maxPagesInput)
+        layout.addRow(tr("new_project.label_max_retries", "Maksimum Deneme:"), self.maxRetriesInput)
         layout.addRow(mcp_group)
-        layout.addRow("API Key Seç:", key_layout)
-        layout.addRow("Seçili API Key:", self.api_key_input)
-        layout.addRow("Promt Seç:", promt_layout)
-        layout.addRow("Promt İçeriği:", self.startpromtinput)
+        layout.addRow(tr("new_project.label_api_key_select", "API Key Seç:"), key_layout)
+        layout.addRow(tr("new_project.label_selected_api_key", "Seçili API Key:"), self.api_key_input)
+        layout.addRow(tr("new_project.label_prompt_select", "Promt Seç:"), promt_layout)
+        layout.addRow(tr("new_project.label_prompt_content", "Promt İçeriği:"), self.startpromtinput)
         
         buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel, self)
         buttons.accepted.connect(self.accept)
@@ -170,7 +172,7 @@ class NewProjectDialog(QDialog):
     def _load_endpoints(self, selected_id=None):
         """MCP endpoint listesini combo'ya yükler."""
         self.endpoint_combo.clear()
-        self.endpoint_combo.addItem("Global Aktif Endpoint", None)
+        self.endpoint_combo.addItem(tr("new_project.combo_global_endpoint", "Global Aktif Endpoint"), None)
         try:
             from core.llm_provider import load_endpoints
             data = load_endpoints()
@@ -197,7 +199,7 @@ class NewProjectDialog(QDialog):
         max_pages = int(max_pages_text) if max_pages_text.isdigit() else None
         
         api_key_name = self.api_key_combo.currentText()
-        if api_key_name == "Seçiniz...":
+        if api_key_name == tr("new_project.combo_select", "Seçiniz..."):
             api_key_name = ""
             
         mcp_endpoint_id = None

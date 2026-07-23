@@ -325,8 +325,15 @@ class ErrorCheckController:
         self.win.progressBar.setMaximum(0)
         self.win.progressBar.setVisible(True)
 
+        source_lang = "en"
+        try:
+            if hasattr(self.win, 'project_config') and self.win.project_config:
+                source_lang = self.win.project_config.get("source_lang", "en")
+        except Exception:
+            pass
+
         self.thread = QThread()
-        self.worker = TranslationErrorCheckWorker(trslt_folder, report_folder)
+        self.worker = TranslationErrorCheckWorker(trslt_folder, report_folder, source_lang=source_lang)
         self.worker.moveToThread(self.thread)
         self.thread.started.connect(self.worker.run)
         self.worker.finished.connect(self._on_finished)
@@ -354,18 +361,18 @@ class ErrorCheckController:
         if not high:
             QMessageBox.information(
                 self.win, "Hata Kontrolü Tamamlandı",
-                f"Hiçbir çevrilmiş dosyada yüksek Korece/Çince karakter oranı bulunamadı.\n"
-                f"Düşük oranlı dosya sayısı: {len(low)}\n"
-                f"Rapor: {report_path}"
+                f"Çevrilmiş dosyaların kontrolü tamamlandı. Hatalı veya çevrilmemiş dosya bulunamadı.\n"
+                f"Düşük riskli / şüpheli dosya sayısı: {len(low)}\n"
+                f"Raporlar: {report_path}"
             )
         else:
             file_list_str = "\n".join([
-                f"  - {f['filename']} (Korece: {f['korean_ratio']*100:.1f}%, Çince: {f['chinese_ratio']*100:.1f}%)"
+                f"  - {f['filename']} ({f.get('reason', 'Hatalı')})"
                 for f in high[:20]
             ])
             reply = QMessageBox.question(
                 self.win, 'Çeviri Hata Kontrolü',
-                f"Yüksek Korece/Çince oranı bulunan {len(high)} dosya var:\n\n"
+                f"Hatalı/çevrilmemiş veya yüksek riskli {len(high)} dosya tespit edildi:\n\n"
                 f"{file_list_str}\n\n"
                 f"Bu dosyaları silmek istiyor musunuz?\n"
                 f"(Raporlar {report_path} içinde kaydedildi)",
@@ -503,13 +510,20 @@ class MLTerminologyController:
         if dlg.exec() != QDialog.DialogCode.Accepted:
             return  # Kullanıcı iptal etti
 
-        start_ch, end_ch, max_tokens = dlg.get_values()
+        start_ch, end_ch, max_tokens, extract_all, async_enabled, async_threads = dlg.get_values()
 
         # NOT: _save_last_operation işlem bittikten sonra gerçek son bölümle çağrılır.
         # (Başlangıçta kaydedilirse, token limiti nedeniyle erken durulduğunda yanlış değer kalır.)
 
-        self.thread = MLTerminologyWorker(project_path, start_chapter=start_ch,
-                                          end_chapter=end_ch, max_tokens=max_tokens)
+        self.thread = MLTerminologyWorker(
+            project_path,
+            start_chapter=start_ch,
+            end_chapter=end_ch,
+            max_tokens=max_tokens,
+            extract_all=extract_all,
+            async_enabled=async_enabled,
+            async_threads=async_threads
+        )
         self.thread.progress_update.connect(lambda msg: self.win.statusLabel.setText(f"Durum: {msg}"))
         self.thread.error_signal.connect(self._on_error)
         # finished_signal(int) → gerçekte işlenen son bölüm numarasını taşır
@@ -569,4 +583,5 @@ class MLTerminologyController:
         return self.thread is not None and self.thread.isRunning()
 
     def stop(self):
-        pass  # MLTerminologyWorker QThread bazlı, doğrudan stop desteği yok
+        if self.thread:
+            self.thread.stop()

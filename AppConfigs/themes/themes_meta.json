@@ -1,0 +1,16 @@
+{
+  "themes": {
+    "my_theme": {
+      "label": "My Theme",
+      "base": "dark",
+      "created": "2026-04-13T18:17:05.460667",
+      "modified": "2026-04-20T18:57:36.609980"
+    },
+    "system": {
+      "label": "System",
+      "base": "dark",
+      "created": "2026-04-20T19:01:05.338274",
+      "modified": "2026-04-20T22:38:34.768965"
+    }
+  }
+}

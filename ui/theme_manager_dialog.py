@@ -28,116 +28,117 @@ from core.theme_engine import (
     list_themes, load_theme_tokens, save_custom_theme, delete_theme,
     export_theme, import_theme, tokens_to_qss, BUILTIN_THEMES, DEFAULT_DARK_TOKENS
 )
+from core.localization import tr
 
 # Kategori meta verisi (TreeView için insan okunabilir etiketler)
 CATEGORY_META = {
-    "general":    ("🌐 Genel", {
-        "background":   "Arka Plan",
-        "text_color":   "Metin Rengi",
-        "font_family":  "Font Ailesi",
-        "font_size":    "Font Boyutu",
-        "border_color": "Kenarlık Rengi",
-        "border_radius":"Köşe Yarıçapı",
+    "general": ("theme_manager.cat_general", "🌐 Genel", {
+        "background": ("theme_manager.token_background", "Arka Plan"),
+        "text_color": ("theme_manager.token_text_color", "Metin Rengi"),
+        "font_family": ("theme_manager.token_font_family", "Font Ailesi"),
+        "font_size": ("theme_manager.token_font_size", "Font Boyutu"),
+        "border_color": ("theme_manager.token_border_color", "Kenarlık Rengi"),
+        "border_radius": ("theme_manager.token_border_radius", "Köşe Yarıçapı"),
     }),
-    "buttons": ("🔘 Butonlar", {
-        "btn_success_bg":        "Başarılı — Arka Plan",
-        "btn_success_hover":     "Başarılı — Üzerine Gelme",
-        "btn_primary_bg":        "Birincil — Arka Plan",
-        "btn_primary_hover":     "Birincil — Üzerine Gelme",
-        "btn_stop_bg":           "Durdur — Arka Plan",
-        "btn_stop_hover":        "Durdur — Üzerine Gelme",
-        "btn_purple_bg":         "Mor — Arka Plan",
-        "btn_purple_hover":      "Mor — Üzerine Gelme",
-        "btn_teal_bg":           "Teal — Arka Plan",
-        "btn_teal_hover":        "Teal — Üzerine Gelme",
-        "btn_info_bg":           "Bilgi — Arka Plan",
-        "btn_info_hover":        "Bilgi — Üzerine Gelme",
-        "btn_steel_bg":          "Çelik — Arka Plan",
-        "btn_steel_hover":       "Çelik — Üzerine Gelme",
-        "btn_ocean_bg":          "Okyanus — Arka Plan",
-        "btn_ocean_hover":       "Okyanus — Üzerine Gelme",
-        "btn_brown_bg":          "Kahverengi — Arka Plan",
-        "btn_brown_hover":       "Kahverengi — Üzerine Gelme",
-        "btn_deep_purple_bg":    "Koyu Mor — Arka Plan",
-        "btn_deep_purple_hover": "Koyu Mor — Üzerine Gelme",
-        "btn_pink_bg":           "Pembe — Arka Plan",
-        "btn_pink_hover":        "Pembe — Üzerine Gelme",
-        "btn_padding":           "İç Boşluk",
-        "btn_max_height":        "Maksimum Yükseklik",
+    "buttons": ("theme_manager.cat_buttons", "🔘 Butonlar", {
+        "btn_success_bg": ("theme_manager.token_btn_success_bg", "Başarılı — Arka Plan"),
+        "btn_success_hover": ("theme_manager.token_btn_success_hover", "Başarılı — Üzerine Gelme"),
+        "btn_primary_bg": ("theme_manager.token_btn_primary_bg", "Birincil — Arka Plan"),
+        "btn_primary_hover": ("theme_manager.token_btn_primary_hover", "Birincil — Üzerine Gelme"),
+        "btn_stop_bg": ("theme_manager.token_btn_stop_bg", "Durdur — Arka Plan"),
+        "btn_stop_hover": ("theme_manager.token_btn_stop_hover", "Durdur — Üzerine Gelme"),
+        "btn_purple_bg": ("theme_manager.token_btn_purple_bg", "Mor — Arka Plan"),
+        "btn_purple_hover": ("theme_manager.token_btn_purple_hover", "Mor — Üzerine Gelme"),
+        "btn_teal_bg": ("theme_manager.token_btn_teal_bg", "Teal — Arka Plan"),
+        "btn_teal_hover": ("theme_manager.token_btn_teal_hover", "Teal — Üzerine Gelme"),
+        "btn_info_bg": ("theme_manager.token_btn_info_bg", "Bilgi — Arka Plan"),
+        "btn_info_hover": ("theme_manager.token_btn_info_hover", "Bilgi — Üzerine Gelme"),
+        "btn_steel_bg": ("theme_manager.token_btn_steel_bg", "Çelik — Arka Plan"),
+        "btn_steel_hover": ("theme_manager.token_btn_steel_hover", "Çelik — Üzerine Gelme"),
+        "btn_ocean_bg": ("theme_manager.token_btn_ocean_bg", "Okyanus — Arka Plan"),
+        "btn_ocean_hover": ("theme_manager.token_btn_ocean_hover", "Okyanus — Üzerine Gelme"),
+        "btn_brown_bg": ("theme_manager.token_btn_brown_bg", "Kahverengi — Arka Plan"),
+        "btn_brown_hover": ("theme_manager.token_btn_brown_hover", "Kahverengi — Üzerine Gelme"),
+        "btn_deep_purple_bg": ("theme_manager.token_btn_deep_purple_bg", "Koyu Mor — Arka Plan"),
+        "btn_deep_purple_hover": ("theme_manager.token_btn_deep_purple_hover", "Koyu Mor — Üzerine Gelme"),
+        "btn_pink_bg": ("theme_manager.token_btn_pink_bg", "Pembe — Arka Plan"),
+        "btn_pink_hover": ("theme_manager.token_btn_pink_hover", "Pembe — Üzerine Gelme"),
+        "btn_padding": ("theme_manager.token_btn_padding", "İç Boşluk"),
+        "btn_max_height": ("theme_manager.token_btn_max_height", "Maksimum Yükseklik"),
     }),
-    "inputs": ("✏️ Giriş Alanları", {
-        "input_bg":           "Arka Plan",
-        "input_text":         "Metin Rengi",
-        "input_border":       "Kenarlık",
-        "input_focus_border": "Odak Kenarlığı",
-        "input_focus_bg":     "Odak Arka Planı",
-        "selection_bg":       "Seçim Arka Planı",
-        "selection_text":     "Seçim Metin Rengi",
+    "inputs": ("theme_manager.cat_inputs", "✏️ Giriş Alanları", {
+        "input_bg": ("theme_manager.token_input_bg", "Arka Plan"),
+        "input_text": ("theme_manager.token_input_text", "Metin Rengi"),
+        "input_border": ("theme_manager.token_input_border", "Kenarlık"),
+        "input_focus_border": ("theme_manager.token_input_focus_border", "Odak Kenarlığı"),
+        "input_focus_bg": ("theme_manager.token_input_focus_bg", "Odak Arka Planı"),
+        "selection_bg": ("theme_manager.token_selection_bg", "Seçim Arka Planı"),
+        "selection_text": ("theme_manager.token_selection_text", "Seçim Metin Rengi"),
     }),
-    "table": ("📊 Tablo", {
-        "table_bg":       "Arka Plan",
-        "table_text":     "Metin Rengi",
-        "table_grid":     "Izgara Rengi",
-        "table_border":   "Kenarlık",
-        "table_selected": "Seçim Rengi",
-        "table_alt_bg":   "Alternatif Satır",
-        "header_bg":      "Başlık Arka Planı",
-        "header_text":    "Başlık Metin Rengi",
+    "table": ("theme_manager.cat_table", "📊 Tablo", {
+        "table_bg": ("theme_manager.token_table_bg", "Arka Plan"),
+        "table_text": ("theme_manager.token_table_text", "Metin Rengi"),
+        "table_grid": ("theme_manager.token_table_grid", "Izgara Rengi"),
+        "table_border": ("theme_manager.token_table_border", "Kenarlık"),
+        "table_selected": ("theme_manager.token_table_selected", "Seçim Rengi"),
+        "table_alt_bg": ("theme_manager.token_table_alt_bg", "Alternatif Satır"),
+        "header_bg": ("theme_manager.token_header_bg", "Başlık Arka Planı"),
+        "header_text": ("theme_manager.token_header_text", "Başlık Metin Rengi"),
     }),
-    "list": ("📋 Liste", {
-        "list_bg":       "Arka Plan",
-        "list_text":     "Metin Rengi",
-        "list_border":   "Kenarlık",
-        "list_selected": "Seçim Arka Planı",
-        "list_sel_text": "Seçim Metin Rengi",
-        "list_hover":    "Üzerine Gelme",
+    "list": ("theme_manager.cat_list", "📋 Liste", {
+        "list_bg": ("theme_manager.token_list_bg", "Arka Plan"),
+        "list_text": ("theme_manager.token_list_text", "Metin Rengi"),
+        "list_border": ("theme_manager.token_list_border", "Kenarlık"),
+        "list_selected": ("theme_manager.token_list_selected", "Seçim Arka Planı"),
+        "list_sel_text": ("theme_manager.token_list_sel_text", "Seçim Metin Rengi"),
+        "list_hover": ("theme_manager.token_list_hover", "Üzerine Gelme"),
     }),
-    "progress": ("⏳ İlerleme Çubuğu", {
-        "progress_bg":         "Arka Plan",
-        "progress_grad_start": "Gradient Başlangıç",
-        "progress_grad_mid1":  "Gradient Orta-1",
-        "progress_grad_mid2":  "Gradient Orta-2",
-        "progress_grad_end":   "Gradient Bitiş",
-        "progress_height":     "Yükseklik",
+    "progress": ("theme_manager.cat_progress", "⏳ İlerleme Çubuğu", {
+        "progress_bg": ("theme_manager.token_progress_bg", "Arka Plan"),
+        "progress_grad_start": ("theme_manager.token_progress_grad_start", "Gradient Başlangıç"),
+        "progress_grad_mid1": ("theme_manager.token_progress_grad_mid1", "Gradient Orta-1"),
+        "progress_grad_mid2": ("theme_manager.token_progress_grad_mid2", "Gradient Orta-2"),
+        "progress_grad_end": ("theme_manager.token_progress_grad_end", "Gradient Bitiş"),
+        "progress_height": ("theme_manager.token_progress_height", "Yükseklik"),
     }),
-    "tabs": ("📑 Sekmeler", {
-        "tab_bg":           "Pasif Sekme Arka Plan",
-        "tab_text":         "Pasif Sekme Metin",
-        "tab_active_start": "Aktif Sekme Gradient Baş.",
-        "tab_active_end":   "Aktif Sekme Gradient Bit.",
-        "tab_active_text":  "Aktif Sekme Metin",
-        "tab_hover_bg":     "Üzerine Gelme",
-        "pane_bg":          "Panel Arka Planı",
-        "pane_border":      "Panel Kenarlığı",
+    "tabs": ("theme_manager.cat_tabs", "📑 Sekmeler", {
+        "tab_bg": ("theme_manager.token_tab_bg", "Pasif Sekme Arka Plan"),
+        "tab_text": ("theme_manager.token_tab_text", "Pasif Sekme Metin"),
+        "tab_active_start": ("theme_manager.token_tab_active_start", "Aktif Sekme Gradient Baş."),
+        "tab_active_end": ("theme_manager.token_tab_active_end", "Aktif Sekme Gradient Bit."),
+        "tab_active_text": ("theme_manager.token_tab_active_text", "Aktif Sekme Metin"),
+        "tab_hover_bg": ("theme_manager.token_tab_hover_bg", "Üzerine Gelme"),
+        "pane_bg": ("theme_manager.token_pane_bg", "Panel Arka Planı"),
+        "pane_border": ("theme_manager.token_pane_border", "Panel Kenarlığı"),
     }),
-    "scrollbar": ("↕️ Kaydırma Çubuğu", {
-        "scrollbar_bg":     "Arka Plan",
-        "scrollbar_handle": "Tutamaç",
-        "scrollbar_hover":  "Tutamaç Üzerine Gelme",
-        "scrollbar_width":  "Genişlik",
+    "scrollbar": ("theme_manager.cat_scrollbar", "↕️ Kaydırma Çubuğu", {
+        "scrollbar_bg": ("theme_manager.token_scrollbar_bg", "Arka Plan"),
+        "scrollbar_handle": ("theme_manager.token_scrollbar_handle", "Tutamaç"),
+        "scrollbar_hover": ("theme_manager.token_scrollbar_hover", "Tutamaç Üzerine Gelme"),
+        "scrollbar_width": ("theme_manager.token_scrollbar_width", "Genişlik"),
     }),
-    "menubar": ("🗂️ Menü Çubuğu", {
-        "menubar_bg":    "Menü Çubuğu Arka Planı",
-        "menubar_text":  "Menü Çubuğu Metni",
-        "menu_bg":       "Menü Arka Planı",
-        "menu_text":     "Menü Metni",
-        "menu_selected": "Seçili Öğe Arka Planı",
-        "menu_sel_text": "Seçili Öğe Metni",
-        "menu_border":   "Menü Kenarlığı",
+    "menubar": ("theme_manager.cat_menubar", "🗂️ Menü Çubuğu", {
+        "menubar_bg": ("theme_manager.token_menubar_bg", "Menü Çubuğu Arka Planı"),
+        "menubar_text": ("theme_manager.token_menubar_text", "Menü Çubuğu Metni"),
+        "menu_bg": ("theme_manager.token_menu_bg", "Menü Arka Planı"),
+        "menu_text": ("theme_manager.token_menu_text", "Metin Rengi"),
+        "menu_selected": ("theme_manager.token_menu_selected", "Seçili Öğe Arka Planı"),
+        "menu_sel_text": ("theme_manager.token_menu_sel_text", "Seçili Öğe Metni"),
+        "menu_border": ("theme_manager.token_menu_border", "Menü Kenarlığı"),
     }),
-    "statusbar": ("📌 Durum Çubuğu", {
-        "statusbar_bg":     "Arka Plan",
-        "statusbar_text":   "Metin Rengi",
-        "statusbar_border": "Üst Kenarlık",
+    "statusbar": ("theme_manager.cat_statusbar", "📌 Durum Çubuğu", {
+        "statusbar_bg": ("theme_manager.token_statusbar_bg", "Arka Plan"),
+        "statusbar_text": ("theme_manager.token_statusbar_text", "Metin Rengi"),
+        "statusbar_border": ("theme_manager.token_statusbar_border", "Üst Kenarlık"),
     }),
-    "groupbox": ("📦 Grup Kutusu", {
-        "groupbox_border": "Kenarlık",
-        "groupbox_title":  "Başlık Rengi",
+    "groupbox": ("theme_manager.cat_groupbox", "📦 Grup Kutusu", {
+        "groupbox_border": ("theme_manager.token_groupbox_border", "Kenarlık"),
+        "groupbox_title": ("theme_manager.token_groupbox_title", "Başlık Rengi"),
     }),
 }
 
 # Renk içeren token key'leri (renk picker açılır; diğerleri metin kutusu)
-COLOR_KEYS = {k for cat_data in CATEGORY_META.values() for k in cat_data[1].keys()
+COLOR_KEYS = {k for cat_data in CATEGORY_META.values() for k in cat_data[2].keys()
               if not k.endswith(("_padding", "_height", "_width", "_size", "_family", "_radius"))}
 
 
@@ -171,7 +172,7 @@ class ColorSwatch(QLabel):
         self._color = hex_color
         self.setFixedSize(22, 22)
         self.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.setToolTip("Renk seç")
+        self.setToolTip(tr("theme_manager.tooltip_color_picker", "Renk seç"))
         self._update_style()
 
     def set_color(self, hex_color: str):
@@ -211,25 +212,25 @@ class PreviewCard(QFrame):
         layout.setSpacing(6)
         layout.setContentsMargins(10, 10, 10, 10)
 
-        title = QLabel("🎨 Önizleme")
+        title = QLabel(tr("theme_manager.preview_title", "🎨 Önizleme"))
         title.setFont(QFont("Segoe UI", 9, QFont.Weight.Bold))
         layout.addWidget(title)
 
         # Ana renkler satırı
         self._swatch_layout = QHBoxLayout()
         self._swatches: dict[str, QLabel] = {}
-        for tag, label in [
-            ("background", "Arka Plan"),
-            ("text_color",  "Metin"),
-            ("input_bg",    "Giriş"),
-            ("tab_active_start", "Vurgu"),
-            ("progress_grad_start", "İlerleme"),
+        for tag, tr_key, label in [
+            ("background", "theme_manager.preview_bg", "Arka Plan"),
+            ("text_color",  "theme_manager.preview_text", "Metin"),
+            ("input_bg",    "theme_manager.preview_input", "Giriş"),
+            ("tab_active_start", "theme_manager.preview_accent", "Vurgu"),
+            ("progress_grad_start", "theme_manager.preview_progress", "İlerleme"),
         ]:
             col = QVBoxLayout()
             sw = QLabel()
             sw.setFixedSize(32, 32)
             sw.setStyleSheet("border: 1px solid #555; border-radius: 4px;")
-            lbl = QLabel(label)
+            lbl = QLabel(tr(tr_key, label))
             lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
             lbl.setStyleSheet("font-size: 7pt;")
             col.addWidget(sw, alignment=Qt.AlignmentFlag.AlignCenter)
@@ -244,11 +245,11 @@ class PreviewCard(QFrame):
         sep.setStyleSheet("color: #555;")
         layout.addWidget(sep)
 
-        self._mock_label = QLabel("Örnek Metin")
+        self._mock_label = QLabel(tr("theme_manager.mock_text", "Örnek Metin"))
         self._mock_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(self._mock_label)
 
-        self._mock_btn = QPushButton("Örnek Buton")
+        self._mock_btn = QPushButton(tr("theme_manager.mock_button", "Örnek Buton"))
         self._mock_btn.setEnabled(False)
         layout.addWidget(self._mock_btn)
 
@@ -303,7 +304,7 @@ class ThemeManagerDialog(QDialog):
 
     def __init__(self, current_theme: str = "dark", parent=None):
         super().__init__(parent)
-        self.setWindowTitle("🎨 Tema Yöneticisi")
+        self.setWindowTitle(tr("menu_bar.theme_manager", "🎨 Tema Yöneticisi"))
         self.resize(1000, 680)
         self.setMinimumSize(800, 560)
 
@@ -331,7 +332,7 @@ class ThemeManagerDialog(QDialog):
         root.setSizeConstraint(QVBoxLayout.SizeConstraint.SetNoConstraint)
 
         # Başlık
-        title = QLabel("🎨 Tema Yöneticisi")
+        title = QLabel(tr("menu_bar.theme_manager", "🎨 Tema Yöneticisi"))
         title.setFont(QFont("Segoe UI", 12, QFont.Weight.Bold))
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         title.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed)
@@ -346,7 +347,7 @@ class ThemeManagerDialog(QDialog):
         left_layout.setContentsMargins(0, 0, 4, 0)
         left_layout.setSpacing(4)
 
-        list_label = QLabel("📂 Temalar")
+        list_label = QLabel(tr("theme_manager.themes", "📂 Temalar"))
         list_label.setFont(QFont("Segoe UI", 9, QFont.Weight.Bold))
         left_layout.addWidget(list_label)
 
@@ -358,15 +359,15 @@ class ThemeManagerDialog(QDialog):
         # Sol butonlar
         btn_grid = QVBoxLayout()
         btn_grid.setSpacing(3)
-        for label, slot in [
-            ("➕ Yeni Tema",        self._create_new_theme),
-            ("📋 Farklı Kaydet",   self._save_as),
-            ("⬆️ Dışa Aktar",      self._export_theme),
-            ("⬇️ İçe Aktar",       self._import_theme),
-            ("🗑 Sil",              self._delete_theme),
-            ("✅ Varsayılan Yap",  self._set_as_default),
+        for label, tr_key, default_val, slot in [
+            ("➕ Yeni Tema",        "theme_manager.btn_new", "➕ Yeni Tema",        self._create_new_theme),
+            ("📋 Farklı Kaydet",   "theme_manager.btn_save_as", "📋 Farklı Kaydet",   self._save_as),
+            ("⬆️ Dışa Aktar",      "theme_manager.btn_export", "⬆️ Dışa Aktar",      self._export_theme),
+            ("⬇️ İçe Aktar",       "theme_manager.btn_import", "⬇️ İçe Aktar",       self._import_theme),
+            ("🗑 Sil",              "theme_manager.btn_delete", "🗑 Sil",              self._delete_theme),
+            ("✅ Varsayılan Yap",  "theme_manager.btn_set_default", "✅ Varsayılan Yap",  self._set_as_default),
         ]:
-            btn = QPushButton(label)
+            btn = QPushButton(tr(tr_key, default_val))
             btn.setObjectName(f"btn_{label.replace(' ', '_')}")
             btn.clicked.connect(slot)
             btn_grid.addWidget(btn)
@@ -380,12 +381,12 @@ class ThemeManagerDialog(QDialog):
         mid_layout.setContentsMargins(4, 0, 4, 0)
         mid_layout.setSpacing(4)
 
-        tree_label = QLabel("🌳 Tema Kategorileri")
+        tree_label = QLabel(tr("theme_manager.categories", "🌳 Tema Kategorileri"))
         tree_label.setFont(QFont("Segoe UI", 9, QFont.Weight.Bold))
         mid_layout.addWidget(tree_label)
 
         self.tree = QTreeWidget()
-        self.tree.setHeaderLabels(["Öğe", "Değer"])
+        self.tree.setHeaderLabels([tr("theme_manager.tree_header_item", "Öğe"), tr("theme_manager.tree_header_value", "Değer")])
         self.tree.setMinimumWidth(260)
         self.tree.header().setDefaultSectionSize(160)
         self.tree.itemClicked.connect(self._on_tree_item_clicked)
@@ -404,13 +405,13 @@ class ThemeManagerDialog(QDialog):
         right_layout.addWidget(self.preview_card)
 
         # Seçili token düzenleyicisi
-        editor_group = QGroupBox("✏️ Token Düzenleyici")
+        editor_group = QGroupBox(tr("theme_manager.token_editor", "✏️ Token Düzenleyici"))
         editor_form = QFormLayout(editor_group)
         editor_form.setSpacing(8)
 
         self._token_name_label = QLabel("—")
         self._token_name_label.setFont(QFont("Segoe UI", 8, QFont.Weight.Bold))
-        editor_form.addRow("Token:", self._token_name_label)
+        editor_form.addRow(tr("theme_manager.label_token", "Token:"), self._token_name_label)
 
         # Renk seçici satırı
         color_row = QHBoxLayout()
@@ -421,21 +422,21 @@ class ThemeManagerDialog(QDialog):
         self._color_input.textChanged.connect(self._on_color_text_changed)
         color_row.addWidget(self._color_swatch)
         color_row.addWidget(self._color_input)
-        editor_form.addRow("Değer:", color_row)
+        editor_form.addRow(tr("theme_manager.label_value", "Değer:"), color_row)
 
-        apply_btn = QPushButton("✔ Değişiklikleri Uygula")
+        apply_btn = QPushButton(tr("theme_manager.btn_apply_changes", "✔ Değişiklikleri Uygula"))
         apply_btn.clicked.connect(self._apply_token_edit)
         editor_form.addRow("", apply_btn)
 
         right_layout.addWidget(editor_group)
 
         # Tema başlığı düzenleyicisi
-        name_group = QGroupBox("🏷️ Tema Bilgisi")
+        name_group = QGroupBox(tr("theme_manager.theme_info", "🏷️ Tema Bilgisi"))
         name_form = QFormLayout(name_group)
         name_form.setSpacing(6)
         self._theme_label_edit = QLineEdit()
-        self._theme_label_edit.setPlaceholderText("Görünür tema adı...")
-        name_form.addRow("Tema Adı:", self._theme_label_edit)
+        self._theme_label_edit.setPlaceholderText(tr("theme_manager.placeholder_theme_name", "Görünür tema adı..."))
+        name_form.addRow(tr("theme_manager.label_theme_name", "Tema Adı:"), self._theme_label_edit)
         right_layout.addWidget(name_group)
 
         right_layout.addStretch()
@@ -448,21 +449,21 @@ class ThemeManagerDialog(QDialog):
         btn_bar = QHBoxLayout()
         btn_bar.setSpacing(8)
 
-        self._save_btn = QPushButton("💾 Kaydet")
+        self._save_btn = QPushButton(tr("mcp_server.btn_save", "💾 Kaydet"))
         self._save_btn.setStyleSheet(
             "background-color: #2E7D32; color: white; font-weight: bold; "
             "padding: 6px 16px; border-radius: 4px;"
         )
         self._save_btn.clicked.connect(self._save_current_theme)
 
-        self._save_as_btn = QPushButton("📋 Farklı Kaydet")
+        self._save_as_btn = QPushButton(tr("theme_manager.btn_save_as_short", "📋 Farklı Kaydet"))
         self._save_as_btn.setStyleSheet(
             "background-color: #1565C0; color: white; font-weight: bold; "
             "padding: 6px 16px; border-radius: 4px;"
         )
         self._save_as_btn.clicked.connect(self._save_as)
 
-        cancel_btn = QPushButton("✖ Kapat")
+        cancel_btn = QPushButton(tr("theme_manager.btn_close", "✖ Kapat"))
         cancel_btn.setStyleSheet("padding: 6px 16px; border-radius: 4px;")
         cancel_btn.clicked.connect(self._on_close)
 
@@ -511,8 +512,8 @@ class ThemeManagerDialog(QDialog):
         # Kaydedilmemiş değişiklik kontrolü
         if self._dirty and self._selected_theme:
             ans = QMessageBox.question(
-                self, "Kaydedilmemiş Değişiklik",
-                "Değişiklikler kaydedilmedi. Yine de devam edilsin mi?",
+                self, tr("theme_manager.msg_unsaved_title", "Kaydedilmemiş Değişiklik"),
+                tr("theme_manager.msg_unsaved_body", "Değişiklikler kaydedilmedi. Yine de devam edilsin mi?"),
                 QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
             )
             if ans == QMessageBox.StandardButton.No:
@@ -554,13 +555,15 @@ class ThemeManagerDialog(QDialog):
     def _populate_tree(self):
         """TreeWidget'ı token sözlüğüyle doldurur."""
         self.tree.clear()
-        for cat_key, (cat_label, keys_meta) in CATEGORY_META.items():
+        for cat_key, (cat_tr_key, cat_default, keys_meta) in CATEGORY_META.items():
+            cat_label = tr(cat_tr_key, cat_default)
             cat_item = QTreeWidgetItem([cat_label, ""])
             cat_item.setData(0, Qt.ItemDataRole.UserRole, ("__cat__", cat_key))
             cat_item.setFont(0, QFont("Segoe UI", 9, QFont.Weight.Bold))
             cat_tokens = self._tokens.get(cat_key, {})
 
-            for key, human_label in keys_meta.items():
+            for key, (tr_key, default_label) in keys_meta.items():
+                human_label = tr(tr_key, default_label)
                 value = cat_tokens.get(key, "")
                 child = QTreeWidgetItem([human_label, value])
                 child.setData(0, Qt.ItemDataRole.UserRole, (cat_key, key))
@@ -585,7 +588,9 @@ class ThemeManagerDialog(QDialog):
         self._active_cat = cat_key
         self._active_key = key
 
-        human = CATEGORY_META.get(cat_key, ("", {}))[1].get(key, key)
+        meta = CATEGORY_META.get(cat_key, ("", "", {}))
+        tr_key_lbl, default_lbl = meta[2].get(key, ("", key))
+        human = tr(tr_key_lbl, default_lbl)
         self._token_name_label.setText(f"{cat_key} → {human}")
 
         value = self._tokens.get(cat_key, {}).get(key, "")
@@ -609,13 +614,14 @@ class ThemeManagerDialog(QDialog):
             except Exception:
                 pass
 
-    def _open_color_picker(self, current: str):
+    def _open_color_picker(self):
         """QColorDialog açar ve seçilen rengi input'a yazar."""
+        current = self._color_input.text().strip()
         try:
             init_color = QColor(current)
         except Exception:
             init_color = QColor("#888888")
-        color = QColorDialog.getColor(init_color, self, "Renk Seç",
+        color = QColorDialog.getColor(init_color, self, tr("theme_manager.color_picker_title", "Renk Seç"),
                                       QColorDialog.ColorDialogOption.ShowAlphaChannel)
         if color.isValid():
             hex_color = color.name(QColor.NameFormat.HexRgb)
@@ -662,34 +668,34 @@ class ThemeManagerDialog(QDialog):
             data = top.data(0, Qt.ItemDataRole.UserRole)
             if data and data[1] == cat_key:
                 for j in range(top.childCount()):
-                    child = top.child(j)
-                    cdata = child.data(0, Qt.ItemDataRole.UserRole)
-                    if cdata and cdata[1] == key:
-                        child.setText(1, value)
-                        if _is_color_key(key) and value.startswith("#"):
-                            try:
-                                child.setIcon(1, QIcon(_color_pixmap(value, 14)))
-                            except Exception:
-                                pass
-                        return
+                     child = top.child(j)
+                     cdata = child.data(0, Qt.ItemDataRole.UserRole)
+                     if cdata and cdata[1] == key:
+                         child.setText(1, value)
+                         if _is_color_key(key) and value.startswith("#"):
+                             try:
+                                 child.setIcon(1, QIcon(_color_pixmap(value, 14)))
+                             except Exception:
+                                 pass
+                         return
 
     # Tema İşlemleri
 
     def _create_new_theme(self):
         """Yeni boş tema oluşturur (dark tabanında)."""
         name, ok = QInputDialog.getText(
-            self, "Yeni Tema", "Tema adı girin (boşluksuz, İngilizce):",
+            self, tr("theme_manager.msg_new_theme_title", "Yeni Tema"), tr("theme_manager.msg_new_theme_body", "Tema adı girin (boşluksuz, İngilizce):"),
             text="my_theme"
         )
         if not ok or not name.strip():
             return
         name = name.strip().lower().replace(" ", "_")
         if name in BUILTIN_THEMES:
-            QMessageBox.warning(self, "Hata", "Bu isim yerleşik bir tema için ayrılmıştır.")
+            QMessageBox.warning(self, tr("main_window.msg_structure_error_title", "Hata"), tr("theme_manager.msg_builtin_reserved", "Bu isim yerleşik bir tema için ayrılmıştır."))
             return
 
         label, ok2 = QInputDialog.getText(
-            self, "Yeni Tema", "Temaya görünür bir etiket verin:",
+            self, tr("theme_manager.msg_new_theme_title", "Yeni Tema"), tr("theme_manager.msg_theme_label_body", "Temaya görünür bir etiket verin:"),
             text=name.replace("_", " ").title()
         )
         if not ok2:
@@ -707,14 +713,14 @@ class ThemeManagerDialog(QDialog):
                     self.theme_list.setCurrentRow(i)
                     break
         else:
-            QMessageBox.critical(self, "Hata", "Tema oluşturulamadı.")
+            QMessageBox.critical(self, tr("main_window.msg_structure_error_title", "Hata"), tr("theme_manager.msg_create_fail", "Tema oluşturulamadı."))
 
     def _save_current_theme(self):
         """Mevcut seçili temayı kaydeder (yalnızca özel temalar)."""
         app_logger.info(f"Tema kaydetme isteği: {self._selected_theme}")
         
         if not self._selected_theme or self._selected_theme in BUILTIN_THEMES:
-            QMessageBox.information(self, "Bilgi", "Yerleşik temalar kaydedilemez.\n'Farklı Kaydet' seçeneğini kullanın.")
+            QMessageBox.information(self, tr("theme_manager.msg_info_title", "Bilgi"), tr("theme_manager.msg_builtin_no_save", "Yerleşik temalar kaydedilemez.\n'Farklı Kaydet' seçeneğini kullanın."))
             app_logger.warning(f"Yerleşik tema kaydedilmeye çalışıldı: {self._selected_theme}")
             return
             
@@ -731,30 +737,30 @@ class ThemeManagerDialog(QDialog):
                 app_logger.info(f"Aktif tema güncellendi, canlı önizleme/uygulama için sinyal gönderiliyor: {self._selected_theme}")
                 self.theme_applied.emit(self._selected_theme)
                 
-            QMessageBox.information(self, "Kaydedildi", f"'{label}' teması başarıyla kaydedildi.")
+            QMessageBox.information(self, tr("theme_manager.msg_saved_title", "Kaydedildi"), tr("theme_manager.msg_saved_body", "'{}' teması başarıyla kaydedildi.").format(label))
         else:
             app_logger.error(f"Tema kaydedilirken hata oluştu: {self._selected_theme}")
-            QMessageBox.critical(self, "Hata", "Tema kaydedilemedi. Klasör izinlerini kontrol edin.")
+            QMessageBox.critical(self, tr("main_window.msg_structure_error_title", "Hata"), tr("theme_manager.msg_save_fail", "Tema kaydedilemedi. Klasör izinlerini kontrol edin."))
 
     def _save_as(self):
         """Aktif temayı yeni isimle kaydeder."""
         if not self._selected_theme:
-            QMessageBox.warning(self, "Uyarı", "Lütfen önce bir tema seçin.")
+            QMessageBox.warning(self, tr("new_project.msg_warning_title", "Uyarı"), tr("theme_manager.msg_select_theme_first", "Lütfen önce bir tema seçin."))
             return
 
         name, ok = QInputDialog.getText(
-            self, "Farklı Kaydet", "Yeni tema adını girin (boşluksuz):",
+            self, tr("theme_manager.btn_save_as_short", "📋 Farklı Kaydet"), tr("theme_manager.msg_new_theme_name_body", "Yeni tema adını girin (boşluksuz):"),
             text=f"{self._selected_theme}_kopya"
         )
         if not ok or not name.strip():
             return
         name = name.strip().lower().replace(" ", "_")
         if name in BUILTIN_THEMES:
-            QMessageBox.warning(self, "Hata", "Bu isim yerleşik bir tema için ayrılmıştır.")
+            QMessageBox.warning(self, tr("main_window.msg_structure_error_title", "Hata"), tr("theme_manager.msg_builtin_reserved", "Bu isim yerleşik bir tema için ayrılmıştır."))
             return
 
         label, ok2 = QInputDialog.getText(
-            self, "Farklı Kaydet", "Temaya görünür etiket verin:",
+            self, tr("theme_manager.btn_save_as_short", "📋 Farklı Kaydet"), tr("theme_manager.msg_theme_label_body", "Temaya görünür bir etiket verin:"),
             text=self._theme_label_edit.text() + " (Kopya)"
         )
         if not ok2:
@@ -769,7 +775,7 @@ class ThemeManagerDialog(QDialog):
             self._load_theme_list()
             app_logger.info(f"Tema başarıyla farklı kaydedildi: {name}")
             
-            QMessageBox.information(self, "Kaydedildi", f"'{label}' adıyla başarıyla farklı kaydedildi.")
+            QMessageBox.information(self, tr("theme_manager.msg_saved_title", "Kaydedildi"), tr("theme_manager.msg_save_as_success", "'{}' adıyla başarıyla farklı kaydedildi.").format(label))
             # Yeni temayı seç
             for i in range(self.theme_list.count()):
                 item = self.theme_list.item(i)
@@ -778,19 +784,19 @@ class ThemeManagerDialog(QDialog):
                     break
         else:
             app_logger.error(f"Farklı kaydetme başarısız: {name}")
-            QMessageBox.critical(self, "Hata", "Farklı kaydetme başarısız. Klasör izinlerini kontrol edin.")
+            QMessageBox.critical(self, tr("main_window.msg_structure_error_title", "Hata"), tr("theme_manager.msg_save_as_fail", "Farklı kaydetme başarısız. Klasör izinlerini kontrol edin."))
 
     def _delete_theme(self):
         """Seçili temayı siler."""
         if not self._selected_theme:
             return
         if self._selected_theme in BUILTIN_THEMES:
-            QMessageBox.warning(self, "Silinemez",
-                                "Yerleşik temalar (dark, light) silinemez!")
+            QMessageBox.warning(self, tr("theme_manager.msg_cannot_delete_title", "Silinemez"),
+                                tr("theme_manager.msg_builtin_no_delete", "Yerleşik temalar (dark, light) silinemez!"))
             return
         ans = QMessageBox.question(
-            self, "Temayı Sil",
-            f"'{self._selected_theme}' teması kalıcı olarak silinecek. Emin misiniz?",
+            self, tr("theme_manager.msg_delete_title", "Temayı Sil"),
+            tr("theme_manager.msg_delete_confirm", "'{}' teması kalıcı olarak silinecek. Emin misiniz?").format(self._selected_theme),
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
         )
         if ans == QMessageBox.StandardButton.Yes:
@@ -802,12 +808,12 @@ class ThemeManagerDialog(QDialog):
                 self.preview_card.update_preview({})
                 self._load_theme_list()
             else:
-                QMessageBox.critical(self, "Hata", "Tema silinemedi.")
+                QMessageBox.critical(self, tr("main_window.msg_structure_error_title", "Hata"), tr("theme_manager.msg_delete_fail", "Tema silinemedi."))
 
     def _set_as_default(self):
         """Seçili temayı app_settings.json'da varsayılan yapar."""
         if not self._selected_theme:
-            QMessageBox.warning(self, "Uyarı", "Lütfen bir tema seçin.")
+            QMessageBox.warning(self, tr("new_project.msg_warning_title", "Uyarı"), tr("theme_manager.msg_select_theme_first", "Lütfen önce bir tema seçin."))
             return
         try:
             from ui.app_settings_dialog import load_app_settings, save_app_settings
@@ -818,50 +824,49 @@ class ThemeManagerDialog(QDialog):
             self._load_theme_list()
             self.theme_applied.emit(self._selected_theme)
             QMessageBox.information(
-                self, "Varsayılan Ayarlandı",
-                f"'{self._selected_theme}' varsayılan tema olarak ayarlandı.\n"
-                "Değişikliğin tam etkisi için uygulamayı yeniden başlatın."
+                self, tr("theme_manager.msg_default_set_title", "Varsayılan Ayarlandı"),
+                tr("theme_manager.msg_default_set_body", "'{}' varsayılan tema olarak ayarlandı.\nDeğişikliğin tam etkisi için uygulamayı yeniden başlatın.").format(self._selected_theme)
             )
         except Exception as e:
-            QMessageBox.critical(self, "Hata", f"Varsayılan ayarlanamadı:\n{e}")
+            QMessageBox.critical(self, tr("main_window.msg_structure_error_title", "Hata"), tr("theme_manager.msg_default_set_fail", "Varsayılan ayarlanamadı:\n{}").format(e))
 
     def _export_theme(self):
         """Seçili temayı JSON dosyası olarak dışa aktarır."""
         if not self._selected_theme:
-            QMessageBox.warning(self, "Uyarı", "Lütfen bir tema seçin.")
+            QMessageBox.warning(self, tr("new_project.msg_warning_title", "Uyarı"), tr("theme_manager.msg_select_theme_first", "Lütfen önce bir tema seçin."))
             return
         path, _ = QFileDialog.getSaveFileName(
-            self, "Temayı Dışa Aktar",
+            self, tr("theme_manager.export_dialog_title", "Temayı Dışa Aktar"),
             os.path.join(os.path.expanduser("~"), "Desktop", f"{self._selected_theme}.json"),
             "JSON Tema Dosyası (*.json);;Tüm Dosyalar (*)"
         )
         if path:
             if export_theme(self._selected_theme, path):
-                QMessageBox.information(self, "Dışa Aktarıldı", f"Tema dışa aktarıldı:\n{path}")
+                QMessageBox.information(self, tr("theme_manager.msg_exported_title", "Dışa Aktarıldı"), tr("theme_manager.msg_exported_body", "Tema dışa aktarıldı:\n{}").format(path))
             else:
-                QMessageBox.critical(self, "Hata", "Dışa aktarma başarısız.")
+                QMessageBox.critical(self, tr("main_window.msg_structure_error_title", "Hata"), tr("theme_manager.msg_export_fail", "Dışa aktarma başarısız."))
 
     def _import_theme(self):
         """JSON tema dosyasını içe aktarır."""
         path, _ = QFileDialog.getOpenFileName(
-            self, "Tema İçe Aktar", "",
+            self, tr("theme_manager.import_dialog_title", "Tema İçe Aktar"), "",
             "JSON Tema Dosyası (*.json);;Tüm Dosyalar (*)"
         )
         if path:
             result = import_theme(path)
             if result:
                 self._load_theme_list()
-                QMessageBox.information(self, "İçe Aktarıldı",
-                                        f"'{result}' teması içe aktarıldı.")
+                QMessageBox.information(self, tr("theme_manager.msg_imported_title", "İçe Aktarıldı"),
+                                        tr("theme_manager.msg_imported_body", "'{}' teması içe aktarıldı.").format(result))
             else:
-                QMessageBox.critical(self, "Hata", "İçe aktarma başarısız. Dosya geçersiz olabilir.")
+                QMessageBox.critical(self, tr("main_window.msg_structure_error_title", "Hata"), tr("theme_manager.msg_import_fail", "İçe aktarma başarısız. Dosya geçersiz olabilir."))
 
     def _on_close(self):
         """Kapatma düğmesine basıldığında kaydedilmemiş değişiklik kontrolü."""
         if self._dirty:
             ans = QMessageBox.question(
-                self, "Kaydedilmemiş Değişiklik",
-                "Kaydedilmemiş değişiklikler var. Yine de çıkılsın mı?",
+                self, tr("theme_manager.msg_unsaved_exit_title", "Kaydedilmemiş Değişiklik"),
+                tr("theme_manager.msg_unsaved_exit_body", "Kaydedilmemiş değişiklikler var. Yine de çıkılsın mı?"),
                 QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
             )
             if ans == QMessageBox.StandardButton.No:
@@ -874,8 +879,8 @@ class ThemeManagerDialog(QDialog):
     def closeEvent(self, event):
         if self._dirty:
             ans = QMessageBox.question(
-                self, "Kaydedilmemiş Değişiklik",
-                "Kaydedilmemiş değişiklikler var. Yine de çıkılsın mı?",
+                self, tr("theme_manager.msg_unsaved_exit_title", "Kaydedilmemiş Değişiklik"),
+                tr("theme_manager.msg_unsaved_exit_body", "Kaydedilmemiş değişiklikler var. Yine de çıkılsın mı?"),
                 QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
             )
             if ans == QMessageBox.StandardButton.No:

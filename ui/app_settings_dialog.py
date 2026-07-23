@@ -20,6 +20,7 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtGui import QFont, QIcon
 from PyQt6.QtCore import Qt, pyqtSignal
 from logger import app_logger
+from core.localization import tr
 
 APP_SETTINGS_FILE = os.path.join(os.getcwd(), "AppConfigs", "app_settings.json")
 
@@ -30,6 +31,7 @@ DEFAULT_SETTINGS = {
     "custom_js_sources": [],   # [{"name": "Site Adı", "js_path": "/path/to/script.js"}, ...]
     "notifications_enabled": True,
     "promt_generator_max_tokens": 40000,
+    "language": "tr",
 }
 
 THEMES = {
@@ -50,6 +52,8 @@ MATERIAL_THEME_MAP = {
     "light":       "light_blue.xml",
 }
 
+def __init__(self, main_window):
+    self.win = main_window
 
 def load_app_settings() -> dict:
     """AppConfigs/app_settings.json dosyasını okur. Yoksa varsayılanı döndürür."""
@@ -159,15 +163,15 @@ class AppSettingsDialog(QDialog):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setWindowTitle("⚙️ Uygulama Ayarları")
-        self.resize(580, 500)
+        self.setWindowTitle(tr("app_settings.window_title", "⚙️ Uygulama Ayarları"))
+        self.resize(580, 520)
         self.settings = load_app_settings()
 
         layout = QVBoxLayout(self)
         layout.setSpacing(10)
 
         # Başlık
-        title = QLabel("Uygulama Ayarları")
+        title = QLabel(tr("app_settings.title", "Uygulama Ayarları"))
         title.setFont(QFont("Arial", 13, QFont.Weight.Bold))
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(title)
@@ -187,32 +191,38 @@ class AppSettingsDialog(QDialog):
         theme_row = QHBoxLayout()
         theme_row.setSpacing(4)
         theme_row.addWidget(self.theme_combo, 1)
-        theme_edit_btn = QPushButton("🖊️ Düzenle")
+        theme_edit_btn = QPushButton(tr("app_settings.btn_edit", "🖊️ Düzenle"))
         theme_edit_btn.setFixedWidth(90)
         theme_edit_btn.setToolTip("Tema Yöneticisini aç")
         theme_edit_btn.clicked.connect(self._open_theme_manager)
         theme_row.addWidget(theme_edit_btn)
-        self._save_as_theme_btn = QPushButton("💾 Farklı Kaydet")
+        self._save_as_theme_btn = QPushButton(tr("app_settings.btn_save_as", "💾 Farklı Kaydet"))
         self._save_as_theme_btn.setFixedWidth(110)
         self._save_as_theme_btn.setToolTip("Aktif temayı farklı isimle kaydet")
         self._save_as_theme_btn.clicked.connect(self._save_theme_as)
         theme_row.addWidget(self._save_as_theme_btn)
 
-        app_layout.addRow("🎨 Tema:", theme_row)
+        app_layout.addRow(tr("app_settings.theme", "🎨 Tema:"), theme_row)
 
         self.notif_combo = QComboBox()
-        self.notif_combo.addItems(["Etkin", "Devre Dışı"])
+        self.notif_combo.addItem(tr("app_settings.enabled", "Etkin"), True)
+        self.notif_combo.addItem(tr("app_settings.disabled", "Devre Dışı"), False)
         self.notif_combo.setCurrentIndex(0 if self.settings.get("notifications_enabled", True) else 1)
-        app_layout.addRow("🔔 Bildirimler:", self.notif_combo)
+        app_layout.addRow(tr("app_settings.notifications", "🔔 Bildirimler:"), self.notif_combo)
 
         self.log_combo = QComboBox()
         self.log_combo.addItems(["DEBUG", "INFO", "WARNING", "ERROR"])
         log_level = self.settings.get("log_level", "INFO")
         log_idx = ["DEBUG", "INFO", "WARNING", "ERROR"].index(log_level) if log_level in ["DEBUG", "INFO", "WARNING", "ERROR"] else 1
         self.log_combo.setCurrentIndex(log_idx)
-        app_layout.addRow("📋 Log Seviyesi:", self.log_combo)
+        app_layout.addRow(tr("app_settings.log_level", "📋 Log Seviyesi:"), self.log_combo)
 
-        tabs.addTab(appearance_tab, "🎨 Görünüm")
+        # Dil Seçeneği
+        self.lang_combo = QComboBox()
+        self._refresh_lang_combo()
+        app_layout.addRow(tr("app_settings.language", "🌐 Dil (Language):"), self.lang_combo)
+
+        tabs.addTab(appearance_tab, tr("app_settings.tab_appearance", "🎨 Görünüm"))
 
         # Sekme 2: ML / Terminoloji 
         ml_tab = QWidget()
@@ -224,10 +234,10 @@ class AppSettingsDialog(QDialog):
         self.ml_token_spin.setMaximum(2000000)
         self.ml_token_spin.setSingleStep(50000)
         self.ml_token_spin.setValue(self.settings.get("ml_max_tokens", 450000))
-        self.ml_token_spin.setSuffix(" token")
-        ml_layout.addRow("🤖 ML Maks Token:", self.ml_token_spin)
+        self.ml_token_spin.setSuffix(" " + tr("app_settings.token", "token"))
+        ml_layout.addRow(tr("app_settings.ml_max_tokens", "🤖 ML Maks Token:"), self.ml_token_spin)
 
-        token_note = QLabel("Bu değer, Yapay Zeka ile Terminoloji Üret işleminde\ngönderilecek maksimum kaynak metin boyutunu belirler.")
+        token_note = QLabel(tr("app_settings.ml_max_tokens_note", "Bu değer, Yapay Zeka ile Terminoloji Üret işleminde\ngönderilecek maksimum kaynak metin boyutunu belirler."))
         token_note.setStyleSheet("color: #888; font-size: 9pt;")
         ml_layout.addRow("", token_note)
 
@@ -236,20 +246,20 @@ class AppSettingsDialog(QDialog):
         self.prompt_gen_token_spin.setMaximum(200000)
         self.prompt_gen_token_spin.setSingleStep(5000)
         self.prompt_gen_token_spin.setValue(self.settings.get("promt_generator_max_tokens", 40000))
-        self.prompt_gen_token_spin.setSuffix(" token")
-        ml_layout.addRow("📝 Prompt Gen Maks Token:", self.prompt_gen_token_spin)
+        self.prompt_gen_token_spin.setSuffix(" " + tr("app_settings.token", "token"))
+        ml_layout.addRow(tr("app_settings.prompt_gen_max_tokens", "📝 Prompt Gen Maks Token:"), self.prompt_gen_token_spin)
 
-        prompt_note = QLabel("Bu değer, Prompt Generator'ın bölüm örneklemesi sırasında\nkullanacağı maksimum token limitini belirler.")
+        prompt_note = QLabel(tr("app_settings.prompt_gen_max_tokens_note", "Bu değer, Prompt Generator'ın bölüm örneklemesi sırasında\nkullanacağı maksimum token limitini belirler."))
         prompt_note.setStyleSheet("color: #888; font-size: 9pt;")
         ml_layout.addRow("", prompt_note)
 
-        tabs.addTab(ml_tab, "🤖 ML / Terminoloji")
+        tabs.addTab(ml_tab, tr("app_settings.tab_ml", "🤖 ML / Terminoloji"))
 
         # Sekme 3: Özel JS Kaynaklar
         js_tab = QWidget()
         js_layout = QVBoxLayout(js_tab)
 
-        js_note = QLabel("İndirme yöntemi listesine özel JavaScript tabanlı site kaynaklarınızı ekleyebilirsiniz.")
+        js_note = QLabel(tr("app_settings.js_sources_note", "İndirme yöntemi listesine özel JavaScript tabanlı site kaynaklarınızı ekleyebilirsiniz."))
         js_note.setWordWrap(True)
         js_note.setStyleSheet("color: #AAA; font-size: 9pt; margin-bottom: 6px;")
         js_layout.addWidget(js_note)
@@ -264,17 +274,17 @@ class AppSettingsDialog(QDialog):
         add_layout = QHBoxLayout(add_frame)
         add_layout.setContentsMargins(0, 0, 0, 0)
         self.js_name_input = QLineEdit()
-        self.js_name_input.setPlaceholderText("Site adı (örn: Wuxia World)")
+        self.js_name_input.setPlaceholderText(tr("app_settings.placeholder_site_name", "Site adı (örn: Wuxia World)"))
         self.js_path_input = QLineEdit()
-        self.js_path_input.setPlaceholderText("JS dosya yolu...")
+        self.js_path_input.setPlaceholderText(tr("app_settings.placeholder_js_path", "JS dosya yolu..."))
         self.js_path_input.setReadOnly(True)
         browse_btn = QPushButton("📂")
         browse_btn.setFixedWidth(36)
         browse_btn.clicked.connect(self._browse_js_file)
-        add_btn = QPushButton("➕ Ekle")
+        add_btn = QPushButton(tr("app_settings.btn_add_js", "➕ Ekle"))
         add_btn.setFixedWidth(80)
         add_btn.clicked.connect(self._add_js_source)
-        remove_btn = QPushButton("🗑 Sil")
+        remove_btn = QPushButton(tr("app_settings.btn_remove_js", "🗑 Sil"))
         remove_btn.setFixedWidth(80)
         remove_btn.clicked.connect(self._remove_js_source)
         add_layout.addWidget(self.js_name_input, 2)
@@ -284,16 +294,16 @@ class AppSettingsDialog(QDialog):
         add_layout.addWidget(remove_btn)
         js_layout.addWidget(add_frame)
 
-        tabs.addTab(js_tab, "🌐 JS Kaynaklar")
+        tabs.addTab(js_tab, tr("app_settings.tab_js", "🌐 JS Kaynaklar"))
 
         layout.addWidget(tabs)
 
         # Alt butonlar
         btn_layout = QHBoxLayout()
-        save_btn = QPushButton("💾 Kaydet ve Uygula")
+        save_btn = QPushButton(tr("app_settings.btn_save_apply", "💾 Kaydet ve Uygula"))
         save_btn.setStyleSheet("background-color: #4CAF50; color: white; font-weight: bold; padding: 8px; border-radius: 4px;")
         save_btn.clicked.connect(self._apply_settings)
-        cancel_btn = QPushButton("Kapat")
+        cancel_btn = QPushButton(tr("app_settings.btn_close", "Kapat"))
         cancel_btn.setStyleSheet("padding: 8px; border-radius: 4px;")
         cancel_btn.clicked.connect(self.reject)
         btn_layout.addStretch()
@@ -324,6 +334,37 @@ class AppSettingsDialog(QDialog):
         idx = all_names.index(current_theme) if current_theme in all_names else 0
         self.theme_combo.setCurrentIndex(idx)
         self.theme_combo.blockSignals(False)
+
+    def _refresh_lang_combo(self):
+        """locales klasöründeki dil dosyalarını tarayarak combo'yu günceller."""
+        locales_dir = os.path.join(os.getcwd(), "AppConfigs", "locales")
+        available_languages = {}
+        if os.path.exists(locales_dir):
+            for file in os.listdir(locales_dir):
+                if file.endswith(".json"):
+                    code = file[:-5]
+                    lang_name = code.upper()
+                    if code == "tr":
+                        lang_name = tr("app_settings.lang_tr", "Türkçe (Turkish)")
+                    elif code == "en":
+                        lang_name = tr("app_settings.lang_en", "İngilizce (English)")
+                    available_languages[code] = lang_name
+        if not available_languages:
+            available_languages = {
+                "tr": tr("app_settings.lang_tr", "Türkçe (Turkish)"),
+                "en": tr("app_settings.lang_en", "İngilizce (English)")
+            }
+
+        current_lang = self.settings.get("language", "tr")
+        self.lang_combo.blockSignals(True)
+        self.lang_combo.clear()
+        for code, label in available_languages.items():
+            self.lang_combo.addItem(label, code)
+        
+        all_codes = [self.lang_combo.itemData(i) for i in range(self.lang_combo.count())]
+        idx = all_codes.index(current_lang) if current_lang in all_codes else 0
+        self.lang_combo.setCurrentIndex(idx)
+        self.lang_combo.blockSignals(False)
 
     def _open_theme_manager(self):
         """Tema Yöneticisi diyalogunu açar."""
@@ -394,7 +435,7 @@ class AppSettingsDialog(QDialog):
         name = self.js_name_input.text().strip()
         path = self.js_path_input.text().strip()
         if not name or not path:
-            QMessageBox.warning(self, "Eksik Bilgi", "Site adı ve JS dosya yolunu doldurun.")
+            QMessageBox.warning(self, tr("app_settings.msg_missing_js_info_title", "Eksik Bilgi"), tr("app_settings.msg_missing_js_info_body", "Site adı ve JS dosya yolunu doldurun."))
             return
         sources = self.settings.setdefault("custom_js_sources", [])
         # Aynı adda kaynak varsa güncelle
@@ -425,14 +466,19 @@ class AppSettingsDialog(QDialog):
         self.settings["log_level"] = self.log_combo.currentText()
         self.settings["ml_max_tokens"] = self.ml_token_spin.value()
         self.settings["promt_generator_max_tokens"] = self.prompt_gen_token_spin.value()
+        self.settings["language"] = self.lang_combo.currentData()
         save_app_settings(self.settings)
+        from core.localization import reload_translations
+        reload_translations()
         self.settings_changed.emit(self.settings)
         app_logger.info(
             f"Uygulama ayarları kaydedildi: tema={self.settings['theme']}, "
             f"ml_max_tokens={self.settings['ml_max_tokens']}, "
-            f"promt_generator_max_tokens={self.settings['promt_generator_max_tokens']}"
+            f"promt_generator_max_tokens={self.settings['promt_generator_max_tokens']}, "
+            f"language={self.settings['language']}"
         )
-        QMessageBox.information(self, "Kaydedildi", "Ayarlar başarıyla kaydedildi ve uygulandı.")
+        QMessageBox.information(self, tr("app_settings.msg_settings_saved_title", "Kaydedildi"), tr("app_settings.msg_settings_saved_body", "Ayarlar başarıyla kaydedildi ve uygulandı."))
+        self.win.refresh_ui_and_theme()
 
     def get_settings(self) -> dict:
         return self.settings

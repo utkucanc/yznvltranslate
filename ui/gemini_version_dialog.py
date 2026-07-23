@@ -10,6 +10,7 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtGui import QIntValidator, QFont, QIcon, QAction
 from PyQt6.QtCore import Qt, QThread, pyqtSignal, QObject, QSize
 from logger import app_logger
+from core.localization import tr
 
 # ─── V2.1.0 Geriye Uyumluluk Re-export'lar ───
 # ui/ paketine taşınan sınıflar burada da erişilebilir kalır.
@@ -35,7 +36,7 @@ def load_files_to_combo(combobox, subfolder):
     """Belirtilen klasördeki txt dosyalarını combobox'a yükler."""
     folder = get_config_path(subfolder)
     combobox.clear()
-    combobox.addItem("Seçiniz...", None)
+    combobox.addItem(tr("new_project.combo_select", "Seçiniz..."), None)
     if os.path.exists(folder):
         files = sorted([f for f in os.listdir(folder) if f.endswith('.txt')])
         for f in files:
@@ -53,12 +54,12 @@ class GeminiVersionDialog(QDialog):
     """Gemini model versiyonunu seçmek veya manuel girmek için diyalog."""
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setWindowTitle("Gemini Model Versiyonu")
+        self.setWindowTitle(tr("gemini_version.window_title", "Gemini Model Versiyonu"))
         self.setMinimumWidth(400)
         
         layout = QVBoxLayout(self)
         
-        layout.addWidget(QLabel("Kullanılacak Gemini Model Versiyonunu Seçin veya Girin:"))
+        layout.addWidget(QLabel(tr("gemini_version.select_or_enter", "Kullanılacak Gemini Model Versiyonunu Seçin veya Girin:")))
         
         self.version_combo = QComboBox()
         self.version_combo.setEditable(True) # Manuel girişe izin ver
@@ -86,7 +87,7 @@ class GeminiVersionDialog(QDialog):
             print(f"Model listesi çekilemedi: {e}")
             
         if not models:
-            models = ["Manuel giriş yapınız..."]
+            models = [tr("gemini_version.manual_entry", "Manuel giriş yapınız...")]
             
         self.version_combo.addItems(models)
         
@@ -108,7 +109,7 @@ class GeminiVersionDialog(QDialog):
     def save_version(self):
         selected_version = self.version_combo.currentText().strip()
         if not selected_version:
-             QMessageBox.warning(self, "Hata", "Versiyon boş olamaz.")
+             QMessageBox.warning(self, tr("main_window.msg_structure_error_title", "Hata"), tr("gemini_version.msg_version_empty", "Versiyon boş olamaz."))
              return
 
         if not self.config.has_section("Version"):
@@ -119,7 +120,7 @@ class GeminiVersionDialog(QDialog):
         try:
             with open(self.config_file, 'w', encoding='utf-8') as f:
                 self.config.write(f)
-            QMessageBox.information(self, "Başarılı", "Versiyon kaydedildi.")
+            QMessageBox.information(self, tr("menu_bar.msg_save_success_title", "Başarılı"), tr("gemini_version.msg_save_success", "Versiyon kaydedildi."))
             self.accept()
         except Exception as e:
-             QMessageBox.critical(self, "Hata", f"Kaydedilemedi: {e}")
+             QMessageBox.critical(self, tr("main_window.msg_structure_error_title", "Hata"), tr("gemini_version.msg_save_fail", "Kaydedilemedi: {}").format(e))

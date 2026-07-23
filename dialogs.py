@@ -10,6 +10,7 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtGui import QIntValidator, QFont, QIcon, QAction
 from PyQt6.QtCore import Qt, QThread, pyqtSignal, QObject, QSize
 from logger import app_logger
+from core.localization import tr
 
 
 # ui/ paketine taşınan sınıflar burada da erişilebilir kalır.
@@ -35,7 +36,7 @@ def load_files_to_combo(combobox, subfolder):
     """Belirtilen klasördeki txt dosyalarını combobox'a yükler."""
     folder = get_config_path(subfolder)
     combobox.clear()
-    combobox.addItem("Seçiniz...", None)
+    combobox.addItem(tr("new_project.combo_select", "Seçiniz..."), None)
     if os.path.exists(folder):
         files = sorted([f for f in os.listdir(folder) if f.endswith('.txt')])
         for f in files:

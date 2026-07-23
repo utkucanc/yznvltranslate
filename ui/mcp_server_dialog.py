@@ -10,6 +10,7 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtGui import QIntValidator, QFont, QIcon, QAction
 from PyQt6.QtCore import Qt, QThread, pyqtSignal, QObject, QSize
 from logger import app_logger
+from core.localization import tr
 
 # ─── V2.1.0 Geriye Uyumluluk Re-export'lar ───
 # ui/ paketine taşınan sınıflar burada da erişilebilir kalır.
@@ -35,7 +36,7 @@ def load_files_to_combo(combobox, subfolder):
     """Belirtilen klasördeki txt dosyalarını combobox'a yükler."""
     folder = get_config_path(subfolder)
     combobox.clear()
-    combobox.addItem("Seçiniz...", None)
+    combobox.addItem(tr("new_project.combo_select", "Seçiniz..."), None)
     if os.path.exists(folder):
         files = sorted([f for f in os.listdir(folder) if f.endswith('.txt')])
         for f in files:
@@ -54,23 +55,23 @@ class MCPServerDialog(QDialog):
     
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setWindowTitle("Yapay Zeka Kaynağı Yönetimi (MCP)")
+        self.setWindowTitle(tr("mcp_server.window_title", "Yapay Zeka Kaynağı Yönetimi (MCP)"))
         self.resize(900, 600)
         
         main_layout = QHBoxLayout(self)
         
         # ── Sol Panel: Endpoint Listesi ──
         left_layout = QVBoxLayout()
-        left_layout.addWidget(QLabel("Kayıtlı Sunucular:"))
+        left_layout.addWidget(QLabel(tr("mcp_server.saved_servers", "Kayıtlı Sunucular:")))
         
         self.endpoint_list = QListWidget()
         self.endpoint_list.currentItemChanged.connect(self.on_endpoint_selected)
         left_layout.addWidget(self.endpoint_list)
         
         btn_layout = QHBoxLayout()
-        self.new_btn = QPushButton("Yeni")
+        self.new_btn = QPushButton(tr("mcp_server.btn_new", "Yeni"))
         self.new_btn.clicked.connect(self.new_endpoint)
-        self.del_btn = QPushButton("Sil")
+        self.del_btn = QPushButton(tr("mcp_server.btn_delete", "Sil"))
         self.del_btn.setStyleSheet("color: red;")
         self.del_btn.clicked.connect(self.delete_endpoint)
         btn_layout.addWidget(self.new_btn)
@@ -79,7 +80,7 @@ class MCPServerDialog(QDialog):
         
         # Aktif endpoint seçimi
         active_layout = QHBoxLayout()
-        self.set_active_btn = QPushButton("Aktif Yap")
+        self.set_active_btn = QPushButton(tr("mcp_server.btn_set_active", "Aktif Yap"))
         self.set_active_btn.setStyleSheet("background-color: #4CAF50; color: white; font-weight: bold;")
         self.set_active_btn.clicked.connect(self.set_active_endpoint)
         active_layout.addWidget(self.set_active_btn)
@@ -90,9 +91,9 @@ class MCPServerDialog(QDialog):
         
         form = QFormLayout()
         self.id_input = QLineEdit()
-        self.id_input.setPlaceholderText("benzersiz_kimlik [Listeleme için gerekli. Önemsiz.]")
+        self.id_input.setPlaceholderText(tr("mcp_server.placeholder_id", "benzersiz_kimlik [Listeleme için gerekli. Önemsiz.]"))
         self.name_input = QLineEdit()
-        self.name_input.setPlaceholderText("Sunucu Adı [Listeleme için gerekli. Önemsiz.]")
+        self.name_input.setPlaceholderText(tr("mcp_server.placeholder_name", "Sunucu Adı [Listeleme için gerekli. Önemsiz.]"))
         
         # ── Tür Seçimi ──
         self.type_combo = QComboBox()
@@ -107,48 +108,48 @@ class MCPServerDialog(QDialog):
 
         # OpenAI uyumlu için manuel giriş
         self.model_input = QLineEdit()
-        self.model_input.setPlaceholderText("model-id (ör: gpt-4o, llama-3.3-70b)")
+        self.model_input.setPlaceholderText(tr("mcp_server.placeholder_model_id", "model-id (ör: gpt-4o, llama-3.3-70b)"))
 
         # ── URL Girişi ──
         self.url_input = QLineEdit()
-        self.url_input.setPlaceholderText("https://api.example.com/v1 (Zorunlu!)")
+        self.url_input.setPlaceholderText(tr("mcp_server.placeholder_url", "https://api.example.com/v1 (Zorunlu!)"))
         
-        self.rotation_check = QCheckBox("Anahtar Rotasyonu (Key Rotation)")
+        self.rotation_check = QCheckBox(tr("mcp_server.checkbox_rotation", "Anahtar Rotasyonu (Key Rotation)"))
         self.rotation_check.setChecked(True)
         
         self.headers_input = QLineEdit()
-        self.headers_input.setPlaceholderText('{"HTTP-Referer": "...", "X-Title": "..."} [Kaynak zorunlu kılmadıysa boş bırakın.]')
+        self.headers_input.setPlaceholderText(tr("mcp_server.placeholder_headers", '{"HTTP-Referer": "...", "X-Title": "..."} [Kaynak zorunlu kılmadıysa boş bırakın.]'))
         
-        form.addRow("ID:", self.id_input)
-        form.addRow("Ad:", self.name_input)
-        form.addRow("Tür:", self.type_combo)
-        form.addRow("Model:", self.model_combo)
-        form.addRow("Model ID:", self.model_input)
-        form.addRow("Base URL:", self.url_input)
+        form.addRow(tr("mcp_server.label_id", "ID:"), self.id_input)
+        form.addRow(tr("mcp_server.label_name", "Ad:"), self.name_input)
+        form.addRow(tr("mcp_server.label_type", "Tür:"), self.type_combo)
+        form.addRow(tr("mcp_server.label_model", "Model:"), self.model_combo)
+        form.addRow(tr("mcp_server.label_model_id", "Model ID:"), self.model_input)
+        form.addRow(tr("mcp_server.label_url", "Base URL:"), self.url_input)
         form.addRow(self.rotation_check)
-        form.addRow("Headers (JSON):", self.headers_input)
+        form.addRow(tr("mcp_server.label_headers", "Headers (JSON):"), self.headers_input)
         right_layout.addLayout(form)
         
         # API Anahtarları
-        right_layout.addWidget(QLabel("API Anahtarları (her satıra bir tane):"))
+        right_layout.addWidget(QLabel(tr("mcp_server.label_api_keys", "API Anahtarları (her satıra bir tane):")))
         self.keys_edit = QTextEdit()
-        self.keys_edit.setPlaceholderText("apikey_1\napikey_2\napikey_3")
+        self.keys_edit.setPlaceholderText(tr("mcp_server.placeholder_keys", "apikey_1\napikey_2\napikey_3"))
         self.keys_edit.setMaximumHeight(120)
         right_layout.addWidget(self.keys_edit)
         
         # ── API Aktar Butonu (üstte) ──
-        self.import_api_btn = QPushButton("📥 API Editöründen API Aktar")
+        self.import_api_btn = QPushButton(tr("mcp_server.btn_import_api", "📥 API Editöründen API Aktar"))
         self.import_api_btn.setStyleSheet("background-color: #607D8B; color: white; font-weight: bold; padding: 6px;")
         self.import_api_btn.clicked.connect(self.import_from_api_editor)
         right_layout.addWidget(self.import_api_btn)
 
         # Butonlar (Kaydet ve Bağlantı Testi — import butonunun altında)
         action_layout = QHBoxLayout()
-        self.save_btn = QPushButton("💾 Kaydet")
+        self.save_btn = QPushButton(tr("mcp_server.btn_save", "💾 Kaydet"))
         self.save_btn.setStyleSheet("background-color: #2196F3; color: white; font-weight: bold; padding: 6px;")
         self.save_btn.clicked.connect(self.save_endpoint)
         
-        self.test_btn = QPushButton("🔗 Bağlantı Testi")
+        self.test_btn = QPushButton(tr("mcp_server.btn_test", "🔗 Bağlantı Testi"))
         self.test_btn.setStyleSheet("background-color: #FF9800; color: white; font-weight: bold; padding: 6px;")
         self.test_btn.clicked.connect(self.test_connection)
         
@@ -214,12 +215,12 @@ class MCPServerDialog(QDialog):
         """API Editöründeki kayıtlı anahtarlardan seçim yaparak keys_edit'e ekler."""
         keys_folder = get_config_path("APIKeys")
         if not os.path.exists(keys_folder):
-            QMessageBox.warning(self, "Uyarı", "API Editöründe kayıtlı anahtar bulunamadı.")
+            QMessageBox.warning(self, tr("new_project.msg_warning_title", "Uyarı"), tr("mcp_server.msg_no_keys_found", "API Editöründe kayıtlı anahtar bulunamadı."))
             return
 
         key_files = [f for f in os.listdir(keys_folder) if f.endswith('.txt')]
         if not key_files:
-            QMessageBox.warning(self, "Uyarı", "API Editöründe kayıtlı anahtar bulunamadı.")
+            QMessageBox.warning(self, tr("new_project.msg_warning_title", "Uyarı"), tr("mcp_server.msg_no_keys_found", "API Editöründe kayıtlı anahtar bulunamadı."))
             return
 
         # Anahtar adlarını listele
@@ -228,10 +229,10 @@ class MCPServerDialog(QDialog):
         # Çoklu seçim diyalogu
         from PyQt6.QtWidgets import QListWidget, QListWidgetItem, QDialogButtonBox
         dlg = QDialog(self)
-        dlg.setWindowTitle("API Anahtarı Seç")
+        dlg.setWindowTitle(tr("mcp_server.dlg_select_api_title", "API Anahtarı Seç"))
         dlg.resize(350, 300)
         dlg_layout = QVBoxLayout(dlg)
-        dlg_layout.addWidget(QLabel("İçe aktarmak istediğiniz anahtarları seçin:"))
+        dlg_layout.addWidget(QLabel(tr("mcp_server.dlg_select_api_body", "İçe aktarmak istediğiniz anahtarları seçin:")))
 
         list_widget = QListWidget()
         list_widget.setSelectionMode(QListWidget.SelectionMode.MultiSelection)
@@ -273,7 +274,7 @@ class MCPServerDialog(QDialog):
                 if k not in existing_list:
                     existing_list.append(k)
             self.keys_edit.setText('\n'.join(existing_list))
-            QMessageBox.information(self, "Başarılı", f"{len(added_keys)} anahtar içe aktarıldı.")
+            QMessageBox.information(self, tr("menu_bar.msg_save_success_title", "Başarılı"), tr("mcp_server.msg_keys_imported", "{} anahtar içe aktarıldı.").format(len(added_keys)))
 
     # ── Mevcut endpoint seçilince formu doldur ──
     def _load_list(self):
@@ -287,7 +288,7 @@ class MCPServerDialog(QDialog):
                 prefix = "✅ " if ep["id"] == self._active_id else "   "
                 self.endpoint_list.addItem(f"{prefix}{ep['name']} [{ep['type']}]")
         except Exception as e:
-            QMessageBox.warning(self, "Uyarı", f"Endpoint listesi yüklenemedi: {e}")
+            QMessageBox.warning(self, tr("new_project.msg_warning_title", "Uyarı"), tr("mcp_server.msg_load_list_fail", "Endpoint listesi yüklenemedi: {}").format(e))
     
     def _get_endpoints_data(self) -> dict:
         try:
@@ -348,7 +349,7 @@ class MCPServerDialog(QDialog):
         ep_name = self.name_input.text().strip()
         
         if not ep_id or not ep_name:
-            QMessageBox.warning(self, "Eksik", "ID ve Ad alanları zorunludur.")
+            QMessageBox.warning(self, tr("prompt_editor.msg_missing_title", "Eksik"), tr("mcp_server.msg_missing_id_name", "ID ve Ad alanları zorunludur."))
             return
         
         import json as _json
@@ -358,7 +359,7 @@ class MCPServerDialog(QDialog):
             try:
                 headers = _json.loads(headers_text)
             except _json.JSONDecodeError:
-                QMessageBox.warning(self, "Hata", "Headers alanı geçerli JSON formatında olmalıdır.")
+                QMessageBox.warning(self, tr("main_window.msg_structure_error_title", "Hata"), tr("mcp_server.msg_invalid_headers", "Headers alanı geçerli JSON formatında olmalıdır."))
                 return
 
         ep_type = self.type_combo.currentText()
@@ -400,10 +401,10 @@ class MCPServerDialog(QDialog):
             keys = [k.strip() for k in keys_text.split("\n") if k.strip()]
             save_api_keys(ep_id, keys)
             
-            QMessageBox.information(self, "Başarılı", f"'{ep_name}' kaydedildi.")
+            QMessageBox.information(self, tr("menu_bar.msg_save_success_title", "Başarılı"), tr("mcp_server.msg_saved_success", "'{}' kaydedildi.").format(ep_name))
             self._load_list()
         except Exception as e:
-            QMessageBox.critical(self, "Hata", f"Kaydetme hatası: {e}")
+            QMessageBox.critical(self, tr("main_window.msg_structure_error_title", "Hata"), tr("mcp_server.msg_save_fail", "Kaydetme hatası: {}").format(e))
     
     def delete_endpoint(self):
         current = self.endpoint_list.currentItem()
@@ -411,7 +412,7 @@ class MCPServerDialog(QDialog):
             return
         idx = self.endpoint_list.row(current)
         
-        if QMessageBox.question(self, "Sil", "Bu endpoint'i silmek istediğinize emin misiniz?") != QMessageBox.StandardButton.Yes:
+        if QMessageBox.question(self, tr("mcp_server.delete_confirm_title", "Sil"), tr("mcp_server.delete_confirm_body", "Bu endpoint'i silmek istediğinize emin misiniz?")) != QMessageBox.StandardButton.Yes:
             return
         
         try:
@@ -427,7 +428,7 @@ class MCPServerDialog(QDialog):
                 self._load_list()
                 self.new_endpoint()
         except Exception as e:
-            QMessageBox.critical(self, "Hata", f"Silme hatası: {e}")
+            QMessageBox.critical(self, tr("main_window.msg_structure_error_title", "Hata"), tr("mcp_server.msg_delete_fail", "Silme hatası: {}").format(e))
     
     def set_active_endpoint(self):
         current = self.endpoint_list.currentItem()
@@ -442,13 +443,13 @@ class MCPServerDialog(QDialog):
             if 0 <= idx < len(endpoints):
                 data["active_endpoint_id"] = endpoints[idx]["id"]
                 save_endpoints(data)
-                QMessageBox.information(self, "Başarılı", f"'{endpoints[idx]['name']}' aktif endpoint olarak ayarlandı.")
+                QMessageBox.information(self, tr("menu_bar.msg_save_success_title", "Başarılı"), tr("mcp_server.msg_active_set_success", "'{}' aktif endpoint olarak ayarlandı.").format(endpoints[idx]['name']))
                 self._load_list()
         except Exception as e:
-            QMessageBox.critical(self, "Hata", f"Aktif ayarlama hatası: {e}")
+            QMessageBox.critical(self, tr("main_window.msg_structure_error_title", "Hata"), tr("mcp_server.msg_active_set_fail", "Aktif ayarlama hatası: {}").format(e))
     
     def test_connection(self):
-        self.test_result_label.setText("Bağlantı test ediliyor...")
+        self.test_result_label.setText(tr("mcp_server.test_in_progress", "Bağlantı test ediliyor..."))
         self.test_result_label.setStyleSheet("color: orange;")
         QApplication.processEvents()
         
@@ -457,7 +458,7 @@ class MCPServerDialog(QDialog):
         keys = [k.strip() for k in keys_text.split("\n") if k.strip()]
         
         if not keys:
-            self.test_result_label.setText("❌ API anahtarı girilmemiş.")
+            self.test_result_label.setText(tr("mcp_server.test_no_api_key", "❌ API anahtarı girilmemiş."))
             self.test_result_label.setStyleSheet("color: red;")
             return
         
@@ -502,5 +503,5 @@ class MCPServerDialog(QDialog):
                 self.test_result_label.setText(f"❌ {message}")
                 self.test_result_label.setStyleSheet("color: red;")
         except Exception as e:
-            self.test_result_label.setText(f"❌ Hata: {e}")
+            self.test_result_label.setText(tr("mcp_server.test_error", "❌ Hata: {}").format(e))
             self.test_result_label.setStyleSheet("color: red;")

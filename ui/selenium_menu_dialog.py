@@ -11,6 +11,7 @@ from PyQt6.QtGui import QIntValidator, QFont, QIcon, QAction
 from PyQt6.QtCore import Qt, QThread, pyqtSignal, QObject, QSize
 from logger import app_logger
 from ui.post_download_dialog import PostDownloadDialog
+from core.localization import tr
 
 # ─── V2.1.0 Geriye Uyumluluk Re-export'lar ───
 # ui/ paketine taşınan sınıflar burada da erişilebilir kalır.
@@ -36,7 +37,7 @@ def load_files_to_combo(combobox, subfolder):
     """Belirtilen klasördeki txt dosyalarını combobox'a yükler."""
     folder = get_config_path(subfolder)
     combobox.clear()
-    combobox.addItem("Seçiniz...", None)
+    combobox.addItem(tr("new_project.combo_select", "Seçiniz..."), None)
     if os.path.exists(folder):
         files = sorted([f for f in os.listdir(folder) if f.endswith('.txt')])
         for f in files:
@@ -55,50 +56,49 @@ class SeleniumMenuDialog(QDialog):
     def __init__(self, worker, parent=None):
         super().__init__(parent)
         self.worker = worker
-        self.setWindowTitle("Selenium Kontrol Paneli")
+        self.setWindowTitle(tr("selenium_menu.window_title", "Selenium Kontrol Paneli"))
         self.setFixedWidth(500)
         # Pencereyi her zaman üstte tut özelliği kaldırıldı (istek üzerine)
         # self.setWindowFlags(self.windowFlags() | Qt.WindowType.WindowStaysOnTopHint)
         
         layout = QVBoxLayout(self)
         
-        info_label = QLabel("Açılan tarayıcıda Cloudflare veya bot kontrolünü aşın. "
-                            "Kitabın ilk bölüm sayfasına geldiğinizde butonları kullanın.")
+        info_label = QLabel(tr("selenium_menu.info", "Açılan tarayıcıda Cloudflare veya bot kontrolünü aşın. Kitabın ilk bölüm sayfasına geldiğinizde butonları kullanın."))
         info_label.setWordWrap(True)
         info_label.setStyleSheet("margin-bottom: 10px; color: #E0E0E0;")
         layout.addWidget(info_label)
         
-        self.opened_btn = QPushButton("1. İçerik 1. bölümü açıldı")
+        self.opened_btn = QPushButton(tr("selenium_menu.btn_opened", "1. İçerik 1. bölümü açıldı"))
         self.opened_btn.setStyleSheet("background-color: #2196F3; color: white; padding: 12px; font-weight: bold; border-radius: 5px;")
         self.opened_btn.clicked.connect(self.on_opened_clicked)
         layout.addWidget(self.opened_btn)
         
-        self.shuba_btn = QPushButton("2. 69shubao için indirmeyi başlat")
+        self.shuba_btn = QPushButton(tr("selenium_menu.btn_shuba", "2. 69shubao için indirmeyi başlat"))
         self.shuba_btn.setEnabled(False)
         # Başlangıçta pasif/gri stil
         self.shuba_btn.setStyleSheet("background-color: #9E9E9E; color: #E0E0E0; padding: 10px; border-radius: 5px;")
         self.shuba_btn.clicked.connect(lambda: self.start_download("shuba"))
         layout.addWidget(self.shuba_btn)
         
-        self.booktoki_btn = QPushButton("3. booktoki için indirmeyi başlat")
+        self.booktoki_btn = QPushButton(tr("selenium_menu.btn_booktoki", "3. booktoki için indirmeyi başlat"))
         self.booktoki_btn.setEnabled(False)
         self.booktoki_btn.setStyleSheet("background-color: #9E9E9E; color: #E0E0E0; padding: 10px; border-radius: 5px;")
         self.booktoki_btn.clicked.connect(lambda: self.start_download("booktoki"))
         layout.addWidget(self.booktoki_btn)
 
-        self.novelfire_btn = QPushButton("4. novelfire için indirmeyi başlat")
+        self.novelfire_btn = QPushButton(tr("selenium_menu.btn_novelfire", "4. novelfire için indirmeyi başlat"))
         self.novelfire_btn.setEnabled(False)
         self.novelfire_btn.setStyleSheet("background-color: #9E9E9E; color: #E0E0E0; padding: 10px; border-radius: 5px;")
         self.novelfire_btn.clicked.connect(lambda: self.start_download("novelfire"))
         layout.addWidget(self.novelfire_btn)
         
-        self.cancel_btn = QPushButton("İptal et")
+        self.cancel_btn = QPushButton(tr("selenium_menu.btn_cancel", "İptal et"))
         self.cancel_btn.setStyleSheet("margin-top: 10px; padding: 5px;")
         self.cancel_btn.clicked.connect(self.on_cancel_clicked)
         layout.addWidget(self.cancel_btn)
         
         # Durum bilgisi için etiket
-        self.status_label = QLabel("Bekleniyor...")
+        self.status_label = QLabel(tr("selenium_menu.status_waiting", "Bekleniyor..."))
         self.status_label.setStyleSheet("color: #4CAF50; font-style: italic; margin-top: 5px;")
         self.status_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(self.status_label)
@@ -116,7 +116,7 @@ class SeleniumMenuDialog(QDialog):
         """Worker'dan gelen durum mesajını günceller."""
         self.status_label.setText(message)
         # Eğer mesajda "alınıyor" geçiyorsa sarı renkle vurgula
-        if "alınıyor" in message.lower():
+        if "alınıyor" in message.lower() or "getting" in message.lower():
             self.status_label.setStyleSheet("color: #FFC107; font-weight: bold; padding-left: 10px;")
         else:
             self.status_label.setStyleSheet("color: #4CAF50; font-style: italic; padding-left: 10px;")
@@ -133,13 +133,13 @@ class SeleniumMenuDialog(QDialog):
         self.novelfire_btn.setStyleSheet(blue_style)
         
         self.opened_btn.setEnabled(False)
-        self.opened_btn.setText("✅ Bölüm Hazır")
+        self.opened_btn.setText(tr("selenium_menu.btn_opened_ready", "✅ Bölüm Hazır"))
         self.opened_btn.setStyleSheet("background-color: #4CAF50; color: white; padding: 12px; font-weight: bold; border-radius: 5px;")
         
     def start_download(self, site):
         """İndirmeyi başlatır. Seçilen buton sarı, diğeri gri olur."""
         if site == "booktoki":
-            count, ok = QInputDialog.getInt(self, "Bölüm Sayısı", "Kaç bölüm indirilecek?", self.worker.selenium_chapter_limit, 1, 10000)
+            count, ok = QInputDialog.getInt(self, tr("selenium_menu.dlg_chapter_count_title", "Bölüm Sayısı"), tr("selenium_menu.dlg_chapter_count_body", "Kaç bölüm indirilecek?"), self.worker.selenium_chapter_limit, 1, 10000)
             if not ok: return
             self.worker.selenium_chapter_limit = count
             self.current_running_btn = self.booktoki_btn
@@ -152,7 +152,7 @@ class SeleniumMenuDialog(QDialog):
             other_btn = self.booktoki_btn
 
         # UI Güncelleme (Sarı: Çalışıyor, Gri: Devre Dışı)
-        self.current_running_btn.setText("⏳ İndiriliyor...")
+        self.current_running_btn.setText(tr("selenium_menu.btn_downloading", "⏳ İndiriliyor..."))
         self.current_running_btn.setStyleSheet("background-color: #FFC107; color: black; padding: 10px; font-weight: bold; border-radius: 5px;")
         self.current_running_btn.setEnabled(False)
         
@@ -170,10 +170,10 @@ class SeleniumMenuDialog(QDialog):
         self.is_finished_signal_received = True
 
         if self.current_running_btn:
-            self.current_running_btn.setText("✅ Tamamlandı")
+            self.current_running_btn.setText(tr("selenium_menu.btn_finished", "✅ Tamamlandı"))
             self.current_running_btn.setStyleSheet("background-color: #4CAF50; color: white; padding: 10px; font-weight: bold; border-radius: 5px;")
         
-        self.status_label.setText("✅ İşlem Başarıyla Tamamlandı")
+        self.status_label.setText(tr("selenium_menu.status_finished", "✅ İşlem Başarıyla Tamamlandı"))
         # QMessageBox.information(self, "Başarılı", f"İndirme tamamlandı:\n{name}") # Eski basit uyarı
         
         # Yeni aksiyon diyaloğunu aç
@@ -186,9 +186,9 @@ class SeleniumMenuDialog(QDialog):
     def on_download_error(self, message):
         """Hata durumunda butonu eski haline getir veya uyar."""
         if self.current_running_btn:
-            self.current_running_btn.setText("❌ Hata")
+            self.current_running_btn.setText(tr("selenium_menu.btn_error", "❌ Hata"))
             self.current_running_btn.setStyleSheet("background-color: #F44336; color: white; padding: 10px; font-weight: bold; border-radius: 5px;")
-        QMessageBox.critical(self, "Hata", f"İndirme sırasında hata oluştu:\n{message}")
+        QMessageBox.critical(self, tr("main_window.msg_structure_error_title", "Hata"), tr("selenium_menu.msg_download_error", "İndirme sırasında hata oluştu:\n{}").format(message))
 
     def on_cancel_clicked(self):
         app_logger.info("SeleniumMenuDialog: Kullanıcı iptal butonuna bastı.")

@@ -4,6 +4,7 @@ FileTableManager — Ana penceredeki QTableWidget (Dosya Listesi) yönetimini sa
 from PyQt6.QtWidgets import QTableWidget, QTableWidgetItem, QHeaderView
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QColor
+from core.localization import tr
 
 class FileTableManager:
     """QTableWidget üzerinde dosya verilerini göstermek için UI yöneticisi."""
@@ -13,7 +14,16 @@ class FileTableManager:
 
     def _setup_table(self):
         """Tablonun sütun ve görünüm ayarlarını yapar."""
-        headers = ["Seç", "Orijinal Dosya", "Çevrilen Dosya", "Oluşturma Tarihi", "Boyut", "Durum", "Orijinal Token", "Çevrilen Token"]
+        headers = [
+            tr("file_table.header_select", "Seç"),
+            tr("file_table.header_original_file", "Orijinal Dosya"),
+            tr("file_table.header_translated_file", "Çevrilen Dosya"),
+            tr("file_table.header_creation_date", "Oluşturma Tarihi"),
+            tr("file_table.header_size", "Boyut"),
+            tr("file_table.header_status", "Durum"),
+            tr("file_table.header_original_token", "Orijinal Token"),
+            tr("file_table.header_translated_token", "Çevrilen Token")
+        ]
         self.table.setColumnCount(len(headers))
         self.table.setHorizontalHeaderLabels(headers)
         
@@ -55,7 +65,8 @@ class FileTableManager:
         self.table.setItem(row, 1, QTableWidgetItem(entry_data["original_file_name"]))
 
         # Column 2: Translated File Name
-        self.table.setItem(row, 2, QTableWidgetItem(entry_data["translated_file_name"] if entry_data["translated_file_name"] else "Yok"))
+        translated_display = entry_data["translated_file_name"] if entry_data["translated_file_name"] else tr("file_table.none", "Yok")
+        self.table.setItem(row, 2, QTableWidgetItem(translated_display))
         
         # Column 3: Creation Date (Original)
         self.table.setItem(row, 3, QTableWidgetItem(entry_data["original_creation_time"]))
@@ -65,14 +76,31 @@ class FileTableManager:
         
         # Column 5: Status 
         status_text = entry_data["display_status"]
-        status_item = QTableWidgetItem(status_text)
+        
+        # Translate status text for user interface
+        if status_text == "Birleştirildi":
+            display_status = tr("file_table.status_merged", "Birleştirildi")
+        elif status_text == "Çevrildi":
+            display_status = tr("file_table.status_translated", "Çevrildi")
+        elif status_text == "İndirildi":
+            display_status = tr("file_table.status_downloaded", "İndirildi")
+        elif status_text == "Orijinali Yok":
+            display_status = tr("file_table.status_no_original", "Orijinali Yok")
+        elif status_text == "Orijinali Yok, Çevrildi":
+            display_status = tr("file_table.status_no_original_translated", "Orijinali Yok, Çevrildi")
+        elif status_text == "Orijinali Yok, Çevrilmedi":
+            display_status = tr("file_table.status_no_original_untranslated", "Orijinali Yok, Çevrilmedi")
+        elif status_text.startswith("Hata:"):
+            display_status = status_text.replace("Hata:", tr("file_table.status_error_prefix", "Hata:"), 1)
+        else:
+            display_status = tr(f"file_table.status_{status_text}", status_text)
+            
+        status_item = QTableWidgetItem(display_status)
         
         if status_text.startswith("Hata:"):
             status_item.setForeground(QColor(Qt.GlobalColor.red)) 
-            status_item.setToolTip(status_text)
-        elif status_text == "Çevrildi" or status_text == "Birleştirildi": 
-            status_item.setForeground(QColor(Qt.GlobalColor.darkGreen)) 
-        elif status_text == "Orijinali Yok, Çevrildi":
+            status_item.setToolTip(display_status)
+        elif status_text in ("Çevrildi", "Birleştirildi", "Orijinali Yok, Çevrildi"): 
             status_item.setForeground(QColor(Qt.GlobalColor.darkGreen)) 
         elif status_text == "Orijinali Yok":
             status_item.setForeground(QColor(Qt.GlobalColor.darkMagenta)) 
@@ -82,13 +110,29 @@ class FileTableManager:
         self.table.setItem(row, 5, status_item)
 
         # Column 6: Original Token Count
-        original_token_item = QTableWidgetItem(str(entry_data["original_token_count"]))
-        if isinstance(entry_data["original_token_count"], str) and "Hesaplanmadı" in entry_data["original_token_count"]:
+        orig_token_val = entry_data["original_token_count"]
+        if orig_token_val == "Hesaplanmadı":
+            orig_token_display = tr("file_table.token_not_calculated", "Hesaplanmadı")
+        elif orig_token_val == "Yok":
+            orig_token_display = tr("file_table.none", "Yok")
+        else:
+            orig_token_display = str(orig_token_val)
+            
+        original_token_item = QTableWidgetItem(orig_token_display)
+        if orig_token_val == "Hesaplanmadı":
             original_token_item.setForeground(QColor(Qt.GlobalColor.blue))
         self.table.setItem(row, 6, original_token_item)
         
         # Column 7: Translated Token Count
-        translated_token_item = QTableWidgetItem(str(entry_data["translated_token_count"]))
-        if isinstance(entry_data["translated_token_count"], str) and ("Hesaplanmadı" in entry_data["translated_token_count"] or "Yok" in entry_data["translated_token_count"]):
+        trsl_token_val = entry_data["translated_token_count"]
+        if trsl_token_val == "Hesaplanmadı":
+            trsl_token_display = tr("file_table.token_not_calculated", "Hesaplanmadı")
+        elif trsl_token_val == "Yok":
+            trsl_token_display = tr("file_table.none", "Yok")
+        else:
+            trsl_token_display = str(trsl_token_val)
+            
+        translated_token_item = QTableWidgetItem(trsl_token_display)
+        if trsl_token_val in ("Hesaplanmadı", "Yok"):
             translated_token_item.setForeground(QColor(Qt.GlobalColor.blue))
         self.table.setItem(row, 7, translated_token_item)

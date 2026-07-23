@@ -10,6 +10,7 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtGui import QIntValidator, QFont, QIcon, QAction
 from PyQt6.QtCore import Qt, QThread, pyqtSignal, QObject, QSize
 from logger import app_logger
+from core.localization import tr
 
 # ─── V2.1.0 Geriye Uyumluluk Re-export'lar ───
 # ui/ paketine taşınan sınıflar burada da erişilebilir kalır.
@@ -35,7 +36,7 @@ def load_files_to_combo(combobox, subfolder):
     """Belirtilen klasördeki txt dosyalarını combobox'a yükler."""
     folder = get_config_path(subfolder)
     combobox.clear()
-    combobox.addItem("Seçiniz...", None)
+    combobox.addItem(tr("new_project.combo_select", "Seçiniz..."), None)
     if os.path.exists(folder):
         files = sorted([f for f in os.listdir(folder) if f.endswith('.txt')])
         for f in files:
@@ -53,7 +54,7 @@ class ApiKeyEditorDialog(QDialog):
     """API Anahtarlarını yönetmek için editör."""
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setWindowTitle("API Key Editörü")
+        self.setWindowTitle(tr("apikey_editor.window_title", "API Key Editörü"))
         self.resize(600, 400)
         self.keys_folder = get_config_path("APIKeys")
         
@@ -61,15 +62,15 @@ class ApiKeyEditorDialog(QDialog):
         
         # Sol Panel
         left_layout = QVBoxLayout()
-        left_layout.addWidget(QLabel("Kayıtlı Anahtarlar:"))
+        left_layout.addWidget(QLabel(tr("apikey_editor.saved_keys", "Kayıtlı Anahtarlar:")))
         self.key_list = QListWidget()
         self.key_list.currentItemChanged.connect(self.on_key_selected)
         left_layout.addWidget(self.key_list)
         
         btn_layout = QHBoxLayout()
-        self.new_btn = QPushButton("Yeni")
+        self.new_btn = QPushButton(tr("prompt_editor.btn_new", "Yeni"))
         self.new_btn.clicked.connect(self.new_key)
-        self.del_btn = QPushButton("Sil")
+        self.del_btn = QPushButton(tr("prompt_editor.btn_delete", "Sil"))
         self.del_btn.setStyleSheet("color: red;")
         self.del_btn.clicked.connect(self.delete_key)
         btn_layout.addWidget(self.new_btn)
@@ -80,14 +81,14 @@ class ApiKeyEditorDialog(QDialog):
         right_layout = QVBoxLayout()
         form = QFormLayout()
         self.name_input = QLineEdit()
-        self.name_input.setPlaceholderText("Anahtar Adı (Örn: Ana Hesabım)")
+        self.name_input.setPlaceholderText(tr("apikey_editor.placeholder_name", "Anahtar Adı (Örn: Ana Hesabım)"))
         self.key_input = QLineEdit()
-        self.key_input.setPlaceholderText("AIzaSy...")
-        form.addRow("Ad:", self.name_input)
-        form.addRow("Key:", self.key_input)
+        self.key_input.setPlaceholderText(tr("apikey_editor.placeholder_key", "AIzaSy..."))
+        form.addRow(tr("apikey_editor.label_name", "Ad:"), self.name_input)
+        form.addRow(tr("apikey_editor.label_key", "Key:"), self.key_input)
         right_layout.addLayout(form)
         
-        self.save_btn = QPushButton("Kaydet")
+        self.save_btn = QPushButton(tr("prompt_editor.btn_save", "Kaydet"))
         self.save_btn.clicked.connect(self.save_key)
         right_layout.addWidget(self.save_btn)
         right_layout.addStretch()
@@ -124,7 +125,7 @@ class ApiKeyEditorDialog(QDialog):
         key = self.key_input.text().strip()
         
         if not name or not key:
-            QMessageBox.warning(self, "Eksik", "Ad ve Key alanları zorunludur.")
+            QMessageBox.warning(self, tr("prompt_editor.msg_missing_title", "Eksik"), tr("apikey_editor.msg_fields_required", "Ad ve Key alanları zorunludur."))
             return
             
         safe_name = "".join([c for c in name if c.isalnum() or c in (' ', '-', '_')]).strip()
@@ -134,15 +135,15 @@ class ApiKeyEditorDialog(QDialog):
             with open(path, 'w', encoding='utf-8') as f:
                 f.write(key)
             self.load_keys()
-            QMessageBox.information(self, "Başarılı", "API Anahtarı kaydedildi.")
+            QMessageBox.information(self, tr("menu_bar.msg_save_success_title", "Başarılı"), tr("apikey_editor.msg_save_success", "API Anahtarı kaydedildi."))
         except Exception as e:
-            QMessageBox.critical(self, "Hata", str(e))
+            QMessageBox.critical(self, tr("main_window.msg_structure_error_title", "Hata"), str(e))
             
     def delete_key(self):
         current = self.key_list.currentItem()
         if not current: return
         
-        if QMessageBox.question(self, "Sil", "Emin misiniz?") == QMessageBox.StandardButton.Yes:
+        if QMessageBox.question(self, tr("prompt_editor.btn_delete", "Sil"), tr("apikey_editor.msg_delete_confirm", "Emin misiniz?")) == QMessageBox.StandardButton.Yes:
             path = os.path.join(self.keys_folder, current.text() + ".txt")
             try:
                 os.remove(path)

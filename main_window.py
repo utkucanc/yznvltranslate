@@ -11,6 +11,7 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtGui import QFont, QIcon, QDesktopServices
 from PyQt6.QtCore import Qt, QUrl, QTimer, QPropertyAnimation, QEasingCurve
 from PyQt6.QtWidgets import QGraphicsOpacityEffect
+from core.localization import tr
 
 # Kendi oluşturduğumuz modülleri içe aktarıyoruz
 from dialogs import (
@@ -44,7 +45,7 @@ from ui.toast_widget import _ToastWidget
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Novel Çeviri Aracı V2.4.0")
+        self.setWindowTitle(tr("main_window.title", "Novel Çeviri Aracı V2.4.0"))
         self.setWindowIcon(QIcon("logo256.ico"))
         self.setGeometry(100, 100, 1400, 800)
 
@@ -54,7 +55,7 @@ class MainWindow(QMainWindow):
         self._translation_speed = 0.0
         self._current_model = self.get_gemini_model_version()
         self._current_api_name = ""
-        self._current_status = "Hazır"
+        self._current_status = tr("right_panel.status_ready", "Hazır")
         self._ensure_app_structure()
         self.current_project_path = None
         self.config = configparser.ConfigParser()
@@ -125,7 +126,7 @@ class MainWindow(QMainWindow):
                 if not os.path.exists(p):
                     os.makedirs(p)
         except Exception as e:
-            QMessageBox.critical(self, "Hata", f"Klasör yapısı oluşturulamadı: {e}")
+            QMessageBox.critical(self, tr("main_window.msg_structure_error_title", "Hata"), tr("main_window.msg_structure_error_body", "Klasör yapısı oluşturulamadı: {}").format(e))
         # Varsayılan tema dosyalarını oluştur (build'de eksik olabilir)
         try:
             from core.theme_defaultCreate import ensure_default_themes
@@ -152,16 +153,17 @@ class MainWindow(QMainWindow):
     # Panel Oluşturma 
     def _create_left_panel(self):
         left_layout = QVBoxLayout()
-        left_layout.addWidget(QLabel("Projeler:"))
+        self.projects_label = QLabel(tr("main_window.projects", "Projeler:"))
+        left_layout.addWidget(self.projects_label)
         search_layout = QHBoxLayout()
         search_layout.setSpacing(4)
         self.project_search_input = QLineEdit()
-        self.project_search_input.setPlaceholderText("🔍 Proje ara...")
+        self.project_search_input.setPlaceholderText(tr("main_window.search_project_placeholder", "🔍 Proje ara..."))
         self.project_search_input.textChanged.connect(self.file_table_interactions.filter_project_list)
         self.project_search_clear_btn = QPushButton("✕")
         self.project_search_clear_btn.setProperty("class", "btn-clear")
         self.project_search_clear_btn.setFixedSize(22, 22)
-        self.project_search_clear_btn.setToolTip("Aramayı temizle")
+        self.project_search_clear_btn.setToolTip(tr("main_window.tooltip_clear_search", "Aramayı temizle"))
         self.project_search_clear_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         self.project_search_clear_btn.clicked.connect(lambda: self.project_search_input.clear())
         search_layout.addWidget(self.project_search_input)
@@ -180,12 +182,12 @@ class MainWindow(QMainWindow):
         file_search_layout = QHBoxLayout()
         file_search_layout.setSpacing(4)
         self.file_search_input = QLineEdit()
-        self.file_search_input.setPlaceholderText("🔍 Dosya ara...")
+        self.file_search_input.setPlaceholderText(tr("main_window.search_file_placeholder", "🔍 Dosya ara..."))
         self.file_search_input.textChanged.connect(self.file_table_interactions.filter_file_table)
         self.file_search_clear_btn = QPushButton("✕")
         self.file_search_clear_btn.setProperty("class", "btn-clear")
         self.file_search_clear_btn.setFixedSize(22, 22)
-        self.file_search_clear_btn.setToolTip("Dosya aramasını temizle")
+        self.file_search_clear_btn.setToolTip(tr("main_window.tooltip_clear_file_search", "Dosya aramasını temizle"))
         self.file_search_clear_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         self.file_search_clear_btn.clicked.connect(lambda: self.file_search_input.clear())
         file_search_layout.addWidget(self.file_search_input)
@@ -194,7 +196,16 @@ class MainWindow(QMainWindow):
         self.file_table = QTableWidget()
         self.file_table.setColumnCount(8)
         # Kısaltılmış başlıklar - dar sütunlarda okunabilirlik için
-        headers = ["☑", "Orijinal", "Çevrilen", "Tarih", "Boyut", "Durum", "Orig.Token", "Trsl.Token"]
+        headers = [
+            tr("main_window.table_header_check", "☑"),
+            tr("main_window.table_header_original", "Orijinal"),
+            tr("main_window.table_header_translated", "Çevrilen"),
+            tr("main_window.table_header_date", "Tarih"),
+            tr("main_window.table_header_size", "Boyut"),
+            tr("main_window.table_header_status", "Durum"),
+            tr("main_window.table_header_orig_token", "Orig.Token"),
+            tr("main_window.table_header_trsl_token", "Trsl.Token")
+        ]
         self.file_table.setHorizontalHeaderLabels(headers)
         self.file_table.horizontalHeader().setFont(QFont("Segoe UI", 8))
         self.file_table.horizontalHeader().setDefaultSectionSize(80)
@@ -309,14 +320,14 @@ class MainWindow(QMainWindow):
         if dialog.exec():
             project_name, project_link, max_pages, max_retries, api_key, startpromt, api_key_name, mcp_endpoint_id = dialog.get_data()
             if not project_name or not project_link:
-                QMessageBox.warning(self, "Eksik Bilgi", "Proje adı ve linki boş bırakılamaz.")
+                QMessageBox.warning(self, tr("main_window.msg_project_missing_info_title", "Eksik Bilgi"), tr("main_window.msg_project_missing_info_body", "Proje adı ve linki boş bırakılamaz."))
                 return
             if not api_key and not mcp_endpoint_id:
-                QMessageBox.warning(self, "Yapılandırma Eksik", "Çeviri ve token sayımı için Gemini API anahtarı veya MCP bağlantısı gereklidir.")
+                QMessageBox.warning(self, tr("main_window.msg_project_config_missing_title", "Yapılandırma Eksik"), tr("main_window.msg_project_config_missing_body", "Çeviri ve token sayımı için Gemini API anahtarı veya MCP bağlantısı gereklidir."))
             try:
                 base_path = os.path.join(os.getcwd(), project_name)
                 if os.path.exists(base_path):
-                    QMessageBox.warning(self, "Hata", f"'{project_name}' adında bir proje zaten mevcut.")
+                    QMessageBox.warning(self, tr("main_window.msg_project_exists_title", "Hata"), tr("main_window.msg_project_exists_body", "'{}' adında bir proje zaten mevcut.").format(project_name))
                     return
                 for folder in ["dwnld", "trslt", "cmplt", "config"]:
                     os.makedirs(os.path.join(base_path, folder))
@@ -334,22 +345,22 @@ class MainWindow(QMainWindow):
                 with open(config_path, 'w', encoding='utf-8') as configfile:
                     self.config.write(configfile)
                 self.project_list.addItem(project_name)
-                QMessageBox.information(self, "Başarılı", f"'{project_name}' projesi başarıyla oluşturuldu.")
+                QMessageBox.information(self, tr("main_window.msg_project_created_title", "Başarılı"), tr("main_window.msg_project_created_body", "'{}' projesi başarıyla oluşturuldu.").format(project_name))
                 self.project_list.setCurrentItem(self.project_list.findItems(project_name, Qt.MatchFlag.MatchExactly)[0])
             except OSError as e:
-                QMessageBox.critical(self, "Dosya Hatası", f"Dizin oluşturulurken bir hata oluştu:\n{e}")
+                QMessageBox.critical(self, tr("main_window.msg_folder_error_title", "Dosya Hatası"), tr("main_window.msg_folder_error_body", "Dizin oluşturulurken bir hata oluştu:\n{}").format(e))
             except Exception as e:
-                QMessageBox.critical(self, "Genel Hata", f"Proje oluşturulurken beklenmeyen bir hata oluştu:\n{e}")
+                QMessageBox.critical(self, tr("main_window.msg_generic_error_title", "Genel Hata"), tr("main_window.msg_generic_error_body", "Proje oluşturulurken beklenmeyen bir hata oluştu:\n{}").format(e))
 
     def delete_project_clicked(self):
         import shutil
         current_item = self.project_list.currentItem()
         if not current_item:
-            QMessageBox.warning(self, "Proje Seçilmedi", "Lütfen silmek istediğiniz projeyi seçin.")
+            QMessageBox.warning(self, tr("main_window.msg_project_not_selected_title", "Proje Seçilmedi"), tr("main_window.msg_project_not_selected_body", "Lütfen silmek istediğiniz projeyi seçin."))
             return
         project_name = current_item.text()
-        reply = QMessageBox.question(self, 'Proje Sil',
-                                     f"'{project_name}' projesini ve tüm içeriğini silmek istediğinize emin misiniz? Bu işlem geri alınamaz.",
+        reply = QMessageBox.question(self, tr("main_window.msg_delete_project_confirm_title", "Proje Sil"),
+                                     tr("main_window.msg_delete_project_confirm_body", "'{}' projesini ve tüm içeriğini silmek istediğinize emin misiniz? Bu işlem geri alınamaz.").format(project_name),
                                      QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
                                      QMessageBox.StandardButton.No)
         if reply == QMessageBox.StandardButton.Yes:
@@ -357,10 +368,10 @@ class MainWindow(QMainWindow):
             try:
                 shutil.rmtree(project_path)
                 self.project_list.takeItem(self.project_list.row(current_item))
-                QMessageBox.information(self, "Başarılı", f"'{project_name}' projesi başarıyla silindi.")
+                QMessageBox.information(self, tr("main_window.msg_delete_project_success_title", "Başarılı"), tr("main_window.msg_delete_project_success_body", "'{}' projesi başarıyla silindi.").format(project_name))
                 self.update_file_list_from_selection()
             except Exception as e:
-                QMessageBox.critical(self, "Silme Hatası", f"Proje silinirken bir hata oluştu:\n{e}")
+                QMessageBox.critical(self, tr("main_window.msg_delete_project_error_title", "Silme Hatası"), tr("main_window.msg_delete_project_error_body", "Proje silinirken bir hata oluştu:\n{}").format(e))
 
     def open_project_settings_dialog(self):
         current_item = self.project_list.currentItem()
@@ -450,10 +461,10 @@ class MainWindow(QMainWindow):
                 self.config['Batch']['max_chapters_per_batch'] = str(updated_data.get('max_chapters_per_batch', 5))
                 with open(config_path, 'w', encoding='utf-8') as configfile:
                     self.config.write(configfile)
-                QMessageBox.information(self, "Ayarlar Kaydedildi", f"'{project_name}' projesinin ayarları başarıyla kaydedildi.")
+                QMessageBox.information(self, tr("main_window.msg_settings_saved_title", "Ayarlar Kaydedildi"), tr("main_window.msg_settings_saved_body", "'{}' projesinin ayarları başarıyla kaydedildi.").format(project_name))
                 self.update_file_list_from_selection()
             except Exception as e:
-                QMessageBox.critical(self, "Kaydetme Hatası", f"Ayarlar kaydedilirken bir hata oluştu:\n{e}")
+                QMessageBox.critical(self, tr("main_window.msg_settings_save_error_title", "Kaydetme Hatası"), tr("main_window.msg_settings_save_error_body", "Ayarlar kaydedilirken bir hata oluştu:\n{}").format(e))
 
     # Dosya Listesi Güncelle
     def sync_database_if_exists(self):
@@ -474,11 +485,114 @@ class MainWindow(QMainWindow):
 
     def refresh_ui_and_theme(self):
         """UI'yi ve aktif temayı yeniden yükler."""
+        self.setWindowTitle(tr("main_window.title", "Novel Çeviri Aracı V2.4.0"))
+        
+        # Sol Panel başlık ve arama kutusu
+        if hasattr(self, "projects_label"):
+            self.projects_label.setText(tr("main_window.projects", "Projeler:"))
+        if hasattr(self, "project_search_input"):
+            self.project_search_input.setPlaceholderText(tr("main_window.search_project_placeholder", "🔍 Proje ara..."))
+        if hasattr(self, "project_search_clear_btn"):
+            self.project_search_clear_btn.setToolTip(tr("main_window.tooltip_clear_search", "Aramayı temizle"))
+            
+        # Orta Panel arama kutusu ve tablo başlıkları
+        if hasattr(self, "file_search_input"):
+            self.file_search_input.setPlaceholderText(tr("main_window.search_file_placeholder", "🔍 Dosya ara..."))
+        if hasattr(self, "file_search_clear_btn"):
+            self.file_search_clear_btn.setToolTip(tr("main_window.tooltip_clear_file_search", "Dosya aramasını temizle"))
+            
+        headers = [
+            tr("main_window.table_header_check", "☑"),
+            tr("main_window.table_header_original", "Orijinal"),
+            tr("main_window.table_header_translated", "Çevrilen"),
+            tr("main_window.table_header_date", "Tarih"),
+            tr("main_window.table_header_size", "Boyut"),
+            tr("main_window.table_header_status", "Durum"),
+            tr("main_window.table_header_orig_token", "Orig.Token"),
+            tr("main_window.table_header_trsl_token", "Trsl.Token")
+        ]
+        self.file_table.setHorizontalHeaderLabels(headers)
+
         self.update_file_list_from_selection()
+        self.update_rigt_panel()
+        self.update_status_bar()
+        self.update_menu_bar()
+        
         app_settings = load_app_settings()
         apply_theme(QApplication.instance(), app_settings.get("theme", "dark"))
-        self.show_toast("UI Yenilendi", "Dosya listesi ve tema başarıyla yeniden yüklendi.")
+        self.show_toast(tr("main_window.toast_ui_refreshed_title", "UI Yenilendi"), tr("main_window.toast_ui_refreshed_body", "Dosya listesi ve tema başarıyla yeniden yüklendi."))
 
+    def update_rigt_panel(self):
+        if hasattr(self, "downloadMethodLabel"):
+            self.downloadMethodLabel.setText(tr("right_panel.download_method", "İndirme Yöntemi:"))
+        if hasattr(self, "downloadMethodCombo"):
+            self.downloadMethodCombo.setItemText(0, tr("right_panel.download_method_booktoki", "Booktoki JS İle İndir (Selenium)"))
+            self.downloadMethodCombo.setItemText(1, tr("right_panel.download_method_69shuba", "69shuba JS İle İndir (Selenium)"))
+            self.downloadMethodCombo.setItemText(2, tr("right_panel.download_method_novelfire", "Novelfire JS İle İndir (Selenium)"))
+            self.downloadMethodCombo.setItemText(3, tr("right_panel.download_method_requests", "Normal Web Kazıma (Requests) (Tavsiye Edilmez)"))
+        if hasattr(self, "startButton"):
+            self.startButton.setText(tr("right_panel.btn_start_download", "⬇  İndirmeyi Başlat"))
+        if hasattr(self, "workflowButton"):
+            self.workflowButton.setText(tr("right_panel.btn_workflow", "🚀  Tam Otomatik İşlem"))
+        if hasattr(self, "splitButton"):
+            self.splitButton.setText(tr("right_panel.btn_split", "✂  Toplu Bölüm Ekle"))
+        if hasattr(self, "translateButton"):
+            self.translateButton.setText(tr("right_panel.btn_translate", "🌐  Seçilenleri Çevir"))
+        if hasattr(self, "limit_checkbox"):
+            self.limit_checkbox.setText(tr("right_panel.limit_translate", "Sayılı çevir"))
+            self.limit_checkbox.setToolTip(tr("right_panel.limit_translate_tooltip", "İşaretlenirse sadece yandaki sayı kadar dosya çevrilip durur."))
+        if hasattr(self, "shutdown_checkbox"):
+            self.shutdown_checkbox.setText(tr("right_panel.shutdown_on_complete", "⚡ Çeviri Bitince Kapat"))
+            self.shutdown_checkbox.setToolTip(tr("right_panel.shutdown_on_complete_tooltip", "Çeviri tamamlanınca bilgisayarı ONAYSIZ kapar"))
+        if hasattr(self, "mergeButton"):
+            self.mergeButton.setText(tr("right_panel.btn_merge", "🔗  Seçili Çevirileri Birleştir"))
+        if hasattr(self, "stopTranslationButton"):
+            self.stopTranslationButton.setText(tr("right_panel.btn_stop", "■  Çeviriyi Durdur"))
+        if hasattr(self, "errorCheckButton"):
+            self.errorCheckButton.setText(tr("right_panel.btn_error_check", "🔍  Çeviri Hata Kontrol"))
+        if hasattr(self, "epubButton"):
+            self.epubButton.setText(tr("right_panel.btn_epub", "📚  Seçilenleri EPUB Yap"))
+        if hasattr(self, "token_count_button"):
+            self.token_count_button.setText(tr("right_panel.btn_token_count", "🔢  Token Say"))
+        if hasattr(self, "statusLabel"):
+            self.statusLabel.setText(tr("right_panel.status_prefix", "Durum: {}").format(self._current_status))
+        if hasattr(self, "total_tokens_label"):
+            token_val = self.project_token_cache.get('total_combined_tokens', 0) if hasattr(self, 'project_token_cache') and self.project_token_cache else 0
+            if self.project_list.currentItem():
+                self.total_tokens_label.setText(tr("main_window.label_total_tokens", "Toplam Token (Orijinal + Çevrilen): {}").format(token_val))
+            else:
+                self.total_tokens_label.setText(tr("right_panel.label_total_tokens_short", "Toplam Token: {}").format(token_val))
+        if hasattr(self, "total_original_tokens_label"):
+            orig_val = self.project_token_cache.get('total_original_tokens', 0) if hasattr(self, 'project_token_cache') and self.project_token_cache else 0
+            if self.project_list.currentItem():
+                self.total_original_tokens_label.setText(tr("main_window.label_total_original_tokens", "Toplam Orijinal Token: {}").format(orig_val))
+            else:
+                self.total_original_tokens_label.setText(tr("right_panel.label_original_tokens_short", "Orijinal Token: {}").format(orig_val))
+        if hasattr(self, "total_translated_tokens_label"):
+            trsl_val = self.project_token_cache.get('total_translated_tokens', 0) if hasattr(self, 'project_token_cache') and self.project_token_cache else 0
+            if self.project_list.currentItem():
+                self.total_translated_tokens_label.setText(tr("main_window.label_total_translated_tokens", "Toplam Çevrilen Token: {}").format(trsl_val))
+            else:
+                self.total_translated_tokens_label.setText(tr("right_panel.label_translated_tokens_short", "Çevrilen Token: {}").format(trsl_val))
+        if hasattr(self, "selectHighlightedButton"):
+            self.selectHighlightedButton.setText(tr("right_panel.btn_select_highlighted", "☑  Seç (Vurgulananları İşaretle)"))
+        if hasattr(self, "generateTerminologyButton"):
+            self.generateTerminologyButton.setText(tr("right_panel.btn_ai_terminology", "🤖  YZ İle Terminoloji Üret"))
+        if hasattr(self, "projectSettingsButton"):
+            self.projectSettingsButton.setText(tr("right_panel.btn_project_settings", "⚙  Proje Ayarları"))
+        if hasattr(self, "helpButton"):
+            self.helpButton.setText(tr("right_panel.btn_help", "❓  Yardım"))
+
+    def update_status_bar(self):
+        if hasattr(self, "sb_refresh_btn"):
+            self.sb_refresh_btn.setText(tr("status_bar.btn_refresh", "↻  UI Yenile"))
+            self.sb_refresh_btn.setToolTip(tr("status_bar.btn_refresh_tooltip", "Dosya listesini yeniden yükle (UI Yenile)"))
+        self.status_bar_mgr.update()
+
+    def update_menu_bar(self):
+        self.menuBar().clear()
+        from ui.menu_bar_builder import build_menu_bar
+        build_menu_bar(self)
     def update_file_list_from_selection(self):
         self.file_table.setRowCount(0)
         current_item = self.project_list.currentItem()
@@ -495,9 +609,9 @@ class MainWindow(QMainWindow):
             if hasattr(self, 'generateTerminologyButton'):
                 self.generateTerminologyButton.setEnabled(False)
             if hasattr(self, 'total_tokens_label'):
-                self.total_tokens_label.setText("Toplam Token: 0")
-                self.total_original_tokens_label.setText("Orijinal Token: 0")
-                self.total_translated_tokens_label.setText("Çevrilen Token: 0")
+                self.total_tokens_label.setText(tr("right_panel.label_total_tokens_short", "Toplam Token: {}").format(0))
+                self.total_original_tokens_label.setText(tr("right_panel.label_original_tokens_short", "Orijinal Token: {}").format(0))
+                self.total_translated_tokens_label.setText(tr("right_panel.label_translated_tokens_short", "Çevrilen Token: {}").format(0))
                 self.total_tokens_label.setVisible(False)
                 self.total_original_tokens_label.setVisible(False)
                 self.total_translated_tokens_label.setVisible(False)
@@ -530,9 +644,9 @@ class MainWindow(QMainWindow):
         table_manager.populate(data['sorted_entries'])
 
         if hasattr(self, 'total_original_tokens_label'):
-            self.total_original_tokens_label.setText(f"Toplam Orijinal Token: {self.project_token_cache.get('total_original_tokens', 0)}")
-            self.total_translated_tokens_label.setText(f"Toplam Çevrilen Token: {self.project_token_cache.get('total_translated_tokens', 0)}")
-            self.total_tokens_label.setText(f"Toplam Token (Orijinal + Çevrilen): {self.project_token_cache.get('total_combined_tokens', 0)}")
+            self.total_original_tokens_label.setText(tr("main_window.label_total_original_tokens", "Toplam Orijinal Token: {}").format(self.project_token_cache.get('total_original_tokens', 0)))
+            self.total_translated_tokens_label.setText(tr("main_window.label_total_translated_tokens", "Toplam Çevrilen Token: {}").format(self.project_token_cache.get('total_translated_tokens', 0)))
+            self.total_tokens_label.setText(tr("main_window.label_total_tokens", "Toplam Token (Orijinal + Çevrilen): {}").format(self.project_token_cache.get('total_combined_tokens', 0)))
             self.total_tokens_label.setVisible(True)
             self.total_original_tokens_label.setVisible(True)
             self.total_translated_tokens_label.setVisible(True)
@@ -589,9 +703,6 @@ class MainWindow(QMainWindow):
         self.projectSettingsButton.setEnabled(enabled)
         self.selectHighlightedButton.setEnabled(enabled)
         self.token_count_button.setEnabled(enabled)
-
-    def update_status_bar(self):
-        self.status_bar_mgr.update()
         
     def add_file_to_table(self, file_path, file_name):
         pass    
@@ -599,8 +710,8 @@ class MainWindow(QMainWindow):
 
     def on_shutdown_checkbox_toggled(self, checked):
         if checked:
-            reply = QMessageBox.warning(self, "Otomatik Kapatma",
-                                        "İşlem bitince bilgisayar ONAYSIZ kapatılacak.\nDevam?",
+            reply = QMessageBox.warning(self, tr("main_window.msg_shutdown_confirm_title", "Otomatik Kapatma"),
+                                        tr("main_window.msg_shutdown_confirm_body", "İşlem bitince bilgisayar ONAYSIZ kapatılacak.\nDevam?"),
                                         QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
                                         QMessageBox.StandardButton.No)
             if reply == QMessageBox.StandardButton.No:
@@ -613,7 +724,8 @@ class MainWindow(QMainWindow):
         QDesktopServices.openUrl(QUrl(url))
 
     def show_about_dialog(self):
-        QMessageBox.about(self, "Hakkında",
+        QMessageBox.about(self, tr("main_window.about_title", "Hakkında"),
+                          tr("main_window.about_text",
                           "Novel Çeviri Aracı.\n\n"
                           "Bu uygulama UtkuCanC tarafından webnovel çevirilerini yapay zeka desteği ile çevirisininin yapılması amacıyla geliştirilmiştir.\n\n"
                           "Sürüm: 1.9.9 (Uygulama genelinde loglama sistemi eklendi. Token sayımı donma ve veri kaybolma hataları giderildi.)\n\n"
@@ -621,8 +733,9 @@ class MainWindow(QMainWindow):
                           "Sürüm: 2.1.0 (SRP yeniden yapılandırma, Batch Sistemi(Geliştirilmekte), Asenkron Sistemi, Proje Bazlı SQLite, Sistem iyileştirmesi)\n\n"
                           "Sürüm: 2.2.0 (Toplu Çeviri (Batch Mode) ile Asenkron Çeviri aynı anda kullanılabilir hale getirildi (Daha hızlı çeviri imkanı.). API Pool ve MCP Endpoint rotasyonu eklendi. Bazı sorunlar giderildi.)\n\n"
                           "Sürüm: 2.3.0 (Yeni bir arayüz ve iyileştirmelerle birlikte daha stabil ve hızlı bir deneyim sunuldu. Tema düzenleme paneli eklendi.)\n\n"
+                          "Sürüm: 2.4.0 (Çoklu Dil ve Lokalizasyon Desteği)\n\n"
                           "Geliştirici: UtkuCanC\n"
-                          "Mart 2026\n")
+                          "Mart 2026\n"))
 
     
     # Toast Bildirimi — Saf Qt Widget (System Tray showMessage KULLANILMAZ)
@@ -663,7 +776,7 @@ class MainWindow(QMainWindow):
             app_logger.debug(f"Toast gösterilemedi: {e}")
 
     def _notify_translation_complete(self, total_files: int):
-        self.show_toast("✅ Çeviri Tamamlandı", f"{total_files} dosya başarıyla çevrildi.")
+        self.show_toast(tr("main_window.toast_translation_complete_title", "✅ Çeviri Tamamlandı"), tr("main_window.toast_translation_complete_body", "{} dosya başarıyla çevrildi.").format(total_files))
 
     # ─────────────── Kapatma ───────────────
     def closeEvent(self, event):
@@ -674,8 +787,8 @@ class MainWindow(QMainWindow):
         ]
         running = [c for c in controllers if c.is_running()]
         if running:
-            reply = QMessageBox.question(self, 'Uygulamayı Kapat',
-                                         "Devam eden işlemler var. Çıkmak istediğinizden emin misiniz? Tüm işlemler durdurulacaktır.",
+            reply = QMessageBox.question(self, tr("main_window.shutdown_warning_title", "Uygulamayı Kapat"),
+                                         tr("main_window.shutdown_warning_body", "Devam eden işlemler var. Çıkmak istediğinizden emin misiniz? Tüm işlemler durdurulacaktır."),
                                          QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
                                          QMessageBox.StandardButton.No)
             if reply == QMessageBox.StandardButton.Yes:

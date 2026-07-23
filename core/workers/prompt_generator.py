@@ -21,6 +21,7 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtGui import QFont
 from PyQt6.QtCore import Qt, QThread, pyqtSignal, QObject
 from logger import app_logger
+from core.localization import tr
 
 
 # Bağlam Derleme
@@ -140,48 +141,7 @@ class ContextBuilder:
 
 # Meta-Prompt
 
-META_PROMPT_TEMPLATE = """Sen bir profesyonel roman çeviri uzmanısın. 
-
-Aşağıda bir web novel/roman projesinin bağlamını bulacaksın:
-- Mevcut başarılı çeviri promptları (varsa)
-- Hikaye wiki/karakter bilgileri (varsa)
-- Hikayeden örnek bölümler (orijinal dilde)
-
-Bu verileri analiz ederek, bu hikaye için EN İYİ çeviri promptlarını oluşturmanı istiyorum.
-
-3 farklı prompt üretmelisin:
-
-### PROMPT A - LİTERAL (Birebir Çeviri)
-Orijinal metnin yapısını ve kelime seçimini mümkün olduğunca koruyarak çeviri yapan bir prompt.
-
-### PROMPT B - DOĞAL (Natural Çeviri)
-Hedef dilde doğal ve akıcı okunan, okuyucu deneyimini ön plana çıkaran bir prompt.
-
-### PROMPT C - DENGELİ (Balanced Çeviri)
-Literal ve doğal arasında denge kuran, hem sadakati hem akıcılığı gözeten bir prompt.
-
-Her prompt:
-- Hedef dil: Türkçe
-- Kaynak dil: Otomatik algıla (genellikle Korece, Çince veya İngilizce)
-- Hikayenin türüne, tonuna ve terminolojisine uygun olmalı
-- Karakter isimlerinin nasıl çevrileceğini belirtmeli
-- Özel terimlerin tutarlılığını sağlamalı
-
-Yanıtını TAM OLARAK şu formatta ver (her prompt arasında === ayırıcı kullan):
-
-===PROMPT_A===
-[Prompt A içeriği buraya]
-===PROMPT_B===
-[Prompt B içeriği buraya]
-===PROMPT_C===
-[Prompt C içeriği buraya]
-===END===
-
-İşte proje bağlamı:
-
-{context}
-"""
-
+META_PROMPT_TEMPLATE = tr("promt_generator.promt","deneme")
 
 # Worker
 
@@ -204,7 +164,6 @@ class PromptGenWorker(QObject):
             self.progress.emit("LLM sağlayıcı başlatılıyor...")
             app_logger.info("LLM sağlayıcı başlatılıyor...")
             from core.llm_provider import LLMProvider
-
             provider = None
 
             # 1. Proje bazlı MCP endpoint seçimi varsa onu kullan

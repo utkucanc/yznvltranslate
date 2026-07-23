@@ -13,10 +13,11 @@ import configparser
 from PyQt6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QFormLayout,
     QLabel, QPushButton, QSpinBox, QDialogButtonBox,
-    QGroupBox
+    QGroupBox, QCheckBox
 )
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont
+from core.localization import tr
 
 
 def _get_chapter_count(project_path: str) -> int:
@@ -66,7 +67,7 @@ class MLTerminologyRangeDialog(QDialog):
     def __init__(self, project_path: str, parent=None):
         super().__init__(parent)
         self.project_path = project_path
-        self.setWindowTitle("Terminoloji Çıkar — Bölüm Aralığı")
+        self.setWindowTitle(tr("ml_range.window_title", "Terminoloji Çıkar — Bölüm Aralığı"))
         self.setMinimumWidth(400)
         self.setModal(True)
 
@@ -84,20 +85,20 @@ class MLTerminologyRangeDialog(QDialog):
         layout.setSpacing(12)
 
         # Başlık
-        title = QLabel("🤖 YZ ile Terminoloji Çıkar")
+        title = QLabel(tr("ml_range.title", "🤖 YZ ile Terminoloji Çıkar"))
         title.setFont(QFont("Segoe UI", 11, QFont.Weight.Bold))
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(title)
 
         # Son işlem bilgisi
         if last_end > 0:
-            last_info = QLabel(f"Son İşlem: Başlangıç Bölümü: {last_start}, Bitiş Bölümü: {last_end}")
+            last_info = QLabel(tr("ml_range.last_info", "Son İşlem: Başlangıç Bölümü: {start}, Bitiş Bölümü: {end}").format(start=last_start, end=last_end))
             last_info.setStyleSheet("color: #888; font-size: 9pt;")
             last_info.setAlignment(Qt.AlignmentFlag.AlignCenter)
             layout.addWidget(last_info)
 
         # Bölüm aralığı
-        range_group = QGroupBox("Bölüm Aralığı")
+        range_group = QGroupBox(tr("ml_range.range_group", "Bölüm Aralığı"))
         form = QFormLayout(range_group)
         form.setSpacing(8)
 
@@ -105,19 +106,19 @@ class MLTerminologyRangeDialog(QDialog):
         self.start_spin.setMinimum(1)
         self.start_spin.setMaximum(max(total_chapters, 1))
         self.start_spin.setValue(default_start)
-        self.start_spin.setSuffix(f"  (Toplam: {total_chapters})")
-        form.addRow("Başlangıç Bölümü:", self.start_spin)
+        self.start_spin.setSuffix(tr("ml_range.suffix_total", "  (Toplam: {total})").format(total=total_chapters))
+        form.addRow(tr("ml_range.start_chapter", "Başlangıç Bölümü:"), self.start_spin)
 
         self.end_spin = QSpinBox()
         self.end_spin.setMinimum(1)
         self.end_spin.setMaximum(max(total_chapters, 1))
         self.end_spin.setValue(default_end)
-        form.addRow("Bitiş Bölümü:", self.end_spin)
+        form.addRow(tr("ml_range.end_chapter", "Bitiş Bölümü:"), self.end_spin)
 
         layout.addWidget(range_group)
 
         # Token limiti
-        token_group = QGroupBox("Ayarlar")
+        token_group = QGroupBox(tr("ml_range.settings_group", "Ayarlar"))
         token_form = QFormLayout(token_group)
         token_form.setSpacing(8)
 
@@ -126,22 +127,51 @@ class MLTerminologyRangeDialog(QDialog):
         self.token_spin.setMaximum(2000000)
         self.token_spin.setSingleStep(50000)
         self.token_spin.setValue(ml_max_tokens)
-        self.token_spin.setSuffix(" token")
-        token_note = QLabel("(Uygulama ayarlarındaki ML Maks Token değeri)")
+        self.token_spin.setSuffix(tr("ml_range.suffix_token", " token"))
+        token_note = QLabel(tr("ml_range.token_note", "(Uygulama ayarlarındaki ML Maks Token değeri)"))
         token_note.setStyleSheet("color: #888; font-size: 8pt;")
-        token_form.addRow("ML Maks Token:", self.token_spin)
+        token_form.addRow(tr("ml_range.ml_max_tokens", "ML Maks Token:"), self.token_spin)
         token_form.addRow("", token_note)
+
+        # Tamamının terminolojisini çıkart checkbox
+        self.extract_all_checkbox = QCheckBox(tr("ml_range.extract_all", "Tamamının terminolojisini çıkart"))
+        token_form.addRow("", self.extract_all_checkbox)
+
+        # Paralel (Asenkron) terminoloji çıkart checkbox + thread count
+        self.async_checkbox = QCheckBox(tr("ml_range.async_extract", "Paralel (Asenkron) terminoloji çıkart"))
+        self.async_checkbox.setEnabled(False)
+        
+        self.async_threads_spin = QSpinBox()
+        self.async_threads_spin.setMinimum(1)
+        self.async_threads_spin.setMaximum(100)
+        self.async_threads_spin.setValue(3)
+        self.async_threads_spin.setEnabled(False)
+
+        async_row_layout = QHBoxLayout()
+        async_row_layout.addWidget(self.async_checkbox)
+        async_row_layout.addWidget(self.async_threads_spin)
+        token_form.addRow("", async_row_layout)
+
+        # Gemma tavsiyesi uyarısı
+        warning_label = QLabel(tr("ml_range.warning_gemma", "Gemma-4-32b-it kullanılması tavsiye edilir."))
+        warning_label.setStyleSheet("color: #FF5722; font-weight: bold; font-size: 9pt;")
+        token_form.addRow("", warning_label)
+
+        # Sinyal bağlantıları
+        self.extract_all_checkbox.toggled.connect(self._on_extract_all_toggled)
+        self.async_checkbox.toggled.connect(self._on_async_toggled)
+
         layout.addWidget(token_group)
 
         # Butonlar
         btn_layout = QHBoxLayout()
-        self.extract_btn = QPushButton("🚀 Terminoloji Çıkar")
+        self.extract_btn = QPushButton(tr("ml_range.btn_extract", "🚀 Terminoloji Çıkar"))
         self.extract_btn.setStyleSheet(
             "background-color: #E91E63; color: white; font-weight: bold; padding: 8px 16px; border-radius: 4px;"
         )
         self.extract_btn.clicked.connect(self._on_extract)
 
-        self.cancel_btn = QPushButton("İptal")
+        self.cancel_btn = QPushButton(tr("ml_range.btn_cancel", "İptal"))
         self.cancel_btn.setStyleSheet("padding: 8px 16px; border-radius: 4px;")
         self.cancel_btn.clicked.connect(self.reject)
 
@@ -150,15 +180,31 @@ class MLTerminologyRangeDialog(QDialog):
         btn_layout.addWidget(self.cancel_btn)
         layout.addLayout(btn_layout)
 
+    def _on_extract_all_toggled(self, checked: bool):
+        self.async_checkbox.setEnabled(checked)
+        if not checked:
+            self.async_checkbox.setChecked(False)
+            self.async_threads_spin.setEnabled(False)
+
+    def _on_async_toggled(self, checked: bool):
+        self.async_threads_spin.setEnabled(checked and self.extract_all_checkbox.isChecked())
+
     def _on_extract(self):
         start = self.start_spin.value()
         end = self.end_spin.value()
         if start > end:
             from PyQt6.QtWidgets import QMessageBox
-            QMessageBox.warning(self, "Hata", "Başlangıç bölümü bitiş bölümünden büyük olamaz.")
+            QMessageBox.warning(self, tr("main_window.msg_structure_error_title", "Hata"), tr("ml_range.msg_invalid_range", "Başlangıç bölümü bitiş bölümünden büyük olamaz."))
             return
         self.accept()
 
-    def get_values(self) -> tuple[int, int, int]:
-        """(start_chapter, end_chapter, max_tokens) döndürür."""
-        return self.start_spin.value(), self.end_spin.value(), self.token_spin.value()
+    def get_values(self) -> tuple[int, int, int, bool, bool, int]:
+        """(start_chapter, end_chapter, max_tokens, extract_all, async_enabled, async_threads) döndürür."""
+        return (
+            self.start_spin.value(),
+            self.end_spin.value(),
+            self.token_spin.value(),
+            self.extract_all_checkbox.isChecked(),
+            self.async_checkbox.isChecked(),
+            self.async_threads_spin.value()
+        )
