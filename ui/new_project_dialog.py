@@ -131,8 +131,16 @@ class NewProjectDialog(QDialog):
         mcp_layout.addLayout(ep_layout)
         mcp_group.setLayout(mcp_layout)
         
+        # --- Çeviri Sağlayıcısı Seçimi ---
+        self.provider_combo = QComboBox(self)
+        self.provider_combo.addItem(tr("project_settings.provider_llm", "Yapay Zeka (LLM / MCP)"), "llm")
+        self.provider_combo.addItem(tr("project_settings.provider_google", "Google Translate (Ücretsiz)"), "google")
+        self.provider_combo.addItem(tr("project_settings.provider_yandex", "Yandex Translate (Ücretsiz)"), "yandex")
+        self.provider_combo.currentIndexChanged.connect(self.on_provider_changed)
+        
         self.use_custom_endpoint.toggled.connect(self.endpoint_combo.setEnabled)
         
+        layout.addRow(tr("project_settings.label_provider_select", "Çeviri Sağlayıcısı:"), self.provider_combo)
         layout.addRow(tr("new_project.label_project_name", "Proje Adı:"), self.projectNameInput)
         layout.addRow(tr("new_project.label_project_link", "Proje Linki:"), self.projectLinkInput)
         layout.addRow(tr("new_project.label_max_pages", "Maksimum Sayfa:"), self.maxPagesInput)
@@ -149,6 +157,20 @@ class NewProjectDialog(QDialog):
         layout.addRow(buttons)
         
         self.refresh_combos()
+        self.on_provider_changed()
+
+    def on_provider_changed(self):
+        prov = self.provider_combo.currentData()
+        is_llm = (prov == "llm")
+        self.api_key_combo.setEnabled(is_llm)
+        self.api_key_input.setEnabled(is_llm or prov == "yandex")
+        self.edit_keys_btn.setEnabled(is_llm)
+        self.promt_combo.setEnabled(is_llm)
+        self.edit_promt_btn.setEnabled(is_llm)
+        self.startpromtinput.setEnabled(is_llm)
+        self.use_custom_endpoint.setEnabled(is_llm)
+        self.endpoint_combo.setEnabled(is_llm and self.use_custom_endpoint.isChecked())
+        self.mcp_manage_btn.setEnabled(is_llm)
 
     def refresh_combos(self):
         load_files_to_combo(self.api_key_combo, "APIKeys")
@@ -206,4 +228,4 @@ class NewProjectDialog(QDialog):
         if self.use_custom_endpoint.isChecked():
             mcp_endpoint_id = self.endpoint_combo.currentData()
             
-        return self.projectNameInput.text(), self.projectLinkInput.text(), max_pages, self.maxRetriesInput.value(), self.api_key_input.text(), self.startpromtinput.toPlainText(), api_key_name, mcp_endpoint_id
+        return self.projectNameInput.text(), self.projectLinkInput.text(), max_pages, self.maxRetriesInput.value(), self.api_key_input.text(), self.startpromtinput.toPlainText(), api_key_name, mcp_endpoint_id, self.provider_combo.currentData()

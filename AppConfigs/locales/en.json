@@ -189,6 +189,10 @@
   },
   "project_settings": {
     "window_title": "'{}' Settings",
+    "label_provider_select": "Translation Provider:",
+    "provider_llm": "Artificial Intelligence (LLM / MCP)",
+    "provider_google": "Google Translate (Free)",
+    "provider_yandex": "Yandex Translate (Free)",
     "group_mcp": "Artificial Intelligence Source (MCP)",
     "checkbox_custom_mcp": "Use custom connection for this project",
     "btn_mcp_manage": "Manage MCP",

@@ -32,7 +32,7 @@ class TranslationWorker(QObject):
                  project_path=None, cache_enabled=True, terminology_enabled=True,
                  async_enabled=False, async_threads=3,
                  batch_enabled=False, max_batch_chars=33000, max_chapters_per_batch=5,
-                 source_lang="en"):
+                 source_lang="en", translation_provider="llm"):
         super().__init__()
         self.input_folder = input_folder
         self.output_folder = output_folder
@@ -83,12 +83,19 @@ class TranslationWorker(QObject):
         self.paragraph_cache_miss_count = 0
         self.translation_start_time = None
 
+        # Ücretsiz / LLM çeviri sağlayıcısı seçimi
+        self.translation_provider = translation_provider  # "llm" | "google" | "yandex"
+        self.free_engine = None
+
         # LLM Provider (MCP entegrasyonu)
         self.provider = None
         self.endpoint_id = endpoint_id
         self.endpoint_config = endpoint_config
-        self._init_provider()
-        self._load_all_endpoints()
+        if self.translation_provider == "llm":
+            self._init_provider()
+            self._load_all_endpoints()
+        else:
+            self._init_free_engine()
 
         # Cache & Terminology nesneleri (run() içinde başlatılır)
         self._cache = None
@@ -121,6 +128,141 @@ class TranslationWorker(QObject):
         except Exception as e:
             app_logger.error(f"LLMProvider başlatılamadı: {e}")
             self.provider = None
+
+    def _init_free_engine(self):
+        """Ücretsiz çeviri motorunu (Google/Yandex) başlatır."""
+        try:
+            from core.free_translators import FreeTranslationEngine
+            self.free_engine = FreeTranslationEngine(
+                provider_name=self.translation_provider,
+                source_lang="auto",
+                target_lang="tr",
+                api_key=self.api_key or None,
+            )
+            app_logger.info(f"Ücretsiz çeviri motoru başlatıldı: {self.translation_provider}")
+        except Exception as e:
+            app_logger.error(f"Ücretsiz çeviri motoru başlatılamadı: {e}")
+            self.free_engine = None
+
+    def _translate_with_free_translator(self, content_text: str) -> str | None:
+        """
+        Ücretsiz çeviri motoru ile metni çevirir.
+        Paragraflar 4500 karakter sınırını geçmeyecek şekilde gruplanarak paket (batch) halinde gönderilir.
+        """
+        if not self.free_engine:
+            app_logger.error("Ücretsiz çeviri motoru başlatılmamış.")
+            return None
+
+        if not content_text or not content_text.strip():
+            return content_text
+
+        # 1. Metni paragraflara böl
+        paragraphs = [p for p in content_text.split("\n\n") if p.strip()]
+        if not paragraphs:
+            return content_text
+
+        # 2. Paragrafları 4500 karakteri geçmeyecek gruplara (chunk) ayır
+        chunks = []
+        current_chunk = []
+        current_length = 0
+        max_chunk_chars = 500
+
+        for para in paragraphs:
+            para_len = len(para)
+
+            # Tek bir paragraf bile 4500 karakterden büyükse onu kelime bazlı böl
+            if para_len > max_chunk_chars:
+                if current_chunk:
+                    chunks.append("\n\n".join(current_chunk))
+                    current_chunk = []
+                    current_length = 0
+                
+                # Dev paragrafı kelimelerine ayırıp parçala
+                words = para.split(" ")
+                sub_chunk = ""
+                for word in words:
+                    if len(sub_chunk) + len(word) + 1 > max_chunk_chars:
+                        if sub_chunk:
+                            chunks.append(sub_chunk.strip())
+                        sub_chunk = word
+                    else:
+                        sub_chunk += (" " + word) if sub_chunk else word
+                if sub_chunk:
+                    chunks.append(sub_chunk.strip())
+                continue
+
+            # Paragrafı mevcut gruba eklediğimizde 4500 karakteri aşıyor mu?
+            # (\n\n ayırıcılarının 2 karakterlik uzunluğunu da ekliyoruz)
+            added_len = para_len + (2 if current_chunk else 0)
+            
+            if current_length + added_len > max_chunk_chars:
+                # Mevcut grubu kaydet ve yeni grup başlat
+                chunks.append("\n\n".join(current_chunk))
+                current_chunk = [para]
+                current_length = para_len
+            else:
+                current_chunk.append(para)
+                current_length += added_len
+
+        if current_chunk:
+            chunks.append("\n\n".join(current_chunk))
+
+        # 3. Hazırlanan paketleri (chunk) sırayla çevir
+        translated_chunks = []
+        retry_wait = 1.0
+
+        for chunk in chunks:
+            while self.is_paused and self.is_running:
+                time.sleep(0.5)
+            if not self.is_running:
+                return None
+
+            if not chunk.strip():
+                continue
+
+            success = False
+            backoff = retry_wait
+
+            for attempt in range(self.max_retries):
+                try:
+                    result = self.free_engine.translate(chunk)
+                    
+                    # Başarılı metin
+                    if result is not None and isinstance(result, str):
+                        translated_chunks.append(result)
+                        success = True
+                        break
+                    # Yalnızca sembol içeren metinlerde Google None dönebilir, orijinali koru
+                    elif result is None and not any(c.isalnum() for c in chunk):
+                        translated_chunks.append(chunk)
+                        success = True
+                        break
+                    else:
+                        raise ValueError("Çeviri motoru None veya geçersiz veri döndürdü")
+
+                except Exception as e:
+                    err = str(e)
+                    app_logger.warning(
+                        f"Ücretsiz çeviri hatası (deneme {attempt + 1}/{self.max_retries}): {err}"
+                    )
+                    if not self.is_running:
+                        return None
+                    
+                    sleep_start = time.time()
+                    while time.time() - sleep_start < backoff:
+                        if not self.is_running:
+                            return None
+                        time.sleep(0.3)
+                    backoff = min(backoff * 2, 60)
+
+            if not success:
+                app_logger.error("Ücretsiz çeviri maksimum deneme sayısını aştı; paket atlanıyor.")
+                translated_chunks.append(chunk)  # Hata durumunda orijinal paketi koru
+
+            # İstekler arası IP ban/rate-limit yememek için kısa bekleme
+            time.sleep(2)
+
+        return "\n\n".join(translated_chunks)
 
     def _load_all_endpoints(self):
         """
@@ -960,10 +1102,126 @@ class TranslationWorker(QObject):
 
         app_logger.info("Batch Çeviri tamamlandı.")
 
+    def _run_free_translation(self):
+        """
+        Ücretsiz çeviri motoru (Google/Yandex) ile sıralı dosya çevirisi yapar.
+        LLM'e özgü: prompt, cache (paragraf), batch, async modlar KULLANILMAZ.
+        """
+        self.translation_start_time = time.time()
+
+        # Hata logunu yükle
+        if os.path.exists(self.error_log_path):
+            try:
+                with open(self.error_log_path, 'r', encoding='utf-8') as f:
+                    self.translation_errors = json.load(f)
+            except Exception:
+                self.translation_errors = {}
+
+        try:
+            time.sleep(0.5)
+            files_to_translate = sorted([f for f in os.listdir(self.input_folder) if f.endswith('.txt')])
+            total_files = len(files_to_translate)
+            self.translated_count_session = 0
+
+            app_logger.info(
+                f"Ücretsiz Çeviri ({self.translation_provider}) başlatılıyor. "
+                f"Toplam: {total_files} dosya."
+            )
+
+            for i, file_name in enumerate(files_to_translate):
+                while self.is_paused and self.is_running:
+                    time.sleep(0.5)
+                if not self.is_running:
+                    app_logger.info(f"Ücretsiz çeviri durduruldu: {i}/{total_files}")
+                    break
+
+                if self.file_limit is not None and self.translated_count_session >= self.file_limit:
+                    app_logger.info(f"Belirlenen limit ({self.file_limit}) sayısına ulaşıldı.")
+                    break
+
+                original_file_path = os.path.join(self.input_folder, file_name)
+                translated_file_name = f"translated_{file_name}"
+                translated_file_path = os.path.join(self.output_folder, translated_file_name)
+
+                with self.data_lock:
+                    has_error = file_name in self.translation_errors
+
+                # Zaten çevrilmişse atla
+                if os.path.exists(translated_file_path) and not has_error:
+                    self.progress.emit(i + 1, total_files)
+                    continue
+
+                try:
+                    with open(original_file_path, 'r', encoding='utf-8') as f:
+                        content_text = f.read()
+                except Exception as e:
+                    with self.data_lock:
+                        self.translation_errors[file_name] = f"Okuma Hatası: {str(e)}"
+                    self.progress.emit(i + 1, total_files)
+                    continue
+
+                translated_text = self._translate_with_free_translator(content_text)
+
+                if not self.is_running:
+                    break
+
+                if translated_text is not None:
+                    try:
+                        with open(translated_file_path, 'w', encoding='utf-8') as f:
+                            f.write(translated_text)
+                        with self.data_lock:
+                            self.translated_count_session += 1
+                            if file_name in self.translation_errors:
+                                del self.translation_errors[file_name]
+                        app_logger.info(f"Ücretsiz çeviri kaydedildi: {file_name}")
+                    except Exception as e:
+                        with self.data_lock:
+                            self.translation_errors[file_name] = f"Yazma Hatası: {str(e)}"
+                else:
+                    with self.data_lock:
+                        self.translation_errors[file_name] = "Çeviri Hatası: Boş sonuç"
+
+                self.progress.emit(i + 1, total_files)
+
+        except Exception as e:
+            import traceback
+            app_logger.critical(
+                f"Ücretsiz Çeviri Kritik Hata: {type(e).__name__}: {e}\n{traceback.format_exc()}"
+            )
+            try:
+                self.error.emit(f"Genel hata: {type(e).__name__}: {e}")
+            except RuntimeError:
+                pass
+        finally:
+            try:
+                with open(self.error_log_path, 'w', encoding='utf-8') as f:
+                    json.dump(self.translation_errors, f, indent=4, ensure_ascii=False)
+            except Exception:
+                pass
+
+            app_logger.info("Ücretsiz Çeviri: finished sinyali gönderiliyor...")
+            try:
+                self.finished.emit(self.shutdown_on_finish)
+            except RuntimeError as e:
+                app_logger.error(f"Ücretsiz Çeviri: finished.emit sonrası RuntimeError: {e}")
+
     def run(self):
-        if not self.provider:
+        # Sağlayıcı kontrolü
+        if self.translation_provider == "llm" and not self.provider:
             self.error.emit("LLM sağlayıcı yapılandırılmamış. API anahtarı veya endpoint ayarlarını kontrol edin.")
             self.finished.emit(self.shutdown_on_finish)
+            return
+        if self.translation_provider != "llm" and not self.free_engine:
+            self.error.emit(
+                f"Ücretsiz çeviri motoru ({self.translation_provider}) başlatılamadı. "
+                "deep-translator kütüphanesinin yüklü olduğundan emin olun: pip install deep-translator"
+            )
+            self.finished.emit(self.shutdown_on_finish)
+            return
+
+        # Ücretsiz sağlayıcı ise ayrı akış
+        if self.translation_provider != "llm":
+            self._run_free_translation()
             return
 
         self.translation_start_time = time.time()

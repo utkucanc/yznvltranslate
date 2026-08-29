@@ -32,6 +32,7 @@ DEFAULT_SETTINGS = {
     "notifications_enabled": True,
     "promt_generator_max_tokens": 40000,
     "language": "tr",
+    "translation_providers": ["google", "yandex"],
 }
 
 THEMES = {

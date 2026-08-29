@@ -34,3 +34,7 @@ matplotlib>=3.7.0
 
 # --- Token Sayımı (Opsiyonel — daha iyi OpenAI token tahmini için) ---
 tiktoken>=0.5.0
+
+# --- Diğer çeviri kaynakları için Gereken Kütüphane ---
+deep-translator>=1.11.4
+

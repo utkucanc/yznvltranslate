@@ -75,8 +75,9 @@ class TranslationController:
             api_key_name = self.win.config.get('API', 'api_key_name', fallback='Varsayılan')
             startpromt = self.win.config.get('Startpromt', 'startpromt', fallback=None)
             mcp_endpoint_id = self.win.config.get('MCP', 'endpoint_id', fallback=None)
+            translation_provider = self.win.config.get('API', 'translation_provider', fallback='llm')
 
-            if not api_key and not mcp_endpoint_id:
+            if translation_provider == 'llm' and not api_key and not mcp_endpoint_id:
                 QMessageBox.critical(self.win, "Yapılandırma Eksik", "Seçili proje için API anahtarı veya MCP bağlantısı bulunamadı. Lütfen proje ayarlarından yapılandırın.")
                 return
         except configparser.Error as e:
@@ -119,6 +120,7 @@ class TranslationController:
             endpoint_id=mcp_endpoint_id, async_enabled=async_enabled, async_threads=async_threads,
             batch_enabled=batch_enabled, max_batch_chars=max_batch_chars,
             max_chapters_per_batch=max_chapters_per_batch,
+            translation_provider=translation_provider,
         )
 
         self.worker.shutdown_on_finish = self.win.shutdown_checkbox.isChecked()

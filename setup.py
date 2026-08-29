@@ -52,6 +52,7 @@ try:
         "ui.ml_terminology_range_dialog",           
         "cache.translation_cache",
         "terminology.terminology_manager",
+        "core.free_translators",
     ]
 
     # --- Harici Kütüphaneler ---
@@ -72,7 +73,8 @@ try:
         "core",
         "numpy",
         "core.workers",
-        "qt_material",   
+        "qt_material",
+        "deep-translator"   
     ]
 
     # --- Dahil Edilecek Ek Dosyalar ---

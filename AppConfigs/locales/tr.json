@@ -189,6 +189,10 @@
   },
   "project_settings": {
     "window_title": "'{}' Ayarları",
+    "label_provider_select": "Çeviri Sağlayıcısı:",
+    "provider_llm": "Yapay Zeka (LLM / MCP)",
+    "provider_google": "Google Translate (Ücretsiz)",
+    "provider_yandex": "Yandex Translate (Ücretsiz)",
     "group_mcp": "Yapay Zeka Kaynağı (MCP)",
     "checkbox_custom_mcp": "Bu proje için özel bağlantı kullan",
     "btn_mcp_manage": "MCP Yönet",

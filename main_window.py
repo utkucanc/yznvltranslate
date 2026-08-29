@@ -318,11 +318,11 @@ class MainWindow(QMainWindow):
     def new_project_clicked(self):
         dialog = NewProjectDialog(self)
         if dialog.exec():
-            project_name, project_link, max_pages, max_retries, api_key, startpromt, api_key_name, mcp_endpoint_id = dialog.get_data()
+            project_name, project_link, max_pages, max_retries, api_key, startpromt, api_key_name, mcp_endpoint_id, translation_provider = dialog.get_data()
             if not project_name or not project_link:
                 QMessageBox.warning(self, tr("main_window.msg_project_missing_info_title", "Eksik Bilgi"), tr("main_window.msg_project_missing_info_body", "Proje adı ve linki boş bırakılamaz."))
                 return
-            if not api_key and not mcp_endpoint_id:
+            if not api_key and not mcp_endpoint_id and translation_provider == "llm":
                 QMessageBox.warning(self, tr("main_window.msg_project_config_missing_title", "Yapılandırma Eksik"), tr("main_window.msg_project_config_missing_body", "Çeviri ve token sayımı için Gemini API anahtarı veya MCP bağlantısı gereklidir."))
             try:
                 base_path = os.path.join(os.getcwd(), project_name)
@@ -335,7 +335,7 @@ class MainWindow(QMainWindow):
                 if max_pages is not None:
                     self.config['ProjectInfo']['max_pages'] = str(max_pages)
                 self.config['ProjectInfo']['max_retries'] = str(max_retries)
-                self.config['API'] = {'gemini_api_key': api_key, 'api_key_name': api_key_name}
+                self.config['API'] = {'gemini_api_key': api_key, 'api_key_name': api_key_name, 'translation_provider': translation_provider}
                 self.config["Startpromt"] = {'startpromt': startpromt}
                 if mcp_endpoint_id:
                     self.config['MCP'] = {'endpoint_id': mcp_endpoint_id}
@@ -395,6 +395,7 @@ class MainWindow(QMainWindow):
         batch_enabled = False
         max_batch_chars = 33000
         max_chapters_per_batch = 3
+        translation_provider = "llm"
         if os.path.exists(config_path):
             try:
                 with open(config_path, 'r', encoding='utf-8') as f:
@@ -412,6 +413,7 @@ class MainWindow(QMainWindow):
                 batch_enabled = self.config.getboolean('Batch', 'batch_enabled', fallback=False)
                 max_batch_chars = self.config.getint('Batch', 'max_batch_chars', fallback=33000)
                 max_chapters_per_batch = self.config.getint('Batch', 'max_chapters_per_batch', fallback=3)
+                translation_provider = self.config.get('API', 'translation_provider', fallback='llm')
             except Exception:
                 pass
         self.max_retries = max_retries
@@ -421,6 +423,7 @@ class MainWindow(QMainWindow):
             terminology_enabled=terminology_enabled, async_enabled=async_enabled,
             async_threads=async_threads, batch_enabled=batch_enabled,
             max_batch_chars=max_batch_chars, max_chapters_per_batch=max_chapters_per_batch,
+            translation_provider=translation_provider,
         )
         if dialog.exec():
             updated_data = dialog.get_data()
@@ -459,6 +462,7 @@ class MainWindow(QMainWindow):
                 self.config['Batch']['batch_enabled'] = str(updated_data.get('batch_enabled', False))
                 self.config['Batch']['max_batch_chars'] = str(updated_data.get('max_batch_chars', 33000))
                 self.config['Batch']['max_chapters_per_batch'] = str(updated_data.get('max_chapters_per_batch', 5))
+                self.config['API']['translation_provider'] = updated_data.get('translation_provider', 'llm')
                 with open(config_path, 'w', encoding='utf-8') as configfile:
                     self.config.write(configfile)
                 QMessageBox.information(self, tr("main_window.msg_settings_saved_title", "Ayarlar Kaydedildi"), tr("main_window.msg_settings_saved_body", "'{}' projesinin ayarları başarıyla kaydedildi.").format(project_name))

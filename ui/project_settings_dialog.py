@@ -58,7 +58,8 @@ class ProjectSettingsDialog(QDialog):
     def __init__(self, project_name, project_link, max_pages, api_key, start_promt, gemini_version, parent=None,
                  mcp_endpoint_id=None, cache_enabled=True, terminology_enabled=True,
                  async_enabled=False, async_threads=3,
-                 batch_enabled=False, max_batch_chars=33000, max_chapters_per_batch=5):
+                 batch_enabled=False, max_batch_chars=33000, max_chapters_per_batch=5,
+                 translation_provider="llm"):
         super().__init__(parent)
         self.setWindowTitle(tr("project_settings.window_title", "'{}' Ayarları").format(project_name))
         self.setMinimumWidth(520)
@@ -122,6 +123,16 @@ class ProjectSettingsDialog(QDialog):
         self.maxRetriesInput.setValue(parent.max_retries if hasattr(parent, 'max_retries') else 3)
         self.maxRetriesInput.setToolTip("Bir API hatası alındığında (Örn. 500) tekrar deneme sayısı.")
         
+        # Çeviri Sağlayıcısı Seçimi
+        self.provider_combo = QComboBox(self)
+        self.provider_combo.addItem(tr("project_settings.provider_llm", "Yapay Zeka (LLM / MCP)"), "llm")
+        self.provider_combo.addItem(tr("project_settings.provider_google", "Google Translate (Ücretsiz)"), "google")
+        self.provider_combo.addItem(tr("project_settings.provider_yandex", "Yandex Translate (Ücretsiz)"), "yandex")
+        idx = self.provider_combo.findData(translation_provider)
+        if idx >= 0:
+            self.provider_combo.setCurrentIndex(idx)
+        self.provider_combo.currentIndexChanged.connect(self.on_provider_changed)
+
         # MCP Endpoint Seçimi
         mcp_group = QGroupBox(tr("project_settings.group_mcp", "Yapay Zeka Kaynağı (MCP)"))
         mcp_layout = QVBoxLayout()
@@ -286,6 +297,7 @@ class ProjectSettingsDialog(QDialog):
         self.terminology_manage_btn.clicked.connect(self.open_terminology_dialog)
         
         # Form'u doldur 
+        layout.addRow(tr("project_settings.label_provider_select", "Çeviri Sağlayıcısı:"), self.provider_combo)
         layout.addRow(tr("project_settings.label_project_name", "Proje Adı:"), self.projectNameLabel)
         layout.addRow(tr("project_settings.label_project_link", "Proje Linki:"), self.projectLinkInput)
         layout.addRow(tr("project_settings.label_max_pages", "Maks. Sayfa:"), self.maxPagesInput)
@@ -301,6 +313,20 @@ class ProjectSettingsDialog(QDialog):
         layout.addRow(advanced_group)
         
         self.refresh_combos()
+        self.on_provider_changed()
+
+    def on_provider_changed(self):
+        prov = self.provider_combo.currentData()
+        is_llm = (prov == "llm")
+        self.api_key_combo.setEnabled(is_llm)
+        self.api_key_input.setEnabled(is_llm or prov == "yandex")
+        self.edit_keys_btn.setEnabled(is_llm)
+        self.promt_combo.setEnabled(is_llm)
+        self.edit_promt_btn.setEnabled(is_llm)
+        self.startpromtinput.setEnabled(is_llm)
+        self.use_custom_endpoint.setEnabled(is_llm)
+        self.endpoint_combo.setEnabled(is_llm and self.use_custom_endpoint.isChecked())
+        self.mcp_manage_btn.setEnabled(is_llm)
 
     def _on_batch_toggled(self, checked: bool):
         """Batch modu açılırken uyarı gösterir."""
@@ -399,6 +425,7 @@ class ProjectSettingsDialog(QDialog):
             "batch_enabled": self.batch_checkbox.isChecked(),
             "max_batch_chars": self.batch_chars_spinbox.value(),
             "max_chapters_per_batch": self.batch_chapters_spinbox.value(),
+            "translation_provider": self.provider_combo.currentData(),
         }
 
     def run_db_migration(self):
