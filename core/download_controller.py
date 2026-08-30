@@ -12,7 +12,7 @@ from PyQt6.QtCore import QThread
 from PyQt6.QtWidgets import QMessageBox
 
 from core.workers.download_worker import DownloadWorker
-from dialogs import SeleniumMenuDialog
+from ui.selenium_menu_dialog import SeleniumMenuDialog
 from logger import app_logger
 from core.file_list_manager import FileListManager
 

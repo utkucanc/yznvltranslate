@@ -1,3 +1,4 @@
+from core.workers.text_utils import TextUtils
 import os
 import re
 from PyQt6.QtCore import QObject, pyqtSignal
@@ -390,15 +391,7 @@ class TranslationWorker(QObject):
     def _init_cache_and_terminology(self):
         """Cache ve Terminology nesnelerini proje yoluna göre başlatır."""
         if self.project_path:
-            if self.cache_enabled:
-                try:
-                    from cache.translation_cache import TranslationCache
-                    self._cache = TranslationCache(self.project_path)
-                    stats = self._cache.stats()
-                    app_logger.info(f"Translation Cache etkinleştirildi. Mevcut kayıt: {stats['entries']}")
-                except Exception as e:
-                    app_logger.warning(f"Translation Cache başlatılamadı: {e}")
-                    self._cache = None
+            
 
             if self.terminology_enabled:
                 try:
@@ -504,64 +497,28 @@ class TranslationWorker(QObject):
                     return None
         return None
 
-    def _translate_paragraphs(self, content: str, prompt_hash: str) -> str | None:
+    def _translate_paragraphs(self, content: str) -> str | None:
         """
-        Cache bağımsız standart paragraf bazlı çeviri.
-
-        Cache etkin ise: her paragraf için önce cache kontrol eder, miss olanları API'ye gönderir.
-        Cache devre dışı ise: tüm paragrafları doğrudan API'ye gönderir.
+        Paragraf bazlı çeviri (cache kaldırıldı).
+        Terminoloji terimleri API'ye gönderilmeden önce kaynak metne enjekte edilir.
 
         Tek paragraflı dosyalar için None döndürür → tam-dosya akışına geçilir.
-
-        Returns:
-            Çevrilmiş ve birleştirilmiş metin veya None.
         """
-        from cache.translation_cache import TranslationCache
-
-        paragraphs = TranslationCache.split_into_paragraphs(content)
+        paragraphs = TextUtils.split_into_paragraphs(content)
         if len(paragraphs) <= 1:
-            # Tek paragraf — klasik tam-dosya akışına bırak
             return None
 
-        results = {}        # index -> translated_text
-        miss_indices = []
-
-        # Cache kontrol (yalnızca cache etkinse)
-        if self._cache:
-            for idx, para in enumerate(paragraphs):
-                cached = self._cache.get_paragraph(para, self.model_version, prompt_hash)
-                if cached is not None:
-                    if self._has_excessive_cjk(cached):
-                        app_logger.warning(f"Paragraf cache hit CJK yüksek, atlanıyor (#{idx})")
-                        try:
-                            self._cache.remove(para, self.model_version, prompt_hash)
-                        except Exception:
-                            pass
-                        miss_indices.append(idx)
-                    else:
-                        results[idx] = cached
-                        self.paragraph_cache_hit_count += 1
-                else:
-                    miss_indices.append(idx)
-                    self.paragraph_cache_miss_count += 1
-        else:
-            # Cache yok — hepsi miss
-            miss_indices = list(range(len(paragraphs)))
-
-        # Tümü cache hit
-        if not miss_indices:
-            app_logger.info(f"Tüm paragraflar cache'den alındı ({len(paragraphs)} paragraf)")
-            self.cache_hit_count += 1
-            return "\n\n".join(results[i] for i in range(len(paragraphs)))
-
-        # Miss paragrafları API'ye gönder
         PARA_SEP = "\n\n===PARAGRAPH_BREAK===\n\n"
-        miss_text = PARA_SEP.join(paragraphs[i] for i in miss_indices)
+        combined_text = PARA_SEP.join(paragraphs)
+
+        # Terminoloji enjeksiyonu — build_prompt_section() yerine
+        if self.terminology_manager:
+            combined_text = self.terminology_manager.build_injected_source(
+                combined_text, source_lang=self.source_lang
+            )
 
         full_prompt = self.prompt_prefix or ""
-        if self.terminology_section:
-            full_prompt += "\n\n" + self.terminology_section
-        if len(miss_indices) > 1:
+        if len(paragraphs) > 1:
             full_prompt += (
                 "\n\n[ÖNEMLİ: Metin paragraflar halinde verilmiştir. "
                 "Her paragrafı ayrı ayrı çevir. "
@@ -569,7 +526,7 @@ class TranslationWorker(QObject):
             )
         else:
             full_prompt += "\n\n"
-        full_prompt += miss_text
+        full_prompt += combined_text
 
         with self.data_lock:
             self.api_request_count += 1
@@ -583,53 +540,29 @@ class TranslationWorker(QObject):
             app_logger.warning("Paragraf bazlı çeviri CJK oranı yüksek.")
             return None
 
-        # Sonuçları paragraflara ayır
-        if len(miss_indices) > 1 and "===PARAGRAPH_BREAK===" in translated_text:
+        if len(paragraphs) > 1 and "===PARAGRAPH_BREAK===" in translated_text:
             translated_parts = re.split(r'\s*===PARAGRAPH_BREAK===\s*', translated_text)
         else:
             translated_parts = [translated_text]
         translated_parts = [p.strip() for p in translated_parts if p.strip()]
 
-        # Index ile eşleştir
-        if len(translated_parts) == len(miss_indices):
-            for i, miss_idx in enumerate(miss_indices):
-                t = translated_parts[i]
-                results[miss_idx] = t
-                if self._cache:
-                    try:
-                        self._cache.set_paragraph(paragraphs[miss_idx], self.model_version, prompt_hash, t)
-                    except Exception as e:
-                        app_logger.warning(f"Paragraf cache yazma hatası: {e}")
-        else:
+        if len(translated_parts) != len(paragraphs):
             app_logger.warning(
-                f"Paragraf sayı uyumsuzluğu: beklenen {len(miss_indices)}, alınan {len(translated_parts)}. "
+                f"Paragraf sayı uyumsuzluğu: beklenen {len(paragraphs)}, alınan {len(translated_parts)}. "
                 "Tek parça olarak işleniyor."
             )
-            combined = "\n\n".join(translated_parts)
-            for i, miss_idx in enumerate(miss_indices):
-                results[miss_idx] = combined if i == 0 else ""
-            if self._cache:
-                combined_orig = "\n\n".join(paragraphs[i] for i in miss_indices)
-                try:
-                    self._cache.set_paragraph(combined_orig, self.model_version, prompt_hash, combined)
-                except Exception as e:
-                    app_logger.warning(f"Paragraf cache yazma hatası: {e}")
 
-        if self._cache:
-            self.cache_miss_count += 1
+        return "\n\n".join(translated_parts)
 
-        final_parts = [results[i] for i in range(len(paragraphs)) if results.get(i, "")]
-        return "\n\n".join(final_parts)
-
-    def _translate_with_paragraph_cache(self, content: str, prompt_hash: str) -> str | None:
+    def _translate_with_paragraph_cache(self, content: str) -> str | None:
         """
         [DEPRECATED] Geriye uyumluluk için korunur.
         Yeni kod _translate_paragraphs() kullanmalıdır.
         """
-        return self._translate_paragraphs(content, prompt_hash)
+        return self._translate_paragraphs(content)
 
 
-    def _process_single_file(self, i, file_name, prompt_hash, total_files):
+    def _process_single_file(self, i, file_name, total_files):
         # Duraklatma Döngüsü
         while self.is_paused and self.is_running:
             import time
@@ -665,7 +598,7 @@ class TranslationWorker(QObject):
             return
 
         # ─────────── Paragraf Bazlı Çeviri (Cache bağımsız standart akış) ───────────
-        para_result = self._translate_paragraphs(content_text, prompt_hash)
+        para_result = self._translate_paragraphs(content_text)
         if para_result is not None:
             if not self.is_translation_failed(content_text, para_result, file_name):
                 with open(translated_file_path, 'w', encoding='utf-8') as f:
@@ -683,14 +616,14 @@ class TranslationWorker(QObject):
         # ─────────── Klasik Tam Dosya Çeviri Akışı ───────────
         cached_translation = None
         if self._cache:
-            cached_translation = self._cache.get_paragraph(content_text, self.model_version, prompt_hash)
+            cached_translation = self._cache.get_paragraph(content_text, self.model_version)
 
         if cached_translation is not None:
             if self.is_translation_failed(content_text, cached_translation, file_name):
                 app_logger.warning(f"Cache hit ancak kalite kontrol başarısız, cache atlanıyor: {file_name}")
                 try:
                     with self.data_lock:
-                        self._cache.remove(content_text, self.model_version, prompt_hash)
+                        self._cache.remove(content_text, self.model_version)
                 except Exception:
                     pass
             else:
@@ -801,7 +734,7 @@ class TranslationWorker(QObject):
                 if self._cache:
                     try:
                         with self.data_lock:
-                            self._cache.set_paragraph(content_text, self.model_version, prompt_hash, translated_text)
+                            self._cache.set_paragraph(content_text, self.model_version, translated_text)
                     except Exception as e:
                         app_logger.warning(f"Cache yazma hatası: {e}")
 
@@ -860,7 +793,7 @@ class TranslationWorker(QObject):
         return "\n\n".join(parts)
 
     def parse_batch_response(self, response: str, batch: list[str],
-                             contents: dict[str, str], prompt_hash: str) -> dict[str, str]:
+                             contents: dict[str, str]) -> dict[str, str]:
         """
         API yanıtını ===CHAPTER_START=== / ===CHAPTER_END=== ayraçlarıyla parse eder.
         Bölümler index sırasıyla batch listesine eşleştirilir.
@@ -886,30 +819,13 @@ class TranslationWorker(QObject):
                 continue
             result[file_name] = chapter_text
 
-            # Parse edilen bölümü paragraf bazlı cache'e yaz
-            if self._cache and file_name in contents:
-                original = contents[file_name]
-                from cache.translation_cache import TranslationCache
-                paragraphs = TranslationCache.split_into_paragraphs(original)
-                translated_paragraphs = TranslationCache.split_into_paragraphs(chapter_text)
-                if len(paragraphs) == len(translated_paragraphs):
-                    for orig_para, trans_para in zip(paragraphs, translated_paragraphs):
-                        try:
-                            self._cache.set_paragraph(orig_para, self.model_version, prompt_hash, trans_para)
-                        except Exception as e:
-                            app_logger.warning(f"Batch cache yazma hatası: {e}")
-                else:
-                    # Sayı uyuşmazsa tüm içeriği tek girdi olarak cache'e yaz
-                    try:
-                        self._cache.set_paragraph(original, self.model_version, prompt_hash, chapter_text)
-                    except Exception as e:
-                        app_logger.warning(f"Batch cache tek-parça yazma hatası: {e}")
+            
 
         app_logger.info(f"Batch parse: {len(result)}/{len(batch)} bölüm parse edildi.")
         return result
 
     def _process_batch(self, batch: list[str], batch_idx: int,
-                       total_batches: int, prompt_hash: str) -> list[str]:
+                       total_batches: int) -> list[str]:
         """
         Tek bir batch'i işler:
           1. İçerikleri oku
@@ -970,13 +886,13 @@ class TranslationWorker(QObject):
             return readable_batch
 
         # Parse
-        parsed = self.parse_batch_response(response, readable_batch, contents, prompt_hash)
+        parsed = self.parse_batch_response(response, readable_batch, contents)
 
         failed = []
         if len(parsed) == 0:
             # Hiç parse edilemedi → batch'i böl ve tekrar dene
             app_logger.warning(f"Batch {batch_idx + 1}: Parse başarısız. Batch bölünüyor...")
-            return self._fallback_split_batch(readable_batch, batch_idx, total_batches, prompt_hash)
+            return self._fallback_split_batch(readable_batch, batch_idx, total_batches)
 
         # Başarılı olanları kaydet
         for file_name, chapter_text in parsed.items():
@@ -1001,7 +917,7 @@ class TranslationWorker(QObject):
         return failed
 
     def _fallback_split_batch(self, batch: list[str], batch_idx: int,
-                              total_batches: int, prompt_hash: str) -> list[str]:
+                              total_batches: int) -> list[str]:
         """
         Parse başarısız olan batch'i ikiye bölerek tekrar dener.
         İkiye bölme de başarısız olursa dosyaları fallback listesine ekler.
@@ -1019,14 +935,14 @@ class TranslationWorker(QObject):
         for half in [first_half, second_half]:
             if len(half) == 1:
                 # Tek dosyayı doğrudan _process_single_file ile işle
-                self._process_single_file(0, half[0], prompt_hash, 1)
+                self._process_single_file(0, half[0], 1)
             else:
-                sub_failed = self._process_batch(half, batch_idx, total_batches, prompt_hash)
+                sub_failed = self._process_batch(half, batch_idx, total_batches)
                 failed.extend(sub_failed)
         return failed
 
     def _run_batch_mode(self, files_to_translate: list[str],
-                        total_files: int, prompt_hash: str):
+                        total_files: int):
         """
         Batch modunda tüm çeviri döngüsünü yürütür.
         Başarısız kalan dosyalar _process_single_file() ile tek tek işlenir.
@@ -1057,7 +973,7 @@ class TranslationWorker(QObject):
             batch_idx, batch = args
             if not self.is_running:
                 return
-            failed = self._process_batch(batch, batch_idx, len(batches), prompt_hash)
+            failed = self._process_batch(batch, batch_idx, len(batches))
             with self.data_lock:
                 _progress_counter[0] += len(batch)
                 cur_progress = _progress_counter[0]
@@ -1068,7 +984,7 @@ class TranslationWorker(QObject):
                     break
                 app_logger.info(f"Batch fallback → tekli çeviri: {file_name}")
                 idx = files_to_translate.index(file_name) if file_name in files_to_translate else 0
-                self._process_single_file(idx, file_name, prompt_hash, total_files)
+                self._process_single_file(idx, file_name, total_files)
 
         if self.async_enabled and len(batches) > 1:
             # ── Batch + Async: Batch'ler ThreadPoolExecutor ile paralel işlenir ──
@@ -1229,9 +1145,7 @@ class TranslationWorker(QObject):
         # Cache ve Terminology başlat
         self._init_cache_and_terminology()
 
-        # Prompt hash (cache key + batch mod için — her zaman hesaplanır)
-        from cache.translation_cache import TranslationCache
-        prompt_hash = TranslationCache.hash_prompt(self.prompt_prefix or "")
+        
 
         # Hata logunu yükle
         if os.path.exists(self.error_log_path):
@@ -1250,7 +1164,7 @@ class TranslationWorker(QObject):
 
             if self.batch_enabled:
                 # ─── Batch Modu ───
-                self._run_batch_mode(files_to_translate, total_files, prompt_hash)
+                self._run_batch_mode(files_to_translate, total_files)
             elif self.async_enabled:
                 import concurrent.futures
                 app_logger.info(f"Asenkron Çeviri: {self.async_threads} thread ile başlatılıyor. Toplam dosya: {total_files}")
@@ -1263,7 +1177,7 @@ class TranslationWorker(QObject):
                         if not self.is_running:
                             app_logger.warning(f"Async: is_running=False — görev gönderimi durduruldu ({i}/{total_files})")
                             break
-                        fut = executor.submit(self._process_single_file, i, file_name, prompt_hash, total_files)
+                        fut = executor.submit(self._process_single_file, i, file_name, total_files)
                         futures[fut] = file_name
                     
                     app_logger.info(f"Async: {len(futures)} görev gönderildi, tamamlanmaları bekleniyor...")
@@ -1292,7 +1206,7 @@ class TranslationWorker(QObject):
                     if not self.is_running:
                         app_logger.info(f"Sıralı çeviri durduruldu: {i}/{total_files}")
                         break
-                    self._process_single_file(i, file_name, prompt_hash, total_files)
+                    self._process_single_file(i, file_name, total_files)
                     
         except Exception as e:
             import traceback

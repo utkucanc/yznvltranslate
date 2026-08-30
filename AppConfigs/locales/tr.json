@@ -7,7 +7,7 @@
     "promt_part2": "\nYANIT FORMATI:\nsource_term → target_translation"
   },
   "main_window": {
-    "title": "Novel Çeviri Aracı V2.4.0",
+    "title": "Novel Çeviri Aracı V3.0.0",
     "projects": "Projeler:",
     "search_project_placeholder": "🔍 Proje ara...",
     "tooltip_clear_search": "Aramayı temizle",
@@ -104,7 +104,7 @@
     "btn_start_download": "⬇  İndirmeyi Başlat",
     "btn_workflow": "🚀  Tam Otomatik İşlem",
     "btn_split": "✂  Toplu Bölüm Ekle",
-    "btn_translate": "🌐  Seçilenleri Çevir",
+    "btn_translate": "🌐  Çeviriyi Başlat",
     "limit_translate": "Sayılı çevir",
     "limit_translate_tooltip": "İşaretlenirse sadece yandaki sayı kadar dosya çevrilip durur.",
     "shutdown_on_complete": "⚡ Çeviri Bitince Kapat",

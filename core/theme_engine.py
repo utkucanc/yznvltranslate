@@ -696,6 +696,101 @@ QStatusBar::item {{ border: none; }}
 /* ── ScrollArea ── */
 QScrollArea {{ border: none; background-color: transparent; }}
 QScrollArea > QWidget > QWidget {{ background-color: transparent; }}
+
+/* ── Novel Translator Pro Modern UI Bileşenleri ── */
+#topbar   {{ background-color: {c(g,'background')}; border-bottom: 1px solid {c(g,'border_color')}; }}
+#connbar  {{ background-color: {c(tb,'pane_bg', c(g,'background'))}; border-bottom: 1px solid {c(g,'border_color')}; }}
+#sidebar  {{ background-color: {c(g,'background')}; border-right: 1px solid {c(g,'border_color')}; }}
+#statusbar {{ background-color: {c(tb,'pane_bg', c(g,'background'))}; border-top: 1px solid {c(g,'border_color')}; }}
+
+#card, #innerCard, #statCard, #featureCard, #activeProject {{
+    background-color: {c(tb,'pane_bg', c(g,'background'))};
+    border: 1px solid {c(g,'border_color')};
+    border-radius: 10px;
+}}
+#innerCard {{ background-color: {c(i,'input_bg')}; }}
+#cardTitle {{ color: {c(g,'text_color')}; font-size: 14px; font-weight: 700; }}
+
+#styleCard {{
+    background-color: {c(i,'input_bg')};
+    border: 1px solid {c(g,'border_color')};
+    border-radius: 8px;
+}}
+#styleCardActive {{
+    background-color: {c(l,'list_selected')};
+    border: 1px solid {c(tb,'tab_active_start', '#3b82f6')};
+    border-radius: 8px;
+}}
+
+#navBtn {{
+    text-align: left; background: transparent; border: none;
+    color: {c(tb,'tab_text')}; border-radius: 8px; font-size: 13px; padding: 8px 10px;
+}}
+#navBtn:hover {{ background-color: {c(tb,'tab_hover_bg')}; color: {c(g,'text_color')}; }}
+#navBtnActive {{
+    text-align: left; background-color: {c(l,'list_selected')};
+    border: 1px solid {c(tb,'tab_active_start', '#3b82f6')};
+    color: {c(l,'list_sel_text', '#3b82f6')};
+    border-radius: 8px; font-size: 13px; font-weight: 600; padding: 8px 10px;
+}}
+
+#ghostBtn {{ background: transparent; border: none; color: {c(tb,'tab_text')}; font-size: 12px; }}
+#ghostBtn:hover {{ color: {c(g,'text_color')}; }}
+#winBtn {{ background: transparent; border: none; color: {c(tb,'tab_text')}; }}
+#winBtn:hover {{ background-color: {c(tb,'tab_hover_bg')}; }}
+#iconBtn {{
+    background-color: {c(i,'input_bg')}; border: 1px solid {c(g,'border_color')};
+    border-radius: 6px; max-width: 30px; padding: 4px;
+}}
+
+#smallBtn {{
+    background-color: {c(i,'input_bg')}; border: 1px solid {c(g,'border_color')};
+    border-radius: 6px; font-size: 11px; padding: 5px 10px;
+}}
+#smallBtnFull {{
+    background-color: {c(i,'input_bg')}; border: 1px solid {c(g,'border_color')};
+    border-radius: 6px; font-size: 12px; padding: 8px;
+}}
+#primaryBtn, #newProjectBtn {{
+    background-color: {c(b,'btn_primary_bg', '#3b82f6')}; border: none; color: #ffffff;
+    border-radius: 6px; font-weight: 600; padding: 6px 14px;
+}}
+#primaryBtn:hover, #newProjectBtn:hover {{ background-color: {c(b,'btn_primary_hover', '#2563eb')}; }}
+
+#purpleBtn {{
+    background-color: {c(b,'btn_purple_bg', '#880e4f')}; border: none; color: #ffffff;
+    border-radius: 6px; font-size: 11px; padding: 5px 10px;
+}}
+#greenBtn {{
+    background-color: {c(b,'btn_success_bg', '#2e7d32')}; border: none; color: #ffffff;
+    border-radius: 6px; font-weight: 700; padding: 9px;
+}}
+#dangerBtn {{
+    background-color: {c(b,'btn_stop_bg', '#b71c1c')}; border: none; color: #ffffff;
+    border-radius: 6px; font-size: 11px; padding: 5px 10px;
+}}
+#orangeBtn {{
+    background-color: {c(b,'btn_workflow', '#ff6f00')}; border: none; color: #ffffff;
+    border-radius: 6px; font-size: 11px; padding: 5px 10px;
+}}
+#linkBtn {{ background: transparent; border: none; color: {c(tb,'tab_active_start', '#3b82f6')}; font-size: 11px; }}
+#pageBtn {{
+    background-color: {c(i,'input_bg')}; border: 1px solid {c(g,'border_color')};
+    border-radius: 6px; font-size: 11px; padding: 4px 10px;
+}}
+#pageBtnActive {{
+    background-color: {c(b,'btn_primary_bg', '#3b82f6')}; border: none; color: #ffffff;
+    border-radius: 6px; font-size: 11px; padding: 4px 10px; font-weight: 700;
+}}
+
+QCheckBox#toggleSwitch {{ spacing: 0px; }}
+QCheckBox#toggleSwitch::indicator {{
+    width: 36px; height: 20px; border-radius: 10px;
+    background-color: {c(g,'border_color')}; border: 1px solid {c(g,'border_color')};
+}}
+QCheckBox#toggleSwitch::indicator:checked {{
+    background-color: {c(b,'btn_primary_bg', '#3b82f6')}; border: 1px solid {c(b,'btn_primary_bg', '#3b82f6')};
+}}
 """
     return qss
 

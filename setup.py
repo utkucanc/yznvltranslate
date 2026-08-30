@@ -130,8 +130,8 @@ try:
     #python setup.py bdist_msi
     setup(
         name="NovelCeviriAraci",
-        version="2.4.0",  
-        description="Novel Çeviri Aracı v2.4.0",
+        version="3.0.0",  
+        description="Novel Çeviri Aracı v3.0.0",
         author="UtkuCanC",
         author_email="utkucancanatan@gmail.com",
         options={"build_exe": build_exe_options},

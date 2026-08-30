@@ -17,27 +17,38 @@ from logger import app_logger
 
 # ────────────────────── Terim Çıkarma Prompt'u ──────────────────────
 
-EXTRACTION_PROMPT = """Aşağıdaki roman/novel metnini analiz et ve çeviride tutarlılık sağlamak için önemli olan terimleri çıkar.
+EXTRACTION_PROMPT = """Aşağıdaki roman/novel metnini analiz et ve çeviride tutarlılık sağlamak için terimleri çıkar.
+
+ÖNEMLİ: Çıkardığın her terim, daha sonra metnin HER YERİNDE bağlamdan bağımsız şekilde otomatik olarak değiştirilecek. Bu yüzden sadece gerçekten güvenilir, tekrarlayan ve bu hikayeye özgü terimleri çıkar.
 
 Terimler şunları içermelidir:
-- Özel isimler (karakter isimleri, yer isimleri, dünya isimleri)
+- Özel isimler (karakter isimleri, yer isimleri, dünya isimleri, teşkilat/klan isimleri)
 - Güç/seviye sistemleri (cultivation stages, rank names vb.)
-- Teknik terimler (özel silahlar, büyüler, yetenekler)
-- Tekrarlayan kavramlar (Qi, Mana, Dao vb.)
+- Teknik terimler (özel silahlar, büyüler, yetenekler, eşyalar)
+- Tekrarlayan ve dünyaya özgü kavramlar (Qi, Mana, Dao vb.)
 
-Her terim için kaynak dilde terimi ve Türkçe çevirisini belirle.
-Eğer terim çevrilmemeli ise (örn. Qi, Mana) aynı şekilde yaz.
+AŞAĞIDAKİLERİ ÇIKARMA:
+- Metinde sadece bir kez geçen, tekrarlanmayan ifadeler
+- Genel sıfatlar, zarflar veya betimleyici ifadeler
+- Sayılar, tarihler, ölçü birimleri
+- Günlük dilde de sık kullanılan sıradan kelimeler (örn. "Brother", "Master", "Friend") — SADECE bir ismin yerine geçen özel bir hitap/unvan olarak tutarlı şekilde kullanıldığından eminsen dahil et; emin değilsen "belirsiz: evet" olarak işaretle
 
-YANITINI TAM OLARAK şu formatta ver (her satırda bir terim):
-source_term → target_translation
+Her terim için:
+1. Kaynak metindeki TAM YAZIM ŞEKLİYLE (büyük/küçük harf dahil) terimi ver — bu, terimin metinde birebir aranıp değiştirilmesi için kullanılacak
+2. Türkçe çevirisini ver (çevrilmemesi gerekiyorsa örn. Qi, Mana, aynı şekilde yaz)
+3. Terimin belirsiz/riskli olup olmadığını belirt (metnin başka yerlerinde farklı, sıradan bir anlamda da geçebilir mi?)
+
+YANITINI TAM OLARAK şu formatta ver (her satırda bir terim, alanlar " :: " ile ayrılmış):
+kaynak_terim → türkçe_çeviri :: belirsiz(evet/hayır)
 
 Örnek:
-Nascent Soul → Ruh Embriyosu
-Qi → Qi
-Spirit Beast → Ruh Canavarı
-Heavenly Tribulation → Göksel Bela
+Nascent Soul → Ruh Embriyosu :: hayır
+Qi → Qi :: hayır
+Spirit Beast → Ruh Canavarı :: hayır
+Heavenly Tribulation → Göksel Bela :: hayır
+Brother → Kardeş :: evet
 
-SADECE terimleri yaz, başka açıklama ekleme.
+SADECE terimleri yaz, başka açıklama, başlık veya numaralandırma ekleme.
 
 ---
 
@@ -54,6 +65,8 @@ class TerminologyManager:
         self.project_path = project_path
         self.terms_file = os.path.join(project_path, "config", "terminology.json")
         self.terms: list[dict] = self._load()
+        self._pattern_cache = None
+        self._pattern_cache_key = None
 
     # ────────────────────── Yükleme / Kaydetme ──────────────────────
 
@@ -77,16 +90,19 @@ class TerminologyManager:
 
     # ────────────────────── Terim CRUD ──────────────────────
 
-    def add_term(self, source: str, target: str, note: str = ""):
+    def add_term(self, source: str, target: str, note: str = "",ambiguous: bool = False):
         """Terim ekler. Aynı kaynak zaten varsa günceller."""
         for t in self.terms:
             if t["source"].lower() == source.lower():
                 t["target"] = target
                 t["note"] = note
+                t["ambiguous"] = ambiguous
                 self._save()
+                self._invalidate_pattern_cache()
                 return
-        self.terms.append({"source": source, "target": target, "note": note})
+        self.terms.append({"source": source, "target": target, "note": note, "ambiguous": ambiguous})
         self._save()
+        self._invalidate_pattern_cache()
 
     def remove_term(self, source: str):
         """Terim siler."""
@@ -139,13 +155,13 @@ class TerminologyManager:
     def _parse_extracted_terms(self, raw_response: str) -> int:
         """
         LLM yanıtını parse eder.
-        Beklenen format: her satır 'source → target' veya 'source = target'
+        Beklenen format: 'source → target' veya 'source → target :: belirsiz(evet/hayır)'
+        (':: ' yoksa eski format gibi davranır, geriye dönük uyumludur)
         """
         if not raw_response:
             return 0
 
         count = 0
-        # → veya -> veya = ile ayır
         pattern = re.compile(r'^(.+?)\s*(?:→|->|=)\s*(.+?)$')
 
         for line in raw_response.strip().split('\n'):
@@ -153,31 +169,37 @@ class TerminologyManager:
             if not line:
                 continue
 
-            # Markdown bullet point temizle
             line = re.sub(r'^[\-\*•]\s*', '', line).strip()
 
             match = pattern.match(line)
-            if match:
-                source = match.group(1).strip()
-                target = match.group(2).strip()
+            if not match:
+                continue
 
-                # Geçerlilik kontrolü
-                if source and target and len(source) >= 2 and len(target) >= 1:
-                    # Tekrar kontrolü
-                    exists = False
-                    for t in self.terms:
-                        if t["source"].lower() == source.lower():
-                            exists = True
-                            break
+            source = match.group(1).strip()
+            rest = match.group(2).strip()
 
-                    if not exists:
-                        self.terms.append({
-                            "source": source,
-                            "target": target,
-                            "note": "auto-extracted"
-                        })
-                        count += 1
+            # YENİ: ":: belirsiz(evet/hayır)" kuyruğunu ayır
+            ambiguous = False
+            if "::" in rest:
+                target_part, flag_part = rest.split("::", 1)
+                target = target_part.strip()
+                ambiguous = "evet" in flag_part.strip().lower()
+            else:
+                target = rest
 
+            if source and target and len(source) >= 2 and len(target) >= 1:
+                exists = any(t["source"].lower() == source.lower() for t in self.terms)
+                if not exists:
+                    self.terms.append({
+                        "source": source,
+                        "target": target,
+                        "note": "auto-extracted",
+                        "ambiguous": ambiguous,   # YENİ ALAN
+                    })
+                    count += 1
+
+        if count:
+            self._invalidate_pattern_cache()   # aşağıda ekleyeceğiz
         return count
 
     def get_sample_text_from_project(self, max_files: int = 5, token_limit: int = 10000) -> str:
@@ -218,7 +240,68 @@ class TerminologyManager:
                 pass
 
         return "\n\n---\n\n".join(samples)
+    def _get_compiled_pattern(self, sources: tuple, source_lang: str):
+        cache_key = (sources, source_lang)
+        if self._pattern_cache_key == cache_key:
+            return self._pattern_cache
 
+        sorted_sources = sorted(sources, key=len, reverse=True)  # uzun terim önce
+        escaped = [re.escape(s) for s in sorted_sources]
+
+        if source_lang in ("zh", "ja", "ko"):
+            # CJK kaynaklarda \b güvenilir çalışmaz (boşluksuz yazım)
+            body = "|".join(escaped)
+        else:
+            body = "|".join(rf"\b{e}\b" for e in escaped)
+
+        pattern = re.compile(body, re.IGNORECASE)
+        self._pattern_cache_key = cache_key
+        self._pattern_cache = pattern
+        return pattern
+
+    def _invalidate_pattern_cache(self):
+        self._pattern_cache_key = None
+        self._pattern_cache = None
+
+    def build_injected_source(self, text: str, source_lang: str = "en",
+                            include_ambiguous: bool = False) -> str:
+        """
+        Terminoloji sözlüğündeki terimleri kaynak metne enjekte eder.
+        build_prompt_section()'ın yerini alır — artık AI'a ayrı bir
+        terminoloji bloğu göndermek yerine terimler kaynak metnin
+        içine gömülür.
+        """
+        if not self.terms:
+            return text
+
+        active_terms = [
+            t for t in self.terms
+            if include_ambiguous or not t.get("ambiguous", False)
+        ]
+        if not active_terms:
+            return text
+
+        sources = tuple(t["source"] for t in active_terms)
+        pattern = self._get_compiled_pattern(sources, source_lang)
+        lookup = {t["source"].lower(): t["target"] for t in active_terms}
+
+        def _replace(m):
+            return lookup.get(m.group(0).lower(), m.group(0))
+
+        return pattern.sub(_replace, text)
+
+    def get_pending_review_terms(self) -> list[dict]:
+        """Terminology Manager UI'da 'gözden geçirilmeli' listesi için."""
+        return [t for t in self.terms if t.get("ambiguous", False)]
+
+    def approve_term(self, source: str):
+        """UI'dan bir terim onaylandığında ambiguous=False yapar."""
+        for t in self.terms:
+            if t["source"].lower() == source.lower():
+                t["ambiguous"] = False
+                self._save()
+                self._invalidate_pattern_cache()
+                return
     # ────────────────────── Prompt Entegrasyonu ──────────────────────
 
     def build_prompt_section(self) -> str:

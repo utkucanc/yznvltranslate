@@ -14,15 +14,14 @@ from logger import app_logger
 from core.localization import tr
 
 # ─── V2.1.0 Geriye Uyumluluk Re-export'lar ───
-# ui/ paketine taşınan sınıflar burada da erişilebilir kalır.
-# Eski "from dialogs import X" çağrıları kırılmaz.
-
-from ui.app_settings_dialog import AppSettingsDialog
-from ui.file_preview_dialog import FilePreviewDialog
-from ui.terminology_dialog import TerminologyDialog
-from ui.prompt_editor_dialog import PromptEditorDialog
-from ui.api_key_editor_dialog import ApiKeyEditorDialog
-from ui.mcp_server_dialog import MCPServerDialog
+try:
+    from ui.file_preview_dialog import FilePreviewDialog
+    from ui.terminology_dialog import TerminologyDialog
+    from ui.prompt_editor_dialog import PromptEditorDialog
+    from ui.api_key_editor_dialog import ApiKeyEditorDialog
+    from ui.mcp_server_dialog import MCPServerDialog
+except ImportError:
+    pass
 
 
 

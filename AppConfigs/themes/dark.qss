@@ -251,3 +251,98 @@ QStatusBar::item { border: none; }
 /* ── ScrollArea ── */
 QScrollArea { border: none; background-color: transparent; }
 QScrollArea > QWidget > QWidget { background-color: transparent; }
+
+/* ── Novel Translator Pro Modern UI Bileşenleri ── */
+#topbar   { background-color: #0b0f19; border-bottom: 1px solid #1f2937; }
+#connbar  { background-color: #111827; border-bottom: 1px solid #1f2937; }
+#sidebar  { background-color: #0b0f19; border-right: 1px solid #1f2937; }
+#statusbar { background-color: #111827; border-top: 1px solid #1f2937; }
+
+#card, #innerCard, #statCard, #featureCard, #activeProject {
+    background-color: #111827;
+    border: 1px solid #1f2937;
+    border-radius: 10px;
+}
+#innerCard { background-color: #0f1522; }
+#cardTitle { color: #e5e7eb; font-size: 14px; font-weight: 700; }
+
+#styleCard {
+    background-color: #0f1522;
+    border: 1px solid #1f2937;
+    border-radius: 8px;
+}
+#styleCardActive {
+    background-color: rgba(59, 130, 246, 0.1);
+    border: 1px solid #3b82f6;
+    border-radius: 8px;
+}
+
+#navBtn {
+    text-align: left; background: transparent; border: none;
+    color: #9ca3af; border-radius: 8px; font-size: 13px; padding: 8px 10px;
+}
+#navBtn:hover { background-color: #0f1522; color: #e5e7eb; }
+#navBtnActive {
+    text-align: left; background-color: rgba(59, 130, 246, 0.15);
+    border: 1px solid rgba(59, 130, 246, 0.35);
+    color: #3b82f6;
+    border-radius: 8px; font-size: 13px; font-weight: 600; padding: 8px 10px;
+}
+
+#ghostBtn { background: transparent; border: none; color: #9ca3af; font-size: 12px; }
+#ghostBtn:hover { color: #e5e7eb; }
+#winBtn { background: transparent; border: none; color: #9ca3af; }
+#winBtn:hover { background-color: #0f1522; }
+#iconBtn {
+    background-color: #0f1522; border: 1px solid #1f2937;
+    border-radius: 6px; max-width: 30px; padding: 4px;
+}
+
+#smallBtn {
+    background-color: #0f1522; border: 1px solid #1f2937;
+    border-radius: 6px; font-size: 11px; padding: 5px 10px;
+}
+#smallBtnFull {
+    background-color: #0f1522; border: 1px solid #1f2937;
+    border-radius: 6px; font-size: 12px; padding: 8px;
+}
+#primaryBtn, #newProjectBtn {
+    background-color: #3b82f6; border: none; color: #ffffff;
+    border-radius: 6px; font-weight: 600; padding: 6px 14px;
+}
+#primaryBtn:hover, #newProjectBtn:hover { background-color: #2563eb; }
+
+#purpleBtn {
+    background-color: #6A1B9A; border: none; color: #ffffff;
+    border-radius: 6px; font-size: 11px; padding: 5px 10px;
+}
+#greenBtn {
+    background-color: #22c55e; border: none; color: #ffffff;
+    border-radius: 6px; font-weight: 700; padding: 9px;
+}
+#dangerBtn {
+    background-color: #ef4444; border: none; color: #ffffff;
+    border-radius: 6px; font-size: 11px; padding: 5px 10px;
+}
+#orangeBtn {
+    background-color: #f59e0b; border: none; color: #ffffff;
+    border-radius: 6px; font-size: 11px; padding: 5px 10px;
+}
+#linkBtn { background: transparent; border: none; color: #3b82f6; font-size: 11px; }
+#pageBtn {
+    background-color: #0f1522; border: 1px solid #1f2937;
+    border-radius: 6px; font-size: 11px; padding: 4px 10px;
+}
+#pageBtnActive {
+    background-color: #3b82f6; border: none; color: #ffffff;
+    border-radius: 6px; font-size: 11px; padding: 4px 10px; font-weight: 700;
+}
+
+QCheckBox#toggleSwitch { spacing: 0px; }
+QCheckBox#toggleSwitch::indicator {
+    width: 36px; height: 20px; border-radius: 10px;
+    background-color: #1f2937; border: 1px solid #1f2937;
+}
+QCheckBox#toggleSwitch::indicator:checked {
+    background-color: #3b82f6; border: 1px solid #3b82f6;
+}
