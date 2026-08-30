@@ -10,7 +10,7 @@ class FreeTranslationEngine:
         self.provider_name = provider_name.lower()
         self.source_lang = source_lang
         self.target_lang = target_lang
-        self.api_key = "dict.1.1.20260811T133439Z.18055c531f84a740.37f982ef0ffc5e149f22a2395de7bdf256add999"
+        self.api_key = "yandex_api_key"
         self._init_translator()
 
     def _init_translator(self):

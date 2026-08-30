@@ -50,19 +50,6 @@ def build_menu_bar(main_window):
     app_settings_action = settings_menu.addAction(tr("menu_bar.app_settings", "⚙️ Uygulama Ayarları"))
     app_settings_action.triggered.connect(win.open_app_settings_dialog)
 
-    # ── JS Kaydet Menüsü ──
-    js_save_menu = menu_bar.addMenu(tr("menu_bar.save_js", "JS Kaydet"))
-    save_booktoki_action = js_save_menu.addAction("Booktoki")
-    save_booktoki_action.triggered.connect(lambda: _save_js_file(win, "booktoki.js"))
-    save_69shuba_action = js_save_menu.addAction("69shuba")
-    save_69shuba_action.triggered.connect(lambda: _save_js_file(win, "69shuba.js"))
-    save_novelfire_action = js_save_menu.addAction("Novelfire")
-    save_novelfire_action.triggered.connect(lambda: _save_js_file(win, "novelfire.js"))
-
-    # ── JSON Kaydet Menüsü ──
-    json_save_action = menu_bar.addAction(tr("menu_bar.save_json", "JSON Kaydet"))
-    json_save_action.triggered.connect(lambda: _run_json_output(win))
-
     # ── Yardım Menüsü ──
     help_menu = menu_bar.addMenu(tr("menu_bar.help", "Yardım"))
     about_action = help_menu.addAction(tr("menu_bar.about", "Hakkında"))

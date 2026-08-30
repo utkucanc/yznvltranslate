@@ -480,7 +480,12 @@ class MainWindow(QMainWindow):
                 config_file_path = os.path.join(full_path, "config", "config.ini")
                 if os.path.exists(config_file_path):
                     self.project_list.addItem(item)
-        if self.project_list.count() > 0:
+        try:
+            from ui.project_page import update_project_list_widgets
+            update_project_list_widgets(self)
+        except Exception:
+            pass
+        if self.project_list.count() > 0 and self.project_list.currentRow() < 0:
             self.project_list.setCurrentRow(0)
 
     def new_project_clicked(self):

@@ -102,6 +102,10 @@ class TranslationWorker(QObject):
         self._cache = None
         self._terminology_manager = None
 
+    @property
+    def terminology_manager(self):
+        return getattr(self, '_terminology_manager', None)
+
     def _init_provider(self):
         """LLMProvider'ı başlatır. Geriye uyumlu: endpoint yoksa doğrudan API key ile çalışır."""
         try:
@@ -512,8 +516,8 @@ class TranslationWorker(QObject):
         combined_text = PARA_SEP.join(paragraphs)
 
         # Terminoloji enjeksiyonu — build_prompt_section() yerine
-        if self.terminology_manager:
-            combined_text = self.terminology_manager.build_injected_source(
+        if self._terminology_manager:
+            combined_text = self._terminology_manager.build_injected_source(
                 combined_text, source_lang=self.source_lang
             )
 

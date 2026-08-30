@@ -101,21 +101,20 @@ def build_dashboard_page(main_window) -> QScrollArea:
     root.setContentsMargins(14, 14, 14, 14)
     root.setSpacing(14)
 
-    # ── Satır 1: Project Files | Translation Queue | Statistics ──
+    # ── Satır 1: Project Files | Translation Queue & Terminology | Merge/Export ──
     row1 = QHBoxLayout()
     row1.setSpacing(14)
-    row1.addWidget(_build_project_files_card(win), 3)
-    row1.addWidget(_build_translation_queue_card(win), 3)
-    row1.addWidget(_build_statistics_card(win), 3)
-    root.addLayout(row1, 1)
+    row1.addWidget(_build_project_files_card(win), 5)
+    row1.addWidget(_build_translation_queue_card(win), 4)
+    row1.addWidget(_build_merge_export_card(win), 3)
+    root.addLayout(row1, 2)
 
-    # ── Satır 2: Logs | Merge/Export | Terminology ──
+    # ── Satır 2: Logs | Statistics Overview ──
     row2 = QHBoxLayout()
     row2.setSpacing(14)
-    row2.addWidget(_build_logs_card(win), 4)
-    row2.addWidget(_build_merge_export_card(win), 2)
-    row2.addWidget(_build_terminology_card(win), 2)
-    root.addLayout(row2)
+    row2.addWidget(_build_logs_card(win), 3)
+    row2.addWidget(_build_statistics_card(win), 3)
+    root.addLayout(row2, 1)
 
     return scroll
 
@@ -178,7 +177,7 @@ def _build_project_files_card(win) -> QFrame:
 
 
 def _build_translation_queue_card(win) -> QFrame:
-    """Çeviri kuyruğu kartı — translate/stop butonları ve progress bar."""
+    """Çeviri kuyruğu ve terminoloji kartı — translate/stop butonları, progress bar ve terimler."""
 
     # Kart başlığı butonları
     header_w = QWidget()
@@ -191,7 +190,7 @@ def _build_translation_queue_card(win) -> QFrame:
     if hasattr(win, 'stopTranslationButton'):
         hl.addWidget(win.stopTranslationButton)
 
-    frame, body = _card("Translation Queue", header_w)
+    frame, body = _card("Translation Queue & Terminology", header_w)
 
     # ── Mevcut görev bilgisi ──
     cur_lbl = QLabel("Current Task")
@@ -250,6 +249,43 @@ def _build_translation_queue_card(win) -> QFrame:
     # ── Seç / Vurgulananları İşaretle ──
     if hasattr(win, 'selectHighlightedButton'):
         body.addWidget(win.selectHighlightedButton)
+
+    # ── Terminoloji Bölümü ──
+    sep = QFrame()
+    sep.setFrameShape(QFrame.Shape.HLine)
+    sep.setStyleSheet(f"color:{BORDER};")
+    body.addWidget(sep)
+
+    term_head = QLabel("📚 Terminoloji")
+    term_head.setStyleSheet(f"color:{TEXT_MAIN}; font-size:12px; font-weight:600;")
+    body.addWidget(term_head)
+
+    stats_row = QHBoxLayout()
+    stats_row.setSpacing(8)
+    total_terms = _count_terms(win)
+    for title, val, color in [
+        ("Toplam Terim", str(total_terms), TEXT_MAIN),
+        ("Durum", "Hazır", ACCENT_GREEN),
+    ]:
+        box = QVBoxLayout()
+        t = QLabel(title)
+        t.setStyleSheet(f"color:{TEXT_FAINT}; font-size:10px;")
+        v = QLabel(val)
+        v.setStyleSheet(f"color:{color}; font-size:14px; font-weight:700;")
+        box.addWidget(t)
+        box.addWidget(v)
+        w = QWidget()
+        w.setLayout(box)
+        stats_row.addWidget(w)
+    body.addLayout(stats_row)
+
+    if hasattr(win, 'generateTerminologyButton'):
+        body.addWidget(win.generateTerminologyButton)
+
+    open_btn = QPushButton("📚  Terminoloji Yöneticisi")
+    open_btn.setObjectName("smallBtnFull")
+    open_btn.clicked.connect(lambda: _open_terminology_dialog(win))
+    body.addWidget(open_btn)
 
     body.addStretch()
     return frame
@@ -458,8 +494,22 @@ def _open_split(win):
 
 def _open_terminology_dialog(win):
     try:
+        project_path = getattr(win, 'current_project_path', None)
+        if not project_path and hasattr(win, 'project_list') and win.project_list.currentItem():
+            p_name = win.project_list.currentItem().text()
+            if p_name:
+                project_path = os.path.join(os.getcwd(), p_name)
+        if not project_path or not os.path.exists(project_path):
+            from PyQt6.QtWidgets import QMessageBox
+            from core.localization import tr
+            QMessageBox.warning(
+                win,
+                tr("sidebar.no_project_title", "Proje Seçilmedi"),
+                tr("sidebar.no_project_body", "Lütfen önce bir proje seçin.")
+            )
+            return
         from dialogs import TerminologyDialog
-        TerminologyDialog(win).exec()
+        TerminologyDialog(project_path, win).exec()
     except Exception as e:
         from logger import app_logger
         app_logger.warning(f"Terminology dialog açılamadı: {e}")

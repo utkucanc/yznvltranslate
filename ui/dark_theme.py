@@ -340,6 +340,18 @@ def build_dark_stylesheet() -> str:
         background: {ACCENT_BLUE}33;
         color: {ACCENT_BLUE};
     }}
+    QFrame#projectListRow {{
+        background: transparent;
+        border: 1px solid transparent;
+        border-radius: 6px;
+    }}
+    QFrame#projectListRow[selected="true"] {{
+        background: {ACCENT_BLUE}33;
+        border: 1px solid {ACCENT_BLUE}66;
+    }}
+    QFrame#projectListRow[selected="true"] QLabel {{
+        color: {ACCENT_BLUE};
+    }}
 
     /* ── Scroll Bar ── */
     QScrollBar:vertical {{

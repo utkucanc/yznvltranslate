@@ -160,7 +160,7 @@ def _build_project_list_side(win) -> QWidget:
         list_card = QFrame()
         list_card.setObjectName("card")
         lc_lay = QVBoxLayout(list_card)
-        lc_lay.setContentsMargins(8, 8, 8, 8)
+        lc_lay.setContentsMargins(12, 12, 12, 12)
         lc_lay.addWidget(win.project_list)
         # Minimum yükseklik
         win.project_list.setMinimumHeight(300)
@@ -168,6 +168,9 @@ def _build_project_list_side(win) -> QWidget:
             QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding
         )
         lay.addWidget(list_card, 1)
+
+        _setup_project_list_context_menu(win)
+        update_project_list_widgets(win)
 
     return container
 
@@ -189,24 +192,10 @@ def _build_project_details_panel(win) -> QFrame:
 
 def _populate_project_details(win, frame: QFrame, project_name: str = None):
     """Panel içeriğini temizler ve yeniden doldurur."""
-    # Mevcut layout'u temizle
-    old_layout = frame.layout()
-    if old_layout:
-        while old_layout.count():
-            item = old_layout.takeAt(0)
-            if item.widget():
-                item.widget().deleteLater()
-            elif item.layout():
-                sub = item.layout()
-                while sub.count():
-                    sub_item = sub.takeAt(0)
-                    if sub_item.widget():
-                        sub_item.widget().deleteLater()
-        try:
-            from PyQt6 import sip
-            sip.delete(old_layout)
-        except Exception:
-            pass
+    # Mevcut layout'u ve çocuk bileşenleri temizle
+    if frame.layout() is not None:
+        old_layout = frame.layout()
+        QWidget().setLayout(old_layout)
 
     outer = QVBoxLayout(frame)
     outer.setContentsMargins(16, 14, 16, 14)
@@ -261,6 +250,19 @@ def _populate_project_details(win, frame: QFrame, project_name: str = None):
     sep.setFrameShape(QFrame.Shape.HLine)
     sep.setStyleSheet(f"color:{BORDER};")
     outer.addWidget(sep)
+
+    # Proje Boyutu Satırı
+    p_path = os.path.join(os.getcwd(), project_name)
+    p_size = _format_size(_get_folder_size(p_path)) if os.path.exists(p_path) else "—"
+    size_row = QHBoxLayout()
+    kl_sz = QLabel("Proje Boyutu")
+    kl_sz.setStyleSheet(f"color:{TEXT_FAINT}; font-size:11px;")
+    vl_sz = QLabel(p_size)
+    vl_sz.setStyleSheet(f"color:{TEXT_MAIN}; font-size:11px; font-weight:600;")
+    size_row.addWidget(kl_sz)
+    size_row.addStretch()
+    size_row.addWidget(vl_sz)
+    outer.addLayout(size_row)
 
     # Meta satırları
     display_keys = [
@@ -464,3 +466,239 @@ def _get_recent_files(project_name: str, n: int = 4):
     except Exception:
         pass
     return result
+
+
+def _get_folder_size(path: str) -> int:
+    total_size = 0
+    try:
+        if not os.path.exists(path):
+            return 0
+        for dirpath, dirnames, filenames in os.walk(path):
+            for f in filenames:
+                fp = os.path.join(dirpath, f)
+                if not os.path.islink(fp):
+                    total_size += os.path.getsize(fp)
+    except Exception:
+        pass
+    return total_size
+
+
+def _format_size(size_in_bytes: int) -> str:
+    if size_in_bytes < 1024:
+        return f"{size_in_bytes} B"
+    elif size_in_bytes < 1024 * 1024:
+        return f"{size_in_bytes / 1024:.1f} KB"
+    elif size_in_bytes < 1024 * 1024 * 1024:
+        return f"{size_in_bytes / (1024 * 1024):.1f} MB"
+    else:
+        return f"{size_in_bytes / (1024 * 1024 * 1024):.1f} GB"
+
+
+def update_project_list_widgets(win):
+    """Her QListWidgetItem için sağ tarafta klasör boyutunu gösteren custom widget oluşturur."""
+    if not hasattr(win, 'project_list'):
+        return
+
+    if not hasattr(win, '_project_list_selection_connected'):
+        win.project_list.itemSelectionChanged.connect(lambda: _refresh_project_list_selection(win))
+        win._project_list_selection_connected = True
+
+    for i in range(win.project_list.count()):
+        item = win.project_list.item(i)
+        if not item:
+            continue
+        project_name = item.text()
+        project_path = os.path.join(os.getcwd(), project_name)
+        size_bytes = _get_folder_size(project_path)
+        size_str = _format_size(size_bytes)
+
+        container = QFrame()
+        container.setObjectName("projectListRow")
+        container.setProperty("selected", False)
+        container.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, True)
+
+        lay = QHBoxLayout(container)
+        lay.setContentsMargins(10, 8, 12, 8)
+        lay.setSpacing(8)
+
+        # Renk/boyut burada VERİLMİYOR — _refresh_project_list_selection
+        # bunu Python'dan, tema sabitlerinden okuyarak uygulayacak.
+        name_lbl = QLabel(project_name)
+        name_lbl.setObjectName("projectRowName")
+        name_lbl.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
+
+        size_lbl = QLabel(size_str)
+        size_lbl.setObjectName("projectRowSize")
+
+        lay.addWidget(name_lbl)
+        lay.addStretch()
+        lay.addWidget(size_lbl)
+
+        container.setMinimumHeight(40)
+        hint = container.sizeHint()
+        hint.setHeight(max(hint.height(), 40))
+        item.setSizeHint(hint)
+
+        win.project_list.setItemWidget(item, container)
+
+    _refresh_project_list_selection(win)
+
+
+def _refresh_project_list_selection(win):
+    """Seçili satırı belirginleştirir.
+
+    Container'ın arka planı/kenarlığı dark_theme.py'daki QSS'ten geliyor
+    (QFrame#projectListRow[selected="true"]).
+
+    Label renkleri/boyutları ise QSS cascade'i yerine burada, Python'dan
+    doğrudan uygulanıyor — çünkü Qt'de bir widget'ın kendi setStyleSheet()'i
+    her zaman ebeveyn/uygulama QSS'inin önüne geçer, bu yüzden ebeveyn
+    üzerinden descendant selector ile label rengini değiştirmek güvenilir
+    çalışmıyor. Yine de tüm değerler dark_theme.py'daki aynı sabitlerden
+    (ACCENT_BLUE, TEXT_MAIN, TEXT_FAINT) okunuyor, yani tema değişirse
+    bunlar da otomatik değişir.
+    """
+    current_row = win.project_list.currentRow()
+    for i in range(win.project_list.count()):
+        item = win.project_list.item(i)
+        widget = win.project_list.itemWidget(item)
+        if not widget:
+            continue
+
+        is_selected = (i == current_row)
+        widget.setProperty("selected", is_selected)
+        widget.style().unpolish(widget)
+        widget.style().polish(widget)
+
+        name_lbl = widget.findChild(QLabel, "projectRowName")
+        size_lbl = widget.findChild(QLabel, "projectRowSize")
+
+        if is_selected:
+            if name_lbl:
+                name_lbl.setStyleSheet(
+                    f"background:transparent; color:{ACCENT_BLUE}; "
+                    f"font-weight:700; font-size:14px;"
+                )
+            if size_lbl:
+                size_lbl.setStyleSheet(
+                    f"background:transparent; color:{ACCENT_BLUE}; font-size:11px;"
+                )
+        else:
+            if name_lbl:
+                name_lbl.setStyleSheet(
+                    f"background:transparent; color:{TEXT_MAIN}; "
+                    f"font-weight:600; font-size:13px;"
+                )
+            if size_lbl:
+                size_lbl.setStyleSheet(
+                    f"background:transparent; color:{TEXT_FAINT}; font-size:11px;"
+                )
+
+
+def _setup_project_list_context_menu(win):
+    if not hasattr(win, 'project_list'):
+        return
+    win.project_list.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+    try:
+        win.project_list.customContextMenuRequested.disconnect()
+    except Exception:
+        pass
+    win.project_list.customContextMenuRequested.connect(lambda pos: _show_project_context_menu(win, pos))
+
+
+def _show_project_context_menu(win, pos):
+    item = win.project_list.itemAt(pos)
+    if not item:
+        return
+    win.project_list.setCurrentItem(item)
+    project_name = item.text()
+    project_path = os.path.join(os.getcwd(), project_name)
+
+    from PyQt6.QtWidgets import QMenu
+    from PyQt6.QtGui import QAction
+
+    menu = QMenu(win)
+    menu.setStyleSheet(f"""
+        QMenu {{
+            background-color: {BG_PANEL2};
+            color: {TEXT_MAIN};
+            border: 1px solid {BORDER};
+            border-radius: 6px;
+            padding: 4px;
+        }}
+        QMenu::item {{
+            padding: 6px 20px;
+            border-radius: 4px;
+        }}
+        QMenu::item:selected {{
+            background-color: {ACCENT_BLUE}33;
+            color: {ACCENT_BLUE};
+        }}
+    """)
+
+    edit_action = QAction("⚙  Projeyi Düzenle", win)
+    open_path_action = QAction("📁  Proje Yolunu Aç", win)
+    zip_action = QAction("📦  Projeyi Zip Olarak Kaydet", win)
+    delete_action = QAction("🗑  Projeyi Sil", win)
+
+    edit_action.triggered.connect(lambda: win.open_project_settings_dialog())
+    open_path_action.triggered.connect(lambda: _open_project_folder(win, project_path))
+    zip_action.triggered.connect(lambda: _export_project_zip(win, project_name, project_path))
+    delete_action.triggered.connect(lambda: win.delete_project_clicked())
+
+    menu.addAction(edit_action)
+    menu.addAction(open_path_action)
+    menu.addAction(zip_action)
+    menu.addSeparator()
+    menu.addAction(delete_action)
+
+    menu.exec(win.project_list.mapToGlobal(pos))
+
+
+def _open_project_folder(win, path: str):
+    import sys, subprocess
+    try:
+        if not os.path.exists(path):
+            from PyQt6.QtWidgets import QMessageBox
+            QMessageBox.warning(win, "Hata", f"Dizin bulunamadı:\n{path}")
+            return
+        if sys.platform == "win32":
+            os.startfile(path)
+        elif sys.platform == "darwin":
+            subprocess.run(["open", path])
+        else:
+            subprocess.run(["xdg-open", path])
+    except Exception as e:
+        from PyQt6.QtWidgets import QMessageBox
+        QMessageBox.critical(win, "Hata", f"Klasör açılamadı:\n{e}")
+
+
+def _export_project_zip(win, project_name: str, project_path: str):
+    import zipfile
+    from PyQt6.QtWidgets import QFileDialog, QMessageBox
+
+    if not os.path.exists(project_path):
+        QMessageBox.warning(win, "Hata", "Proje dizini bulunamadı.")
+        return
+
+    default_zip_name = os.path.join(os.path.expanduser("~"), "Desktop", f"{project_name}.zip")
+    save_path, _ = QFileDialog.getSaveFileName(
+        win,
+        "Projeyi Zip Olarak Kaydet",
+        default_zip_name,
+        "Zip Files (*.zip);;All Files (*)"
+    )
+
+    if not save_path:
+        return
+
+    try:
+        with zipfile.ZipFile(save_path, 'w', zipfile.ZIP_DEFLATED) as zf:
+            for root_dir, dirs, files in os.walk(project_path):
+                for file in files:
+                    full_file = os.path.join(root_dir, file)
+                    rel_file = os.path.relpath(full_file, os.path.dirname(project_path))
+                    zf.write(full_file, rel_file)
+        QMessageBox.information(win, "Başarılı", f"Proje başarıyla zip olarak kaydedildi:\n{save_path}")
+    except Exception as e:
+        QMessageBox.critical(win, "Kayıt Hatası", f"Zip oluşturulurken hata oluştu:\n{e}")

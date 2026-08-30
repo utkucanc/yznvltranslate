@@ -15,7 +15,7 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont
-
+import os
 from ui.dark_theme import (
     BG_APP, BG_PANEL, BG_PANEL2, BORDER, TEXT_MAIN, TEXT_DIM, TEXT_FAINT,
     ACCENT_BLUE, ACCENT_GREEN
@@ -172,8 +172,22 @@ def _nav_click(win, stack_index: int, name: str):
 def _open_terminology(win):
     """Terminology dialog'unu açar."""
     try:
+        project_path = getattr(win, 'current_project_path', None)
+        if not project_path and hasattr(win, 'project_list') and win.project_list.currentItem():
+            p_name = win.project_list.currentItem().text()
+            if p_name:
+                project_path = os.path.join(os.getcwd(), p_name)
+        if not project_path or not os.path.exists(project_path):
+            from PyQt6.QtWidgets import QMessageBox
+            from core.localization import tr
+            QMessageBox.warning(
+                win,
+                tr("sidebar.no_project_title", "Proje Seçilmedi"),
+                tr("sidebar.no_project_body", "Lütfen önce bir proje seçin.")
+            )
+            return
         from dialogs import TerminologyDialog
-        TerminologyDialog(win).exec()
+        TerminologyDialog(project_path, win).exec()
     except Exception as e:
         from logger import app_logger
         app_logger.warning(f"Terminology dialog açılamadı: {e}")
