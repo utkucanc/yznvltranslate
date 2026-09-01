@@ -36,6 +36,8 @@ from ui.dashboard_page import (
     update_project_files_footer
 )
 from ui.project_page import build_project_page, refresh_project_details
+from ui.terminology_page import build_terminology_page, refresh_terminology_page
+from ui.text_editor_page import build_text_editor_page, refresh_text_editor_page
 from core.download_controller import DownloadController
 from core.translation_controller import TranslationController
 from core.merge_controller import MergeController
@@ -113,8 +115,14 @@ class MainWindow(QMainWindow):
 
         # Stack
         self.main_stack = QStackedWidget()
-        self.main_stack.addWidget(build_dashboard_page(self))   # index 0
-        self.main_stack.addWidget(build_project_page(self))     # index 1
+        self.dashboard_page = build_dashboard_page(self)
+        self.project_page = build_project_page(self)
+        self.terminology_page = build_terminology_page(self)
+        self.text_editor_page = build_text_editor_page(self)
+        self.main_stack.addWidget(self.dashboard_page)     # index 0
+        self.main_stack.addWidget(self.project_page)       # index 1
+        self.main_stack.addWidget(self.terminology_page)   # index 2
+        self.main_stack.addWidget(self.text_editor_page)   # index 3
         body_layout.addWidget(self.main_stack, 1)
 
         body_widget = QWidget()
@@ -371,6 +379,18 @@ class MainWindow(QMainWindow):
         if hasattr(self, 'nav_buttons'):
             for n, btn in self.nav_buttons.items():
                 btn.set_active(n == name)
+
+    def goto_terminology_page(self):
+        refresh_terminology_page(self)
+        if hasattr(self, 'main_stack'):
+            self.main_stack.setCurrentIndex(2)
+        self.set_active_nav("Terminology")
+
+    def goto_text_editor_page(self, file_path: str = None):
+        refresh_text_editor_page(self, target_file_path=file_path)
+        if hasattr(self, 'main_stack'):
+            self.main_stack.setCurrentIndex(3)
+        self.set_active_nav("Text Editor")
 
     # ──────────────────────────────────────────────────────────────────
     # Uygulama Yapısı
@@ -803,6 +823,8 @@ class MainWindow(QMainWindow):
         update_project_files_footer(self)
         refresh_project_details(self)
         update_dashboard_stats(self)
+        refresh_terminology_page(self)
+        refresh_text_editor_page(self)
 
     # ──────────────────────────────────────────────────────────────────
     # UI Yardımcıları (controller'lar tarafından kullanılır)

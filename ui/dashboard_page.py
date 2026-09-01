@@ -612,7 +612,7 @@ def update_project_files_footer(win):
             total = len([f for f in os.listdir(dwnld) if f.endswith(".txt")]) if os.path.exists(dwnld) else 0
             done  = len([f for f in os.listdir(trslt) if f.endswith(".txt")]) if os.path.exists(trslt) else 0
             project_name = win.project_list.currentItem().text() if win.project_list.currentItem() else "?"
-            win._project_files_card_title_lbl.setText(f"Project Files ({total})")
+            win._project_files_card_title_lbl.setText(f"Project Files ({total}) -- {project_name}")
             win._project_files_footer.setText(
                 f"Toplam: {total}    Çevrildi: {done}    Kalan: {total - done}"
             )

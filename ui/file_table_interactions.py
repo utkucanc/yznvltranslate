@@ -69,8 +69,11 @@ class FileTableInteractions:
             else:
                 file_path = os.path.join(self.win.current_project_path, 'trslt', file_name)
         if os.path.exists(file_path):
-            editor = TextEditorDialog(file_path, self.win, project_path=self.win.current_project_path)
-            editor.exec()
+            if hasattr(self.win, 'goto_text_editor_page'):
+                self.win.goto_text_editor_page(file_path=file_path)
+            else:
+                editor = TextEditorDialog(file_path, self.win, project_path=self.win.current_project_path)
+                editor.exec()
         else:
             QMessageBox.warning(self.win, tr("menu_bar.msg_file_not_found_title", "Dosya Bulunamadı"), tr("file_table.msg_file_not_found_body", "Dosya bulunamadı:\n{}").format(file_path))
 
@@ -119,9 +122,12 @@ class FileTableInteractions:
         if not self.win.current_project_path:
             QMessageBox.warning(self.win, tr("main_window.msg_structure_error_title", "Hata"), tr("menu_bar.msg_json_project_not_selected_body", "Lütfen önce bir proje seçin."))
             return
-        original_file_name = self.win.file_table.item(row, 1).text()
-        translated_file_name = self.win.file_table.item(row, 2).text()
-        status = self.win.file_table.item(row, 5).text()
+        orig_item = self.win.file_table.item(row, 1)
+        trans_item = self.win.file_table.item(row, 2)
+        status_item = self.win.file_table.item(row, 5)
+        original_file_name = orig_item.text() if orig_item else ""
+        translated_file_name = trans_item.text() if trans_item else ""
+        status = status_item.text() if status_item else ""
         file_path_to_open = self._resolve_file_path(
             clicked_column, original_file_name, translated_file_name, status
         )
@@ -134,9 +140,12 @@ class FileTableInteractions:
         if not self.win.current_project_path:
             QMessageBox.warning(self.win, tr("main_window.msg_structure_error_title", "Hata"), tr("menu_bar.msg_json_project_not_selected_body", "Lütfen önce bir proje seçin."))
             return
-        original_file_name = self.win.file_table.item(row, 1).text()
-        translated_file_name = self.win.file_table.item(row, 2).text()
-        status = self.win.file_table.item(row, 5).text()
+        orig_item = self.win.file_table.item(row, 1)
+        trans_item = self.win.file_table.item(row, 2)
+        status_item = self.win.file_table.item(row, 5)
+        original_file_name = orig_item.text() if orig_item else ""
+        translated_file_name = trans_item.text() if trans_item else ""
+        status = status_item.text() if status_item else ""
         folder_path = self._resolve_folder_path(
             clicked_column, original_file_name, translated_file_name, status
         )

@@ -26,7 +26,8 @@ from ui.dark_theme import (
 NAV_ITEMS = [
     ("🏠", "Dashboard",     0),   # Stack index 0
     ("📁", "Project",       1),   # Stack index 1
-    ("🔤", "Terminology",   "dlg_terminology"),
+    ("🔤", "Terminology",   2),   # Stack index 2
+    ("📝", "Text Editor",   3),   # Stack index 3
     ("✨", "Prompts",     "dlg_prompt")
 ]
 
@@ -164,9 +165,14 @@ def build_sidebar(main_window) -> QFrame:
 
 def _nav_click(win, stack_index: int, name: str):
     """Stack sayfasını ve aktif nav butonunu günceller."""
-    if hasattr(win, 'main_stack'):
-        win.main_stack.setCurrentIndex(stack_index)
-    win.set_active_nav(name)
+    if stack_index == 2 and hasattr(win, 'goto_terminology_page'):
+        win.goto_terminology_page()
+    elif stack_index == 3 and hasattr(win, 'goto_text_editor_page'):
+        win.goto_text_editor_page()
+    else:
+        if hasattr(win, 'main_stack'):
+            win.main_stack.setCurrentIndex(stack_index)
+        win.set_active_nav(name)
 
 
 def _open_terminology(win):
