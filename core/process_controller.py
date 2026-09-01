@@ -503,7 +503,7 @@ class MLTerminologyController:
             QMessageBox.warning(self.win, "Çalışıyor", "Terminoloji işlemi zaten devam ediyor.")
             return
 
-        # ── Bölüm Aralığı Diyalogunu Aç ──
+        # -- Bölüm Aralığı Diyalogunu Aç --
         from ui.ml_terminology_range_dialog import MLTerminologyRangeDialog
         from PyQt6.QtWidgets import QDialog
         dlg = MLTerminologyRangeDialog(project_path, parent=self.win)

@@ -12,7 +12,7 @@ from PyQt6.QtCore import Qt, QThread, pyqtSignal, QObject, QSize
 from logger import app_logger
 from core.localization import tr
 
-# ─── V2.1.0 Geriye Uyumluluk Re-export'lar ───
+# --- V2.1.0 Geriye Uyumluluk Re-export'lar ---
 # ui/ paketine taşınan sınıflar burada da erişilebilir kalır.
 # Eski "from dialogs import X" çağrıları kırılmaz.
 try:
@@ -135,7 +135,7 @@ class TerminologyDialog(QDialog):
 
         layout.addLayout(btn_layout)
 
-        # ── Son ML İşlem Bilgisi ──
+        # -- Son ML İşlem Bilgisi --
         self.last_op_label = QLabel("")
         self.last_op_label.setAlignment(Qt.AlignmentFlag.AlignLeft)
         self.last_op_label.setStyleSheet("color: #888; font-size: 9pt; margin-top: 4px;")

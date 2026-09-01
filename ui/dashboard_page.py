@@ -28,6 +28,7 @@ from ui.dark_theme import (
     ACCENT_BLUE, ACCENT_GREEN, ACCENT_ORANGE, ACCENT_PURPLE,
     ACCENT_RED, ACCENT_CYAN
 )
+from core.localization import tr
 
 
 # ------------------------------------------------------------------
@@ -101,7 +102,7 @@ def build_dashboard_page(main_window) -> QScrollArea:
     root.setContentsMargins(14, 14, 14, 14)
     root.setSpacing(14)
 
-    # ── Satır 1: Project Files | Translation Queue & Terminology | Merge/Export ──
+    # -- Satır 1: Project Files | Translation Queue & Terminology | Merge/Export --
     row1 = QHBoxLayout()
     row1.setSpacing(14)
     row1.addWidget(_build_project_files_card(win), 5)
@@ -109,7 +110,7 @@ def build_dashboard_page(main_window) -> QScrollArea:
     row1.addWidget(_build_merge_export_card(win), 3)
     root.addLayout(row1, 2)
 
-    # ── Satır 2: Logs | Statistics Overview ──
+    # -- Satır 2: Logs | Statistics Overview --
     row2 = QHBoxLayout()
     row2.setSpacing(14)
     row2.addWidget(_build_logs_card(win), 3)
@@ -127,7 +128,7 @@ def _build_project_files_card(win) -> QFrame:
     """Proje dosyaları kartı — mevcut file_table ve arama gömülür."""
 
     # Kart başlığındaki ekstra butonlar
-    add_files_btn = QPushButton("+ Dosya Ekle")
+    add_files_btn = QPushButton(tr("dashboard.btn_add_files", "+ Dosya Ekle"))
     add_files_btn.setObjectName("smallBtn")
     add_files_btn.clicked.connect(lambda: _open_split(win))
 
@@ -138,7 +139,7 @@ def _build_project_files_card(win) -> QFrame:
     hl.addWidget(add_files_btn)
 
     # Kart başlığı güncellenecek (dosya sayısı için)
-    win._project_files_card_title_lbl = QLabel("Project Files")
+    win._project_files_card_title_lbl = QLabel(tr("dashboard.card_project_files", "Proje Dosyaları"))
     win._project_files_card_title_lbl.setObjectName("cardTitle")
 
     frame = QFrame()
@@ -166,7 +167,7 @@ def _build_project_files_card(win) -> QFrame:
         outer.addWidget(win.file_table)
 
     # Alt bilgi satırı
-    win._project_files_footer = QLabel("Proje seçilmedi.")
+    win._project_files_footer = QLabel(tr("dashboard.footer_no_project", "Proje seçilmedi."))
     win._project_files_footer.setStyleSheet(
         f"color:{TEXT_FAINT}; font-size:11px; "
         f"border-top:1px solid {BORDER}; padding-top:6px;"
@@ -190,10 +191,10 @@ def _build_translation_queue_card(win) -> QFrame:
     if hasattr(win, 'stopTranslationButton'):
         hl.addWidget(win.stopTranslationButton)
 
-    frame, body = _card("Translation Queue & Terminology", header_w)
+    frame, body = _card(tr("dashboard.card_translation_queue", "Çeviri Kuyruğu & Terminoloji"), header_w)
 
-    # ── Mevcut görev bilgisi ──
-    cur_lbl = QLabel("Current Task")
+    # -- Mevcut görev bilgisi --
+    cur_lbl = QLabel(tr("dashboard.current_task", "Mevcut Görev"))
     cur_lbl.setStyleSheet(f"color:{TEXT_FAINT}; font-size:11px;")
     body.addWidget(cur_lbl)
 
@@ -219,7 +220,7 @@ def _build_translation_queue_card(win) -> QFrame:
         win.statusLabel.setStyleSheet(f"color:{TEXT_FAINT}; font-size:11px;")
         body.addWidget(win.statusLabel)
 
-    # ── Sayılı çevir ──
+    # -- Sayılı çevir --
     limit_row = QHBoxLayout()
     if hasattr(win, 'limit_checkbox'):
         limit_row.addWidget(win.limit_checkbox)
@@ -228,11 +229,11 @@ def _build_translation_queue_card(win) -> QFrame:
         limit_row.addWidget(win.limit_spinbox)
     body.addLayout(limit_row)
 
-    # ── Kapatma checkbox ──
+    # -- Kapatma checkbox --
     if hasattr(win, 'shutdown_checkbox'):
         body.addWidget(win.shutdown_checkbox)
 
-    # ── Token bilgileri ──
+    # -- Token bilgileri --
     if hasattr(win, 'total_tokens_label'):
         body.addWidget(win.total_tokens_label)
     if hasattr(win, 'total_original_tokens_label'):
@@ -242,21 +243,21 @@ def _build_translation_queue_card(win) -> QFrame:
     if hasattr(win, 'token_progress_bar'):
         body.addWidget(win.token_progress_bar)
 
-    # ── Token say ──
+    # -- Token say --
     if hasattr(win, 'token_count_button'):
         body.addWidget(win.token_count_button)
 
-    # ── Seç / Vurgulananları İşaretle ──
+    # -- Seç / Vurgulananları İşaretle --
     if hasattr(win, 'selectHighlightedButton'):
         body.addWidget(win.selectHighlightedButton)
 
-    # ── Terminoloji Bölümü ──
+    # -- Terminoloji Bölümü --
     sep = QFrame()
     sep.setFrameShape(QFrame.Shape.HLine)
     sep.setStyleSheet(f"color:{BORDER};")
     body.addWidget(sep)
 
-    term_head = QLabel("📚 Terminoloji")
+    term_head = QLabel(tr("dashboard.section_terminology", "📚 Terminoloji"))
     term_head.setStyleSheet(f"color:{TEXT_MAIN}; font-size:12px; font-weight:600;")
     body.addWidget(term_head)
 
@@ -264,8 +265,8 @@ def _build_translation_queue_card(win) -> QFrame:
     stats_row.setSpacing(8)
     total_terms = _count_terms(win)
     for title, val, color in [
-        ("Toplam Terim", str(total_terms), TEXT_MAIN),
-        ("Durum", "Hazır", ACCENT_GREEN),
+        (tr("dashboard.total_terms", "Toplam Terim"), str(total_terms), TEXT_MAIN),
+        (tr("dashboard.status", "Durum"), tr("dashboard.ready", "Hazır"), ACCENT_GREEN),
     ]:
         box = QVBoxLayout()
         t = QLabel(title)
@@ -282,7 +283,7 @@ def _build_translation_queue_card(win) -> QFrame:
     if hasattr(win, 'generateTerminologyButton'):
         body.addWidget(win.generateTerminologyButton)
 
-    open_btn = QPushButton("📚  Terminoloji Yöneticisi")
+    open_btn = QPushButton(tr("dashboard.btn_terminology_manager", "📚  Terminoloji Yöneticisi"))
     open_btn.setObjectName("smallBtnFull")
     open_btn.clicked.connect(lambda: _open_terminology_dialog(win))
     body.addWidget(open_btn)
@@ -293,34 +294,34 @@ def _build_translation_queue_card(win) -> QFrame:
 
 def _build_statistics_card(win) -> QFrame:
     """İstatistik kartı — request count, token bilgisi, matplotlib grafiği."""
-    frame, body = _card("Statistics Overview")
+    frame, body = _card(tr("dashboard.card_statistics", "İstatistikler"))
 
-    # ── Özet satırı ──
+    # -- Özet satırı --
     stats_row = QHBoxLayout()
     stats_row.setSpacing(8)
 
-    win._stat_requests_lbl = _make_stat_box("Total Requests", "0", ACCENT_BLUE)
-    win._stat_tokens_lbl   = _make_stat_box("Total Tokens",   "0", ACCENT_PURPLE)
-    win._stat_speed_lbl    = _make_stat_box("Avg Speed",      "—", ACCENT_GREEN)
+    win._stat_requests_lbl = _make_stat_box(tr("dashboard.stat_total_requests", "Toplam İstek"), "0", ACCENT_BLUE)
+    win._stat_tokens_lbl   = _make_stat_box(tr("dashboard.stat_total_tokens",   "Toplam Token"), "0", ACCENT_PURPLE)
+    win._stat_speed_lbl    = _make_stat_box(tr("dashboard.stat_avg_speed",      "Ort. Hız"), "—", ACCENT_GREEN)
 
     stats_row.addWidget(win._stat_requests_lbl)
     stats_row.addWidget(win._stat_tokens_lbl)
     stats_row.addWidget(win._stat_speed_lbl)
     body.addLayout(stats_row)
 
-    # ── Grafik ──
+    # -- Grafik --
     try:
         from ui.stats_chart_widget import StatsChartWidget
         win._stats_chart = StatsChartWidget(win)
         body.addWidget(win._stats_chart)
     except Exception:
-        chart_placeholder = QLabel("📊 Grafik: matplotlib yüklü değil.")
+        chart_placeholder = QLabel(tr("dashboard.chart_unavailable", "📊 Grafik: matplotlib yüklü değil."))
         chart_placeholder.setAlignment(Qt.AlignmentFlag.AlignCenter)
         chart_placeholder.setStyleSheet(f"color:{TEXT_FAINT}; font-size:11px;")
         body.addWidget(chart_placeholder)
 
-    # ── API İstatistikleri butonu ──
-    api_stats_btn = QPushButton("📊  API İstatistiklerini Görüntüle")
+    # -- API İstatistikleri butonu --
+    api_stats_btn = QPushButton(tr("dashboard.btn_view_api_stats", "📊  API İstatistiklerini Görüntüle"))
     api_stats_btn.setObjectName("smallBtnFull")
     api_stats_btn.clicked.connect(lambda: win.show_api_stats_dialog())
     body.addWidget(api_stats_btn)
@@ -331,10 +332,10 @@ def _build_statistics_card(win) -> QFrame:
 
 def _build_logs_card(win) -> QFrame:
     """Log kartı — LogHandler → QTextEdit."""
-    clear_btn = QPushButton("Temizle")
+    clear_btn = QPushButton(tr("dashboard.btn_clear_logs", "Temizle"))
     clear_btn.setObjectName("smallBtn")
 
-    frame, body = _card("Logs", clear_btn)
+    frame, body = _card(tr("dashboard.card_logs", "Loglar"), clear_btn)
 
     # Log QTextEdit oluştur ve main_window'a kaydet
     win.dashboard_log_box = QTextEdit()
@@ -362,9 +363,9 @@ def _build_logs_card(win) -> QFrame:
 
 def _build_merge_export_card(win) -> QFrame:
     """Birleştir/Dışa aktar kartı."""
-    frame, body = _card("Merge / Export")
+    frame, body = _card(tr("dashboard.card_merge_export", "Birleştir / Dışa Aktar"))
 
-    fmt_lbl = QLabel("Çıktı Formatı")
+    fmt_lbl = QLabel(tr("dashboard.output_format", "Çıktı Formatı"))
     fmt_lbl.setStyleSheet(f"color:{TEXT_FAINT}; font-size:11px;")
     body.addWidget(fmt_lbl)
 
@@ -412,7 +413,7 @@ def _build_merge_export_card(win) -> QFrame:
 
 def _build_terminology_card(win) -> QFrame:
     """Terminoloji kartı."""
-    frame, body = _card("Terminology")
+    frame, body = _card(tr("dashboard.section_terminology", "Terminoloji"))
 
     # İstatistikler
     stats_row = QHBoxLayout()
@@ -420,8 +421,8 @@ def _build_terminology_card(win) -> QFrame:
 
     total_terms = _count_terms(win)
     for title, val, color in [
-        ("Toplam Terim", str(total_terms), TEXT_MAIN),
-        ("Durum", "Hazır", ACCENT_GREEN),
+        (tr("dashboard.total_terms", "Toplam Terim"), str(total_terms), TEXT_MAIN),
+        (tr("dashboard.status", "Durum"), tr("dashboard.ready", "Hazır"), ACCENT_GREEN),
     ]:
         box = QVBoxLayout()
         t = QLabel(title)
@@ -439,7 +440,7 @@ def _build_terminology_card(win) -> QFrame:
     if hasattr(win, 'generateTerminologyButton'):
         body.addWidget(win.generateTerminologyButton)
 
-    open_btn = QPushButton("📚  Terminoloji Yöneticisi")
+    open_btn = QPushButton(tr("dashboard.btn_terminology_manager", "📚  Terminoloji Yöneticisi"))
     open_btn.setObjectName("smallBtnFull")
     open_btn.clicked.connect(lambda: _open_terminology_dialog(win))
     body.addWidget(open_btn)
@@ -612,12 +613,16 @@ def update_project_files_footer(win):
             total = len([f for f in os.listdir(dwnld) if f.endswith(".txt")]) if os.path.exists(dwnld) else 0
             done  = len([f for f in os.listdir(trslt) if f.endswith(".txt")]) if os.path.exists(trslt) else 0
             project_name = win.project_list.currentItem().text() if win.project_list.currentItem() else "?"
-            win._project_files_card_title_lbl.setText(f"Project Files ({total}) -- {project_name}")
+            title_tpl = tr("dashboard.card_project_files_with_count", "Proje Dosyaları ({count}) — {project}")
+            win._project_files_card_title_lbl.setText(
+                title_tpl.format(count=total, project=project_name)
+            )
+            footer_tpl = tr("dashboard.footer_stats", "Toplam: {total}    Çevrildi: {done}    Kalan: {remaining}")
             win._project_files_footer.setText(
-                f"Toplam: {total}    Çevrildi: {done}    Kalan: {total - done}"
+                footer_tpl.format(total=total, done=done, remaining=total - done)
             )
         else:
-            win._project_files_card_title_lbl.setText("Project Files")
-            win._project_files_footer.setText("Proje seçilmedi.")
+            win._project_files_card_title_lbl.setText(tr("dashboard.card_project_files", "Proje Dosyaları"))
+            win._project_files_footer.setText(tr("dashboard.footer_no_project", "Proje seçilmedi."))
     except Exception:
         pass

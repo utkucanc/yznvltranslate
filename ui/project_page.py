@@ -79,10 +79,10 @@ def build_project_page(main_window) -> QScrollArea:
     root.setContentsMargins(14, 14, 14, 14)
     root.setSpacing(14)
 
-    # ── Sol: Liste + araç çubuğu + istatistik + tablo ──
+    # -- Sol: Liste + araç çubuğu + istatistik + tablo --
     root.addWidget(_build_project_list_side(win), 3)
 
-    # ── Sağ: Project Details paneli ──
+    # -- Sağ: Project Details paneli --
     win.proj_page_details_frame = _build_project_details_panel(win)
     root.addWidget(win.proj_page_details_frame, 1)
 
@@ -104,14 +104,14 @@ def _build_project_list_side(win) -> QWidget:
     lay.setSpacing(14)
 
     # Başlık
-    t = QLabel("Projects")
+    t = QLabel(tr("project_page_extra.projects_title", "Projects"))
     t.setStyleSheet(f"color:{TEXT_MAIN}; font-size:22px; font-weight:700;")
-    sub = QLabel("Çeviri projelerinizi yönetin ve organize edin")
+    sub = QLabel(tr("project_page_extra.projects_subtitle", "Çeviri projelerinizi yönetin ve organize edin"))
     sub.setStyleSheet(f"color:{TEXT_FAINT}; font-size:12px;")
     lay.addWidget(t)
     lay.addWidget(sub)
 
-    # ── Araç çubuğu ──
+    # -- Araç çubuğu --
     toolbar = QHBoxLayout()
     toolbar.setSpacing(8)
 
@@ -141,7 +141,7 @@ def _build_project_list_side(win) -> QWidget:
 
     lay.addLayout(toolbar)
 
-    # ── Özet istatistik kartları ──
+    # -- Özet istatistik kartları --
     stats_row = QHBoxLayout()
     stats_row.setSpacing(10)
     total_count, active_count, done_count = _count_projects()
@@ -155,7 +155,7 @@ def _build_project_list_side(win) -> QWidget:
     stats_row.addStretch()
     lay.addLayout(stats_row)
 
-    # ── Mevcut QListWidget ──
+    # -- Mevcut QListWidget --
     if hasattr(win, 'project_list'):
         list_card = QFrame()
         list_card.setObjectName("card")
@@ -217,13 +217,13 @@ def _populate_project_details(win, frame: QFrame, project_name: str = None):
         edit_btn.setStyleSheet(f"font-size:25px")
             
         edit_btn.setObjectName("iconBtn")
-        edit_btn.setToolTip("Proje Ayarları")
+        edit_btn.setToolTip(tr("project_page_extra.tooltip_project_settings", "Proje Ayarları"))
         edit_btn.clicked.connect(lambda: win.open_project_settings_dialog())
         head_row.addWidget(edit_btn)
     outer.addLayout(head_row)
 
     if not project_name:
-        placeholder = QLabel("Detayları görmek için\nbir proje seçin")
+        placeholder = QLabel(tr("project_page_extra.placeholder_select_project", "Detayları görmek için\nbir proje seçin"))
         placeholder.setAlignment(Qt.AlignmentFlag.AlignCenter)
         placeholder.setStyleSheet(f"color:{TEXT_FAINT}; font-size:12px;")
         outer.addWidget(placeholder)
@@ -255,7 +255,7 @@ def _populate_project_details(win, frame: QFrame, project_name: str = None):
     p_path = os.path.join(os.getcwd(), project_name)
     p_size = _format_size(_get_folder_size(p_path)) if os.path.exists(p_path) else "—"
     size_row = QHBoxLayout()
-    kl_sz = QLabel("Proje Boyutu")
+    kl_sz = QLabel(tr("project_page_extra.project_size", "Proje Boyutu"))
     kl_sz.setStyleSheet(f"color:{TEXT_FAINT}; font-size:11px;")
     vl_sz = QLabel(p_size)
     vl_sz.setStyleSheet(f"color:{TEXT_MAIN}; font-size:11px; font-weight:600;")
@@ -293,7 +293,7 @@ def _populate_project_details(win, frame: QFrame, project_name: str = None):
         outer.addLayout(row)
 
     # Progress Overview (dosya sayısı)
-    prog_title = QLabel("Progress Overview")
+    prog_title = QLabel(tr("project_page_extra.progress_overview", "Progress Overview"))
     prog_title.setStyleSheet(f"color:{TEXT_MAIN}; font-size:13px; font-weight:700; margin-top:8px;")
     outer.addWidget(prog_title)
 
@@ -309,7 +309,7 @@ def _populate_project_details(win, frame: QFrame, project_name: str = None):
     outer.addWidget(prog_lbl)
 
     # Recent Activity
-    act_title = QLabel("Son Aktivite")
+    act_title = QLabel(tr("project_page_extra.recent_activity", "Son Aktivite"))
     act_title.setStyleSheet(f"color:{TEXT_MAIN}; font-size:13px; font-weight:700; margin-top:8px;")
     outer.addWidget(act_title)
 

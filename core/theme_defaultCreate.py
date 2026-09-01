@@ -22,14 +22,14 @@ _DARK_QSS = r"""/* =============================================================
    qt-material (dark_teal) base + proje spesifik overrides
    ============================================================== */
 
-/* ── Temel Widget Stilleri ── */
+/* -- Temel Widget Stilleri -- */
 QWidget {
     font-family: "Segoe UI Variable", "Segoe UI", "Inter", Arial, sans-serif;
     font-size: 9pt;
     letter-spacing: 0.01em;
 }
 
-/* ── Ana Pencere Arka Planı ── */
+/* -- Ana Pencere Arka Planı -- */
 QMainWindow {
     background-color: #1E1E2E;
 }
@@ -39,7 +39,7 @@ QDialog {
     color: #CDD6F4;
 }
 
-/* ── Genel QPushButton — KOMPAKT ── */
+/* -- Genel QPushButton — KOMPAKT -- */
 QPushButton {
     border-radius: 5px;
     padding: 4px 10px;
@@ -112,7 +112,7 @@ QPushButton[class="btn-clear"]:hover {
     border-color: #F38BA8;
 }
 
-/* ── Input Alanları ── */
+/* -- Input Alanları -- */
 QLineEdit, QTextEdit, QPlainTextEdit {
     background-color: #181825;
     color: #CDD6F4;
@@ -132,7 +132,7 @@ QLineEdit:focus, QTextEdit:focus, QPlainTextEdit:focus {
     background-color: #1A1A2C;
 }
 
-/* ── Tablo ── */
+/* -- Tablo -- */
 QTableWidget {
     background-color: #181825;
     color: #CDD6F4;
@@ -155,7 +155,7 @@ QHeaderView::section {
 }
 QHeaderView { font-size: 8pt; }
 
-/* ── Liste ── */
+/* -- Liste -- */
 QListWidget {
     background-color: #181825; color: #CDD6F4;
     border: 1px solid #313244; border-radius: 4px;
@@ -167,7 +167,7 @@ QListWidget::item:selected, QListWidget::item:selected:focus {
 }
 QListWidget::item:hover { background-color: #2A2A40; }
 
-/* ── ComboBox ── */
+/* -- ComboBox -- */
 QComboBox {
     background-color: #252537; color: #CDD6F4;
     border: 1px solid #45475A; border-radius: 4px;
@@ -196,7 +196,7 @@ QComboBox QAbstractItemView::item {
     background-color: #1E1E2E; color: #CDD6F4; padding: 4px 8px;
 }
 
-/* ── Progress Bar ── */
+/* -- Progress Bar -- */
 QProgressBar {
     background-color: #181830; border: none; border-radius: 5px;
     text-align: center; font-size: 7pt; font-weight: 600;
@@ -211,7 +211,7 @@ QProgressBar::chunk {
     border-radius: 5px;
 }
 
-/* ── ScrollBar ── */
+/* -- ScrollBar -- */
 QScrollBar:vertical { background-color: #111120; width: 6px; border-radius: 3px; margin: 0; }
 QScrollBar::handle:vertical { background-color: #45475A; border-radius: 3px; min-height: 20px; }
 QScrollBar::handle:vertical:hover { background-color: #89B4FA; }
@@ -221,17 +221,17 @@ QScrollBar::handle:horizontal { background-color: #45475A; border-radius: 3px; m
 QScrollBar::handle:horizontal:hover { background-color: #89B4FA; }
 QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal { width: 0; background: none; }
 
-/* ── Tab Widget ── */
+/* -- Tab Widget -- */
 QTabWidget::pane { border: 1px solid #313244; border-radius: 5px; background-color: #1E1E2E; top: -1px; }
 QTabBar::tab { background-color: #252537; color: #A6ADC8; padding: 5px 14px; border-top-left-radius: 4px; border-top-right-radius: 4px; margin-right: 2px; font-size: 8pt; }
 QTabBar::tab:selected { background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 0, stop: 0 #89B4FA, stop: 1 #74C7EC); color: #1E1E2E; font-weight: 700; }
 QTabBar::tab:hover:!selected { background-color: #313244; color: #CDD6F4; }
 
-/* ── GroupBox ── */
+/* -- GroupBox -- */
 QGroupBox { border: 1px solid #313244; border-radius: 6px; margin-top: 8px; padding: 8px 6px 6px 6px; font-size: 8pt; }
 QGroupBox::title { color: #89B4FA; subcontrol-origin: margin; left: 8px; padding: 0 3px; font-weight: 600; }
 
-/* ── MenuBar ── */
+/* -- MenuBar -- */
 QMenuBar { background-color: #11111B; color: #CDD6F4; border-bottom: 1px solid #1E1E2E; padding: 1px; font-size: 9pt; }
 QMenuBar::item { padding: 3px 8px; border-radius: 3px; }
 QMenuBar::item:selected { background-color: #313244; color: #89B4FA; }
@@ -241,32 +241,32 @@ QMenu::item { padding: 4px 22px 4px 10px; border-radius: 3px; }
 QMenu::item:selected { background-color: #313244; color: #89B4FA; }
 QMenu::separator { height: 1px; background-color: #313244; margin: 3px 6px; }
 
-/* ── Label ── */
+/* -- Label -- */
 QLabel { color: #CDD6F4; font-size: 9pt; }
 
-/* ── Checkbox ── */
+/* -- Checkbox -- */
 QCheckBox { color: #CDD6F4; spacing: 5px; font-size: 9pt; }
 QCheckBox::indicator { width: 13px; height: 13px; border: 1px solid #45475A; border-radius: 2px; background-color: #252537; }
 QCheckBox::indicator:hover { border-color: #89B4FA; }
 QCheckBox::indicator:checked { background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1, stop: 0 #89B4FA, stop: 1 #74C7EC); border-color: #89B4FA; }
 
-/* ── SpinBox ── */
+/* -- SpinBox -- */
 QSpinBox { background-color: #252537; color: #CDD6F4; border: 1px solid #45475A; border-radius: 4px; padding: 2px 6px; font-size: 9pt; min-height: 14px; max-height: 26px; }
 QSpinBox:hover { border-color: #89B4FA; }
 QSpinBox:focus { border-color: #89B4FA; background-color: #1A1A2C; }
 
-/* ── QDialogButtonBox ── */
+/* -- QDialogButtonBox -- */
 QDialogButtonBox QPushButton { min-width: 70px; padding: 4px 14px; }
 
-/* ── Status Bar ── */
+/* -- Status Bar -- */
 QStatusBar { background-color: #11111B; color: #A6ADC8; border-top: 1px solid #252537; padding: 1px 6px; font-size: 8pt; }
 QStatusBar::item { border: none; }
 
-/* ── ScrollArea ── */
+/* -- ScrollArea -- */
 QScrollArea { border: none; background-color: transparent; }
 QScrollArea > QWidget > QWidget { background-color: transparent; }
 
-/* ── Novel Translator Pro Modern UI Bileşenleri ── */
+/* -- Novel Translator Pro Modern UI Bileşenleri -- */
 #topbar   { background-color: #0b0f19; border-bottom: 1px solid #1f2937; }
 #connbar  { background-color: #111827; border-bottom: 1px solid #1f2937; }
 #sidebar  { background-color: #0b0f19; border-right: 1px solid #1f2937; }

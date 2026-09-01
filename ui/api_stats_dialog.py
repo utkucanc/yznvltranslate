@@ -18,7 +18,7 @@ def show_api_stats_dialog(main_window):
     main_layout = QVBoxLayout(dialog)
     tabs = QTabWidget()
 
-    # ── Matplotlib Grafik ──
+    # -- Matplotlib Grafik --
     try:
         import matplotlib
         # Backend'i yalnızca henüz başlatılmamışsa ayarla.
@@ -67,7 +67,7 @@ def show_api_stats_dialog(main_window):
         tabs.addTab(chart_tab, "📊 Grafik")
 
 
-    # ── Tablo ──
+    # -- Tablo --
     table_tab = QWidget()
     table_layout = QVBoxLayout(table_tab)
     all_rows = []

@@ -454,7 +454,7 @@ def tokens_to_qss(tokens: dict) -> str:
         return d.get(key, fallback)
 
     qss = f"""
-/* ── Otomatik oluşturuldu: ThemeEngine ── */
+/* -- Otomatik oluşturuldu: ThemeEngine -- */
 
 QWidget {{
     font-family: {c(g,'font_family','Segoe UI, Arial, sans-serif')};
@@ -469,7 +469,7 @@ QDialog {{
     color: {c(g,'text_color')};
 }}
 
-/* ── QPushButton ── */
+/* -- QPushButton -- */
 QPushButton {{
     border-radius: 5px;
     padding: {c(b,'btn_padding','4px 10px')};
@@ -510,7 +510,7 @@ QPushButton[class="btn-clear"] {{
     max-width: 22px; min-width: 22px; max-height: 22px; min-height: 22px;
 }}
 
-/* ── Input Alanları ── */
+/* -- Input Alanları -- */
 QLineEdit, QTextEdit, QPlainTextEdit {{
     background-color: {c(i,'input_bg')};
     color: {c(i,'input_text')};
@@ -528,7 +528,7 @@ QLineEdit:focus, QTextEdit:focus, QPlainTextEdit:focus {{
     background-color: {c(i,'input_focus_bg')};
 }}
 
-/* ── Tablo ── */
+/* -- Tablo -- */
 QTableWidget {{
     background-color: {c(t,'table_bg')};
     color: {c(t,'table_text')};
@@ -547,7 +547,7 @@ QHeaderView::section {{
     padding: 4px 6px; font-weight: 600; font-size: 8pt;
 }}
 
-/* ── Liste ── */
+/* -- Liste -- */
 QListWidget {{
     background-color: {c(l,'list_bg')};
     color: {c(l,'list_text')};
@@ -558,7 +558,7 @@ QListWidget::item {{ padding: 4px 7px; border-radius: 2px; }}
 QListWidget::item:selected {{ background-color: {c(l,'list_selected')}; color: {c(l,'list_sel_text')}; }}
 QListWidget::item:hover {{ background-color: {c(l,'list_hover')}; }}
 
-/* ── ComboBox ── */
+/* -- ComboBox -- */
 QComboBox {{
     background-color: {c(i,'input_bg')};
     color: {c(i,'input_text')};
@@ -577,7 +577,7 @@ QComboBox QAbstractItemView {{
     outline: none; font-size: {c(g,'font_size','9pt')};
 }}
 
-/* ── Progress Bar ── */
+/* -- Progress Bar -- */
 QProgressBar {{
     background-color: {c(p,'progress_bg')};
     border: none; border-radius: 5px;
@@ -597,7 +597,7 @@ QProgressBar::chunk {{
     border-radius: 5px;
 }}
 
-/* ── ScrollBar ── */
+/* -- ScrollBar -- */
 QScrollBar:vertical {{
     background-color: {c(sc,'scrollbar_bg')};
     width: {c(sc,'scrollbar_width','6px')}; border-radius: 3px; margin: 0;
@@ -617,7 +617,7 @@ QScrollBar::handle:horizontal {{
 QScrollBar::handle:horizontal:hover {{ background-color: {c(sc,'scrollbar_hover')}; }}
 QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {{ width: 0; background: none; }}
 
-/* ── Tab Widget ── */
+/* -- Tab Widget -- */
 QTabWidget::pane {{
     border: 1px solid {c(tb,'pane_border')};
     border-radius: 5px; background-color: {c(tb,'pane_bg')}; top: -1px;
@@ -636,7 +636,7 @@ QTabBar::tab:hover:!selected {{
     background-color: {c(tb,'tab_hover_bg')}; color: {c(g,'text_color')};
 }}
 
-/* ── GroupBox ── */
+/* -- GroupBox -- */
 QGroupBox {{
     border: 1px solid {c(gb,'groupbox_border')};
     border-radius: 6px; margin-top: 8px;
@@ -647,7 +647,7 @@ QGroupBox::title {{
     subcontrol-origin: margin; left: 8px; padding: 0 3px; font-weight: 600;
 }}
 
-/* ── MenuBar ── */
+/* -- MenuBar -- */
 QMenuBar {{
     background-color: {c(m,'menubar_bg')}; color: {c(m,'menubar_text')};
     border-bottom: 1px solid {c(g,'border_color')}; padding: 1px; font-size: {c(g,'font_size','9pt')};
@@ -663,7 +663,7 @@ QMenu::item {{ padding: 4px 22px 4px 10px; border-radius: 3px; }}
 QMenu::item:selected {{ background-color: {c(m,'menu_selected')}; color: {c(m,'menu_sel_text')}; }}
 QMenu::separator {{ height: 1px; background-color: {c(m,'menu_selected')}; margin: 3px 6px; }}
 
-/* ── Label / Checkbox / SpinBox ── */
+/* -- Label / Checkbox / SpinBox -- */
 QLabel {{ color: {c(g,'text_color')}; font-size: {c(g,'font_size','9pt')}; }}
 QCheckBox {{ color: {c(g,'text_color')}; spacing: 5px; font-size: {c(g,'font_size','9pt')}; }}
 QCheckBox::indicator {{
@@ -686,18 +686,18 @@ QSpinBox {{
 QSpinBox:hover {{ border-color: {c(i,'input_focus_border')}; }}
 QSpinBox:focus {{ border-color: {c(i,'input_focus_border')}; background-color: {c(i,'input_focus_bg')}; }}
 
-/* ── Status Bar ── */
+/* -- Status Bar -- */
 QStatusBar {{
     background-color: {c(st,'statusbar_bg')}; color: {c(st,'statusbar_text')};
     border-top: 1px solid {c(st,'statusbar_border')}; padding: 1px 6px; font-size: 8pt;
 }}
 QStatusBar::item {{ border: none; }}
 
-/* ── ScrollArea ── */
+/* -- ScrollArea -- */
 QScrollArea {{ border: none; background-color: transparent; }}
 QScrollArea > QWidget > QWidget {{ background-color: transparent; }}
 
-/* ── Novel Translator Pro Modern UI Bileşenleri ── */
+/* -- Novel Translator Pro Modern UI Bileşenleri -- */
 #topbar   {{ background-color: {c(g,'background')}; border-bottom: 1px solid {c(g,'border_color')}; }}
 #connbar  {{ background-color: {c(tb,'pane_bg', c(g,'background'))}; border-bottom: 1px solid {c(g,'border_color')}; }}
 #sidebar  {{ background-color: {c(g,'background')}; border-right: 1px solid {c(g,'border_color')}; }}

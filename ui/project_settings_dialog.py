@@ -13,7 +13,7 @@ from PyQt6.QtCore import Qt, QThread, pyqtSignal, QObject, QSize
 from logger import app_logger
 from core.localization import tr
 
-# ─── V2.1.0 Geriye Uyumluluk Re-export'lar ───
+# --- V2.1.0 Geriye Uyumluluk Re-export'lar ---
 try:
     from ui.file_preview_dialog import FilePreviewDialog
     from ui.terminology_dialog import TerminologyDialog

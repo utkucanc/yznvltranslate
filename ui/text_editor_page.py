@@ -119,7 +119,7 @@ def build_text_editor_page(main_window) -> QScrollArea:
     return scroll
 
 
-# ── Üst Bilgi Barı ───────────────────────────────────────────────────
+# -- Üst Bilgi Barı ---------------------------------------------------
 
 def _build_project_header_bar(win) -> QFrame:
     frame = QFrame()
@@ -132,7 +132,7 @@ def _build_project_header_bar(win) -> QFrame:
     win.editor_proj_name_lbl.setStyleSheet(f"color:{TEXT_MAIN}; font-size:12px; font-weight:600;")
 
     proj_row = QHBoxLayout()
-    kl = QLabel("Proje:")
+    kl = QLabel(tr("text_editor_page_extra.label_project", "Proje:"))
     kl.setStyleSheet(f"color:{TEXT_FAINT}; font-size:12px;")
     proj_row.addWidget(kl)
     proj_row.addWidget(win.editor_proj_name_lbl)
@@ -154,7 +154,7 @@ def _build_project_header_bar(win) -> QFrame:
 
     close_btn = QPushButton("✕  Kapat (ESC)")
     close_btn.setObjectName("smallBtn")
-    close_btn.setToolTip("Dashboard sayfasına dön (ESC)")
+    close_btn.setToolTip(tr("text_editor_page_extra.tooltip_close", "Dashboard sayfasına dön (ESC)"))
     close_btn.clicked.connect(lambda: _close_editor_view(win))
 
     for b in (save_btn, retranslate_btn, close_btn):
@@ -170,7 +170,7 @@ def _vline() -> QFrame:
     return v
 
 
-# ── Sol Panel: Bölüm Listesi ─────────────────────────────────────────
+# -- Sol Panel: Bölüm Listesi -----------------------------------------
 
 def _build_chapter_list_panel(win) -> QFrame:
     frame, lay = _card()
@@ -180,7 +180,7 @@ def _build_chapter_list_panel(win) -> QFrame:
     win.editor_chapter_search.textChanged.connect(lambda: _filter_chapter_list(win))
     lay.addWidget(win.editor_chapter_search)
 
-    win.editor_chapter_stats_lbl = QLabel("Bölüm Yükleniyor...")
+    win.editor_chapter_stats_lbl = QLabel(tr("text_editor_page_extra.chapter_loading", "Bölüm Yükleniyor..."))
     win.editor_chapter_stats_lbl.setStyleSheet(f"color:{TEXT_FAINT}; font-size:11px;")
     lay.addWidget(win.editor_chapter_stats_lbl)
 
@@ -200,13 +200,13 @@ def _build_chapter_list_panel(win) -> QFrame:
     return frame
 
 
-# ── Orta Panel: Çift Panel Editör ────────────────────────────────────
+# -- Orta Panel: Çift Panel Editör ------------------------------------
 
 def _build_editor_center_panel(win) -> QFrame:
     frame, lay = _card()
 
     title_row = QHBoxLayout()
-    win.editor_chapter_title = QLabel("Bölüm Seçilmedi")
+    win.editor_chapter_title = QLabel(tr("text_editor_page_extra.chapter_not_selected", "Bölüm Seçilmedi"))
     win.editor_chapter_title.setStyleSheet(f"color:{TEXT_MAIN}; font-size:14px; font-weight:700;")
     title_row.addWidget(win.editor_chapter_title)
     title_row.addStretch()
@@ -248,13 +248,13 @@ def _build_text_panel(win, title: str, lang_code: str, is_source: bool) -> QFram
     header.addWidget(_badge(lang_code, ACCENT_BLUE if is_source else ACCENT_PURPLE))
     header.addStretch()
 
-    counts = QLabel("Karakter: 0  |  Kelime: 0")
+    counts = QLabel(tr("text_editor_page_extra.counts_default", "Karakter: 0  |  Kelime: 0"))
     counts.setStyleSheet(f"color:{TEXT_FAINT}; font-size:10px;")
     header.addWidget(counts)
     p_lay.addLayout(header)
 
     text_edit = QPlainTextEdit()
-    text_edit.setPlaceholderText("Orijinal metin bulunamadı..." if is_source else "Çeviri henüz yapılmadı / düzenlenebilir...")
+    text_edit.setPlaceholderText(tr("text_editor_page_extra.placeholder_no_original", "Orijinal metin bulunamadı...") if is_source else tr("text_editor_page_extra.placeholder_no_translation", "Çeviri henüz yapılmadı / düzenlenebilir..."))
     text_edit.setStyleSheet(f"""
         QPlainTextEdit {{
             background: {BG_PANEL2}; border: 1px solid {BORDER}; border-radius: 6px;
@@ -275,7 +275,7 @@ def _build_text_panel(win, title: str, lang_code: str, is_source: bool) -> QFram
     return panel
 
 
-# ── Sağ Panel: AI Tools / Notes / Terminology Hints ─────────────────
+# -- Sağ Panel: AI Tools / Notes / Terminology Hints -----------------
 
 def _build_right_tools_panel(win) -> QFrame:
     frame, lay = _card()
@@ -325,9 +325,9 @@ def _terminology_hints_card(win) -> QFrame:
     return frame
 
 
-# ──────────────────────────────────────────────────────────────────────
+# ----------------------------------------------------------------------
 # İŞ MANTIKLARI VE CANLI VERİ YÜKLEME
-# ──────────────────────────────────────────────────────────────────────
+# ----------------------------------------------------------------------
 
 def refresh_text_editor_page(win, target_file_path: str = None):
     """

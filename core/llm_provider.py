@@ -13,7 +13,7 @@ import hashlib
 import time
 from logger import app_logger
 
-# ─────────────────────────── Sabitler ───────────────────────────
+# --------------------------- Sabitler ---------------------------
 
 MCP_ENDPOINTS_FILE = os.path.join(os.getcwd(), "AppConfigs", "MCP_Endpoints.json")
 MCP_KEYS_FOLDER = os.path.join(os.getcwd(), "AppConfigs", "APIKeys", "MCP")
@@ -33,7 +33,7 @@ DEFAULT_ENDPOINTS = {
     ]
 }
 
-# ─────────────────────── Yardımcı Fonksiyonlar ───────────────────────
+# ----------------------- Yardımcı Fonksiyonlar -----------------------
 
 
 def load_endpoints() -> dict:
@@ -97,7 +97,7 @@ def save_api_keys(endpoint_id: str, keys: list[str]):
         f.write("\n".join(keys))
 
 
-# ─────────────────────── Key Pool Yöneticisi ───────────────────────
+# ----------------------- Key Pool Yöneticisi -----------------------
 
 
 class KeyPool:
@@ -123,7 +123,7 @@ class KeyPool:
         return len(self.keys) > 0
 
 
-# ─────────────────────── LLM Provider ───────────────────────
+# ----------------------- LLM Provider -----------------------
 
 
 class LLMProvider:
@@ -186,7 +186,7 @@ class LLMProvider:
         self._gemini_model = None
         self._openai_client = None
 
-    # ──────── Anahtar alma ────────
+    # -------- Anahtar alma --------
 
     def _get_api_key(self) -> str:
         if self._single_key:
@@ -195,7 +195,7 @@ class LLMProvider:
             return self._key_pool.get_key()
         raise ValueError(f"'{self.ep_name}' için API anahtarı bulunamadı.")
 
-    # ──────── Gemini ────────
+    # -------- Gemini --------
 
     def _ensure_gemini(self):
         if self._gemini_model is None:
@@ -225,7 +225,7 @@ class LLMProvider:
         )
         return response.total_tokens
 
-    # ──────── OpenAI-Uyumlu ────────
+    # -------- OpenAI-Uyumlu --------
 
     def _ensure_openai(self):
         if self._openai_client is None:
@@ -301,7 +301,7 @@ class LLMProvider:
             # Basit tahmin: ~4 karakter ≈ 1 token
             return max(1, len(text) // 4)
 
-    # ──────── Genel API ────────
+    # -------- Genel API --------
 
     def generate(self, prompt: str) -> str:
         """Prompt göndererek LLM'den yanıt alır."""
@@ -338,7 +338,7 @@ class LLMProvider:
         }
 
 
-# ─────────────────── Geriye Uyumluluk ───────────────────
+# ------------------- Geriye Uyumluluk -------------------
 
 def create_provider_from_config(project_path: str, fallback_api_key: str = None) -> LLMProvider:
     """

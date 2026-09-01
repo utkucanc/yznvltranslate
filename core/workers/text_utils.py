@@ -4,7 +4,7 @@ import unicodedata
 import re
 class TextUtils:
     @staticmethod
-    # ────────────────────── Paragraf Bazlı API ──────────────────────
+    # ---------------------- Paragraf Bazlı API ----------------------
 
     def get_paragraph(self, text: str, model_id: str, prompt_hash: str) -> str | None:
         """Tek paragraf için cache arar. Thread-safe."""

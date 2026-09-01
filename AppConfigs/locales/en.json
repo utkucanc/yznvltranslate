@@ -603,6 +603,44 @@
     "btn_error": "❌ Error",
     "msg_download_error": "An error occurred during download:\n{}"
   },
+  "dashboard": {
+    "btn_add_files": "+ Add Files",
+    "card_project_files": "Project Files",
+    "card_project_files_with_count": "Project Files ({count}) — {project}",
+    "footer_no_project": "No project selected.",
+    "footer_stats": "Total: {total}    Translated: {done}    Remaining: {remaining}",
+    "current_task": "Current Task",
+    "card_translation_queue": "Translation Queue & Terminology",
+    "section_terminology": "📚 Terminology",
+    "total_terms": "Total Terms",
+    "status": "Status",
+    "ready": "Ready",
+    "btn_terminology_manager": "📚  Terminology Manager",
+    "card_statistics": "Statistics",
+    "stat_total_requests": "Total Requests",
+    "stat_total_tokens": "Total Tokens",
+    "stat_avg_speed": "Avg Speed",
+    "chart_unavailable": "📊 Chart: matplotlib not installed.",
+    "btn_view_api_stats": "📊  View API Statistics",
+    "card_logs": "Logs",
+    "btn_clear_logs": "Clear",
+    "card_merge_export": "Merge / Export",
+    "output_format": "Output Format"
+  },
+  "sidebar": {
+    "title": "Novel Translator",
+    "active_project": "Active Project",
+    "btn_new_project": "+  New Project",
+    "tooltip_help": "Help",
+    "tooltip_settings": "App Settings",
+    "nav_dashboard": "Dashboard",
+    "nav_project": "Project",
+    "nav_terminology": "Terminology",
+    "nav_text_editor": "Text Editor",
+    "nav_prompts": "Prompts",
+    "no_project_title": "No Project Selected",
+    "no_project_body": "Please select a project first."
+  },
   "gemini_version": {
     "window_title": "Gemini Model Version",
     "select_or_enter": "Select or Enter Gemini Model Version to Use:",
@@ -637,5 +675,37 @@
     "msg_fields_required": "Name and Key fields are required.",
     "msg_save_success": "API Key saved.",
     "msg_delete_confirm": "Are you sure?"
+  },
+  "new_project_extra": {
+    "placeholder_project_name": "Enter project name...",
+    "placeholder_project_link": "https://...",
+    "placeholder_max_pages": "Leave empty = unlimited",
+    "tooltip_max_retries": "Number of retry attempts on API error"
+  },
+  "project_page_extra": {
+    "projects_title": "Projects",
+    "projects_subtitle": "Manage and organize your translation projects",
+    "tooltip_project_settings": "Project Settings",
+    "placeholder_select_project": "Select a project\nto see details",
+    "project_size": "Project Size",
+    "progress_overview": "Progress Overview",
+    "recent_activity": "Recent Activity"
+  },
+  "terminology_page_extra": {
+    "tooltip_delete_term": "Delete Term",
+    "edit_term_title": "Edit Term",
+    "label_source_term": "Source Term:",
+    "label_target_term": "Target Translation:",
+    "label_note": "Note:"
+  },
+  "text_editor_page_extra": {
+    "label_project": "Project:",
+    "tooltip_close": "Return to Dashboard (ESC)",
+    "chapter_loading": "Loading Chapter...",
+    "chapter_not_selected": "No Chapter Selected",
+    "counts_default": "Characters: 0  |  Words: 0",
+    "placeholder_no_original": "Original text not found...",
+    "placeholder_no_translation": "Translation not done yet...",
+    "no_terms_match": "No matching terms in this chapter."
   }
 }

@@ -71,7 +71,7 @@ def build_terminology_page(main_window) -> QScrollArea:
     root.setContentsMargins(14, 14, 14, 14)
     root.setSpacing(14)
 
-    # ── SOL: Overview + Toolbar + Ekleme Çubuğu + Tablo ──
+    # -- SOL: Overview + Toolbar + Ekleme Çubuğu + Tablo --
     left = QVBoxLayout()
     left.setSpacing(14)
 
@@ -84,7 +84,7 @@ def build_terminology_page(main_window) -> QScrollArea:
     left_w.setLayout(left)
     root.addWidget(left_w, 3)
 
-    # ── SAĞ: Last Extraction Info + Term Details ──
+    # -- SAĞ: Last Extraction Info + Term Details --
     right = QVBoxLayout()
     right.setSpacing(14)
     right.addWidget(_build_last_extraction_card(win))
@@ -108,7 +108,7 @@ def build_terminology_page(main_window) -> QScrollArea:
     return scroll
 
 
-# ── Overview & Stat Kartları ──────────────────────────────────────────
+# -- Overview & Stat Kartları ------------------------------------------
 
 def _build_overview_card(win) -> QFrame:
     frame, lay = _card()
@@ -179,7 +179,7 @@ def _mini_stat_widget(title: str, value: str, sub: str = "", color: str = None) 
     return f
 
 
-# ── Terim Ekleme Çubuğu ─────────────────────────────────────────────
+# -- Terim Ekleme Çubuğu ---------------------------------------------
 
 def _build_add_term_bar(win) -> QHBoxLayout:
     lay = QHBoxLayout()
@@ -211,7 +211,7 @@ def _build_add_term_bar(win) -> QHBoxLayout:
     return lay
 
 
-# ── Arama / Filtre Araç Çubuğu ─────────────────────────────────────
+# -- Arama / Filtre Araç Çubuğu -------------------------------------
 
 def _build_toolbar_row(win) -> QHBoxLayout:
     row = QHBoxLayout()
@@ -230,7 +230,7 @@ def _build_toolbar_row(win) -> QHBoxLayout:
     return row
 
 
-# ── Terim Tablosu ────────────────────────────────────────────────────
+# -- Terim Tablosu ----------------------------------------------------
 
 _TABLE_HEADERS = ["Kaynak Terim (Source)", "Hedef Çeviri (Target)", "Not", "Durum", "İşlem"]
 
@@ -282,7 +282,7 @@ def _build_terms_table_card(win) -> QFrame:
     return frame
 
 
-# ── Last Extraction Info Kartı ──────────────────────────────────────
+# -- Last Extraction Info Kartı --------------------------------------
 
 def _build_last_extraction_card(win) -> QFrame:
     frame, lay = _card()
@@ -304,7 +304,7 @@ def _build_last_extraction_card(win) -> QFrame:
     return frame
 
 
-# ── Term Details Kartı ──────────────────────────────────────────────
+# -- Term Details Kartı ----------------------------------------------
 
 def _build_term_details_card(win) -> QFrame:
     frame, lay = _card()
@@ -363,9 +363,9 @@ def _build_term_details_card(win) -> QFrame:
     return frame
 
 
-# ──────────────────────────────────────────────────────────────────────
+# ----------------------------------------------------------------------
 # İŞ MANTIKLARI VE CANLI YENİLEME (VERİ ENTEGRASYONU)
-# ──────────────────────────────────────────────────────────────────────
+# ----------------------------------------------------------------------
 
 def _get_manager(win) -> TerminologyManager | None:
     project_path = getattr(win, 'current_project_path', None)
@@ -474,7 +474,7 @@ def _populate_table(win, terms: list[dict]):
         # Satır içi hızlı sil butonu
         del_btn = QPushButton("🗑️")
         del_btn.setObjectName("iconBtn")
-        del_btn.setToolTip("Terimi Sil")
+        del_btn.setToolTip(tr("terminology_page_extra.tooltip_delete_term", "Terimi Sil"))
         del_btn.clicked.connect(lambda checked, s=src: _delete_term_by_source(win, s))
         table.setCellWidget(row_idx, 4, del_btn)
 
@@ -592,21 +592,21 @@ def _on_edit_selected_term(win):
     old_note = note_item.text().strip() if note_item else ""
 
     dlg = QDialog(win)
-    dlg.setWindowTitle("Terimi Düzenle")
+    dlg.setWindowTitle(tr("terminology_page_extra.edit_term_title", "Terimi Düzenle"))
     dlg.setFixedWidth(380)
 
     lay = QVBoxLayout(dlg)
     lay.setSpacing(10)
 
-    lay.addWidget(QLabel("Kaynak Terim:"))
+    lay.addWidget(QLabel(tr("terminology_page_extra.label_source_term", "Kaynak Terim:")))
     src_input = QLineEdit(old_src)
     lay.addWidget(src_input)
 
-    lay.addWidget(QLabel("Hedef Çeviri:"))
+    lay.addWidget(QLabel(tr("terminology_page_extra.label_target_term", "Hedef Çeviri:")))
     tgt_input = QLineEdit(old_tgt)
     lay.addWidget(tgt_input)
 
-    lay.addWidget(QLabel("Not:"))
+    lay.addWidget(QLabel(tr("terminology_page_extra.label_note", "Not:")))
     note_input = QLineEdit(old_note)
     lay.addWidget(note_input)
 

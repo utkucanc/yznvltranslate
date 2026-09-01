@@ -18,7 +18,7 @@ def build_menu_bar(main_window):
     win = main_window
     menu_bar = win.menuBar()
 
-    # ── Dosya Menüsü ──
+    # -- Dosya Menüsü --
     file_menu = menu_bar.addMenu(tr("menu_bar.file", "Dosya"))
     new_project_action = file_menu.addAction(tr("menu_bar.new_project", "Yeni Proje"))
     new_project_action.triggered.connect(win.new_project_clicked)
@@ -27,14 +27,14 @@ def build_menu_bar(main_window):
     exit_action = file_menu.addAction(tr("menu_bar.exit", "Çıkış"))
     exit_action.triggered.connect(win.close)
 
-    # ── Proje Menüsü ──
+    # -- Proje Menüsü --
     project_menu = menu_bar.addMenu(tr("menu_bar.project", "Proje"))
     delete_project_action = project_menu.addAction(tr("menu_bar.delete_project", "Proje Sil"))
     delete_project_action.triggered.connect(win.delete_project_clicked)
     project_settings_action = project_menu.addAction(tr("menu_bar.project_settings", "Proje Ayarları"))
     project_settings_action.triggered.connect(win.open_project_settings_dialog)
 
-    # ── Ayarlar Menüsü ──
+    # -- Ayarlar Menüsü --
     settings_menu = menu_bar.addMenu(tr("menu_bar.settings", "Ayarlar"))
     prompt_editor_action = settings_menu.addAction(tr("menu_bar.prompt_editor", "Promt Editörü"))
     prompt_editor_action.triggered.connect(win.open_prompt_editor)
@@ -50,7 +50,7 @@ def build_menu_bar(main_window):
     app_settings_action = settings_menu.addAction(tr("menu_bar.app_settings", "⚙️ Uygulama Ayarları"))
     app_settings_action.triggered.connect(win.open_app_settings_dialog)
 
-    # ── Yardım Menüsü ──
+    # -- Yardım Menüsü --
     help_menu = menu_bar.addMenu(tr("menu_bar.help", "Yardım"))
     about_action = help_menu.addAction(tr("menu_bar.about", "Hakkında"))
     about_action.triggered.connect(win.show_about_dialog)

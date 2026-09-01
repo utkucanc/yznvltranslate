@@ -15,7 +15,7 @@ import re
 from logger import app_logger
 
 
-# ────────────────────── Terim Çıkarma Prompt'u ──────────────────────
+# ---------------------- Terim Çıkarma Prompt'u ----------------------
 
 EXTRACTION_PROMPT = """Aşağıdaki roman/novel metnini analiz et ve çeviride tutarlılık sağlamak için terimleri çıkar.
 
@@ -68,7 +68,7 @@ class TerminologyManager:
         self._pattern_cache = None
         self._pattern_cache_key = None
 
-    # ────────────────────── Yükleme / Kaydetme ──────────────────────
+    # ---------------------- Yükleme / Kaydetme ----------------------
 
     def _load(self) -> list[dict]:
         if os.path.exists(self.terms_file):
@@ -88,7 +88,7 @@ class TerminologyManager:
         except Exception as e:
             app_logger.error(f"Terminology dosyası kaydedilemedi: {e}")
 
-    # ────────────────────── Terim CRUD ──────────────────────
+    # ---------------------- Terim CRUD ----------------------
 
     def add_term(self, source: str, target: str, note: str = "",ambiguous: bool = False):
         """Terim ekler. Aynı kaynak zaten varsa günceller."""
@@ -112,7 +112,7 @@ class TerminologyManager:
     def get_all_terms(self) -> list[dict]:
         return self.terms
 
-    # ────────────────────── Otomatik Terim Çıkarma ──────────────────────
+    # ---------------------- Otomatik Terim Çıkarma ----------------------
 
     def needs_extraction(self, min_terms: int = 5) -> bool:
         """Terim listesi boşsa veya çok az terim varsa True döner — otomatik çıkarma tetiklenmeli."""
@@ -302,7 +302,7 @@ class TerminologyManager:
                 self._save()
                 self._invalidate_pattern_cache()
                 return
-    # ────────────────────── Prompt Entegrasyonu ──────────────────────
+    # ---------------------- Prompt Entegrasyonu ----------------------
 
     def build_prompt_section(self) -> str:
         """Çeviri promptuna eklenecek terminology bölümünü oluşturur."""
@@ -318,7 +318,7 @@ class TerminologyManager:
         lines.append("[TERMİNOLOJİ SONU]")
         return "\n".join(lines)
 
-    # ────────────────────── Import / Export ──────────────────────
+    # ---------------------- Import / Export ----------------------
 
     def import_from_text(self, text: str, delimiter: str = "="):
         """Düz metinden toplu import (her satır: source=target)."""

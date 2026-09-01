@@ -30,7 +30,7 @@ FONT_FAMILY   = "Segoe UI"
 def build_dark_stylesheet() -> str:
     """Novel Translator Pro koyu tema stylesheet'ini döndürür."""
     return f"""
-    /* ── Temel ── */
+    /* -- Temel -- */
     QMainWindow, QWidget {{
         background: {BG_APP};
         color: {TEXT_MAIN};
@@ -38,13 +38,13 @@ def build_dark_stylesheet() -> str:
         font-size: 12px;
     }}
 
-    /* ── Üst / Bağlantı / Alt çubuklar ── */
+    /* -- Üst / Bağlantı / Alt çubuklar -- */
     #topbar   {{ background: {BG_APP};   border-bottom: 1px solid {BORDER}; }}
     #connbar  {{ background: {BG_PANEL}; border-bottom: 1px solid {BORDER}; }}
     #sidebar  {{ background: {BG_APP};   border-right:  1px solid {BORDER}; }}
     #statusbar {{ background: {BG_PANEL}; border-top: 1px solid {BORDER}; }}
 
-    /* ── Kartlar ── */
+    /* -- Kartlar -- */
     #card, #innerCard, #statCard, #featureCard, #activeProject {{
         background: {BG_PANEL};
         border: 1px solid {BORDER};
@@ -57,7 +57,7 @@ def build_dark_stylesheet() -> str:
         font-weight: 700;
     }}
 
-    /* ── Translation Style kartları ── */
+    /* -- Translation Style kartları -- */
     #styleCard {{
         background: {BG_PANEL2};
         border: 1px solid {BORDER};
@@ -69,7 +69,7 @@ def build_dark_stylesheet() -> str:
         border-radius: 8px;
     }}
 
-    /* ── Butonlar ── */
+    /* -- Butonlar -- */
     QPushButton {{
         color: {TEXT_MAIN};
         background: {BG_PANEL2};
@@ -212,7 +212,7 @@ def build_dark_stylesheet() -> str:
     }}
     #newProjectBtn:hover {{ background: #2563eb; }}
 
-    /* ── Form elemanları ── */
+    /* -- Form elemanları -- */
     QLineEdit, QComboBox, QTextEdit, QSpinBox {{
         background: {BG_PANEL2};
         border: 1px solid {BORDER};
@@ -233,7 +233,7 @@ def build_dark_stylesheet() -> str:
         color: {TEXT_MAIN};
     }}
 
-    /* ── Progress Bar ── */
+    /* -- Progress Bar -- */
     QProgressBar {{
         background: {BG_PANEL2};
         border: none;
@@ -247,7 +247,7 @@ def build_dark_stylesheet() -> str:
         border-radius: 4px;
     }}
 
-    /* ── Checkbox / Radio ── */
+    /* -- Checkbox / Radio -- */
     QCheckBox, QRadioButton {{ color: {TEXT_DIM}; font-size: 12px; }}
     QCheckBox::indicator, QRadioButton::indicator {{
         border: 1px solid {BORDER};
@@ -265,7 +265,7 @@ def build_dark_stylesheet() -> str:
         border-color: {ACCENT_BLUE};
     }}
 
-    /* ── Toggle Switch (özel QCheckBox) ── */
+    /* -- Toggle Switch (özel QCheckBox) -- */
     QCheckBox#toggleSwitch {{ spacing: 0px; }}
     QCheckBox#toggleSwitch::indicator {{
         width: 36px; height: 20px;
@@ -278,7 +278,7 @@ def build_dark_stylesheet() -> str:
         border: 1px solid {ACCENT_BLUE};
     }}
 
-    /* ── Slider ── */
+    /* -- Slider -- */
     QSlider::groove:horizontal {{
         height: 4px;
         background: {BG_PANEL2};
@@ -295,7 +295,7 @@ def build_dark_stylesheet() -> str:
         border-radius: 2px;
     }}
 
-    /* ── Tablo ── */
+    /* -- Tablo -- */
     QTableWidget, QTableView {{
         background: transparent;
         color: {TEXT_MAIN};
@@ -323,7 +323,7 @@ def build_dark_stylesheet() -> str:
         color: {TEXT_MAIN};
     }}
 
-    /* ── Liste Widget ── */
+    /* -- Liste Widget -- */
     QListWidget {{
         background: transparent;
         border: none;
@@ -353,7 +353,7 @@ def build_dark_stylesheet() -> str:
         color: {ACCENT_BLUE};
     }}
 
-    /* ── Scroll Bar ── */
+    /* -- Scroll Bar -- */
     QScrollBar:vertical {{
         background: {BG_APP};
         width: 8px;
@@ -378,7 +378,7 @@ def build_dark_stylesheet() -> str:
     }}
     QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {{ width: 0px; }}
 
-    /* ── Menü ── */
+    /* -- Menü -- */
     QMenuBar {{
         background: {BG_APP};
         color: {TEXT_DIM};
@@ -393,10 +393,10 @@ def build_dark_stylesheet() -> str:
     }}
     QMenu::item:selected {{ background: {ACCENT_BLUE}33; }}
 
-    /* ── Splitter ── */
+    /* -- Splitter -- */
     QSplitter::handle {{ background: {BORDER}; }}
 
-    /* ── GroupBox ── */
+    /* -- GroupBox -- */
     QGroupBox {{
         border: 1px solid {BORDER};
         border-radius: 8px;
@@ -412,7 +412,7 @@ def build_dark_stylesheet() -> str:
         color: {TEXT_DIM};
     }}
 
-    /* ── ToolTip ── */
+    /* -- ToolTip -- */
     QToolTip {{
         background: {BG_PANEL};
         color: {TEXT_MAIN};
@@ -422,13 +422,13 @@ def build_dark_stylesheet() -> str:
         font-size: 11px;
     }}
 
-    /* ── Dialog ── */
+    /* -- Dialog -- */
     QDialog {{
         background: {BG_APP};
         color: {TEXT_MAIN};
     }}
 
-    /* ── Tab Widget ── */
+    /* -- Tab Widget -- */
     QTabWidget::pane {{
         border: 1px solid {BORDER};
         border-radius: 6px;

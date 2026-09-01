@@ -356,11 +356,11 @@ class TranslationWorker(QObject):
                 )
                 return True
 
-            # ── Adım 1: Aynı endpoint'in pool'unda sıradaki anahtara geç ──
+            # -- Adım 1: Aynı endpoint'in pool'unda sıradaki anahtara geç --
             if self.provider and self.provider.rotate_key():
                 return True  # Pool içi rotasyon başarılı; log rotate_key() içinde yapılır
 
-            # ── Adım 2: Pool tükendi → bir sonraki MCP endpoint'ine geç ──
+            # -- Adım 2: Pool tükendi → bir sonraki MCP endpoint'ine geç --
             next_idx = failed_at_idx + 1
             if next_idx >= len(self._all_endpoints):
                 app_logger.warning(
@@ -601,7 +601,7 @@ class TranslationWorker(QObject):
             self.progress.emit(i + 1, total_files)
             return
 
-        # ─────────── Paragraf Bazlı Çeviri (Cache bağımsız standart akış) ───────────
+        # ----------- Paragraf Bazlı Çeviri (Cache bağımsız standart akış) -----------
         para_result = self._translate_paragraphs(content_text)
         if para_result is not None:
             if not self.is_translation_failed(content_text, para_result, file_name):
@@ -617,7 +617,7 @@ class TranslationWorker(QObject):
             else:
                 app_logger.warning(f"Paragraf bazlı çeviri kalite kontrolünden geçemedi: {file_name}")
 
-        # ─────────── Klasik Tam Dosya Çeviri Akışı ───────────
+        # ----------- Klasik Tam Dosya Çeviri Akışı -----------
         cached_translation = None
         if self._cache:
             cached_translation = self._cache.get_paragraph(content_text, self.model_version)
@@ -991,7 +991,7 @@ class TranslationWorker(QObject):
                 self._process_single_file(idx, file_name, total_files)
 
         if self.async_enabled and len(batches) > 1:
-            # ── Batch + Async: Batch'ler ThreadPoolExecutor ile paralel işlenir ──
+            # -- Batch + Async: Batch'ler ThreadPoolExecutor ile paralel işlenir --
             import concurrent.futures
             app_logger.info(
                 f"Batch Async Modu: {self.async_threads} thread ile "
@@ -1012,7 +1012,7 @@ class TranslationWorker(QObject):
                     if not self.is_running:
                         break
         else:
-            # ── Sıralı Batch: async kapalı veya tek batch ──
+            # -- Sıralı Batch: async kapalı veya tek batch --
             if self.async_enabled:
                 app_logger.info("Batch Async Modu: Yalnızca 1 batch var, sıralı işleniyor.")
             for batch_idx, batch in enumerate(batches):
@@ -1167,7 +1167,7 @@ class TranslationWorker(QObject):
             self.translated_count_session = 0
 
             if self.batch_enabled:
-                # ─── Batch Modu ───
+                # --- Batch Modu ---
                 self._run_batch_mode(files_to_translate, total_files)
             elif self.async_enabled:
                 import concurrent.futures

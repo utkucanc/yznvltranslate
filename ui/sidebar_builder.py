@@ -20,15 +20,16 @@ from ui.dark_theme import (
     BG_APP, BG_PANEL, BG_PANEL2, BORDER, TEXT_MAIN, TEXT_DIM, TEXT_FAINT,
     ACCENT_BLUE, ACCENT_GREEN
 )
+from core.localization import tr
 
 
-# Navigasyon öğeleri: (ikon, ad, hedef_index_veya_None)
+# Navigasyon öğeleri: (ikon, i18n_key, varsayılan_ad, hedef_index_veya_None)
 NAV_ITEMS = [
-    ("🏠", "Dashboard",     0),   # Stack index 0
-    ("📁", "Project",       1),   # Stack index 1
-    ("🔤", "Terminology",   2),   # Stack index 2
-    ("📝", "Text Editor",   3),   # Stack index 3
-    ("✨", "Prompts",     "dlg_prompt")
+    ("🏠", "sidebar.nav_dashboard", "Dashboard",     0),   # Stack index 0
+    ("📁", "sidebar.nav_project",   "Project",       1),   # Stack index 1
+    ("🔤", "sidebar.nav_terminology", "Terminology",   2),   # Stack index 2
+    ("📝", "sidebar.nav_text_editor", "Text Editor",   3),   # Stack index 3
+    ("✨", "sidebar.nav_prompts", "Prompts",     "dlg_prompt")
 ]
 
 
@@ -66,7 +67,7 @@ def build_sidebar(main_window) -> QFrame:
     lay.setContentsMargins(10, 14, 10, 14)
     lay.setSpacing(2)
 
-    # ── Logo / Başlık ──────────────────────────────────────────────
+    # -- Logo / Başlık ----------------------------------------------
     title_row = QHBoxLayout()
     logo = QLabel("🧩")
     logo.setStyleSheet(f"color:{ACCENT_BLUE}; font-size:18px;")
@@ -83,9 +84,11 @@ def build_sidebar(main_window) -> QFrame:
     sep.setStyleSheet(f"color:{BORDER}; margin: 6px 0;")
     lay.addWidget(sep)
 
-    # ── Navigasyon butonları ──────────────────────────────────────
-    for icon, name, target in NAV_ITEMS:
-        btn = SidebarButton(icon, name)
+    # -- Navigasyon butonları --------------------------------
+    for icon, i18n_key, default_name, target in NAV_ITEMS:
+        label_text = tr(i18n_key, default_name)
+        btn = SidebarButton(icon, label_text)
+        name = default_name  # dahili key olarak varsayılan ad kullanılır
 
         if isinstance(target, int):
             # Stack index
@@ -98,19 +101,19 @@ def build_sidebar(main_window) -> QFrame:
         elif target == "dlg_text_editor":
             btn.clicked.connect(lambda: _open_text_editor(win))
 
-        win.nav_buttons[name] = btn
+        win.nav_buttons[default_name] = btn
         lay.addWidget(btn)
 
     lay.addStretch()
 
-    # ── Aktif Proje ──────────────────────────────────────────────
+    # -- Aktif Proje ----------------------------------------------
     active_box = QFrame()
     active_box.setObjectName("activeProject")
     ab = QVBoxLayout(active_box)
     ab.setContentsMargins(10, 10, 10, 10)
     ab.setSpacing(4)
 
-    al = QLabel("Active Project")
+    al = QLabel(tr("sidebar.active_project", "Aktif Proje"))
     al.setStyleSheet(f"color:{TEXT_FAINT}; font-size:10px;")
     ab.addWidget(al)
 
@@ -128,14 +131,14 @@ def build_sidebar(main_window) -> QFrame:
     ab.addLayout(prow)
     lay.addWidget(active_box)
 
-    # ── Yeni Proje ────────────────────────────────────────────────
-    new_proj = QPushButton("+  New Project")
+    # -- Yeni Proje ------------------------------------------------
+    new_proj = QPushButton(tr("sidebar.btn_new_project", "+  New Project"))
     new_proj.setObjectName("newProjectBtn")
     new_proj.setCursor(Qt.CursorShape.PointingHandCursor)
     new_proj.clicked.connect(win.new_project_clicked)
     lay.addWidget(new_proj)
 
-    # ── Alt ikon satırı ──────────────────────────────────────────
+    # -- Alt ikon satırı ------------------------------------------
     icons_row = QHBoxLayout()
     icons_row.setSpacing(4)
 
@@ -147,13 +150,13 @@ def build_sidebar(main_window) -> QFrame:
 
     help_btn = QPushButton("❓")
     help_btn.setObjectName("iconBtn")
-    help_btn.setToolTip("Yardım")
+    help_btn.setToolTip(tr("sidebar.tooltip_help", "Yardım"))
     help_btn.clicked.connect(win.show_help_clicked)
     icons_row.addWidget(help_btn)
 
     settings_btn = QPushButton("⚙")
     settings_btn.setObjectName("iconBtn")
-    settings_btn.setToolTip("Uygulama Ayarları")
+    settings_btn.setToolTip(tr("sidebar.tooltip_settings", "Uygulama Ayarları"))
     settings_btn.clicked.connect(win.open_app_settings_dialog)
     icons_row.addWidget(settings_btn)
 

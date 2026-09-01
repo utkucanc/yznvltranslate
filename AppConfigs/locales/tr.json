@@ -637,5 +637,75 @@
     "status_finished": "✅ İşlem Başarıyla Tamamlandı",
     "btn_error": "❌ Hata",
     "msg_download_error": "İndirme sırasında hata oluştu:\n{}"
+  },
+  "dashboard": {
+    "btn_add_files": "+ Dosya Ekle",
+    "card_project_files": "Proje Dosyaları",
+    "card_project_files_with_count": "Proje Dosyaları ({count}) — {project}",
+    "footer_no_project": "Proje seçilmedi.",
+    "footer_stats": "Toplam: {total}    Çevrildi: {done}    Kalan: {remaining}",
+    "current_task": "Mevcut Görev",
+    "card_translation_queue": "Çeviri Kuyruğu & Terminoloji",
+    "section_terminology": "📚 Terminoloji",
+    "total_terms": "Toplam Terim",
+    "status": "Durum",
+    "ready": "Hazır",
+    "btn_terminology_manager": "📚  Terminoloji Yöneticisi",
+    "card_statistics": "İstatistikler",
+    "stat_total_requests": "Toplam İstek",
+    "stat_total_tokens": "Toplam Token",
+    "stat_avg_speed": "Ort. Hız",
+    "chart_unavailable": "📊 Grafik: matplotlib yüklü değil.",
+    "btn_view_api_stats": "📊  API İstatistiklerini Görüntüle",
+    "card_logs": "Loglar",
+    "btn_clear_logs": "Temizle",
+    "card_merge_export": "Birleştir / Dışa Aktar",
+    "output_format": "Çıktı Formatı"
+  },
+  "sidebar": {
+    "title": "Novel Translator",
+    "active_project": "Aktif Proje",
+    "btn_new_project": "+  Yeni Proje",
+    "tooltip_help": "Yardım",
+    "tooltip_settings": "Uygulama Ayarları",
+    "nav_dashboard": "Dashboard",
+    "nav_project": "Proje",
+    "nav_terminology": "Terminoloji",
+    "nav_text_editor": "Metin Editörü",
+    "nav_prompts": "Promptlar",
+    "no_project_title": "Proje Seçilmedi",
+    "no_project_body": "Lütfen önce bir proje seçin."
+  },
+  "new_project_extra": {
+    "placeholder_project_name": "Proje adını girin...",
+    "placeholder_project_link": "https://...",
+    "placeholder_max_pages": "Boş bırakın = sınırsız",
+    "tooltip_max_retries": "API hatasında tekrar deneme sayısı"
+  },
+  "project_page_extra": {
+    "projects_title": "Projeler",
+    "projects_subtitle": "Çeviri projelerinizi yönetin ve organize edin",
+    "tooltip_project_settings": "Proje Ayarları",
+    "placeholder_select_project": "Detayları görmek için\nbir proje seçin",
+    "project_size": "Proje Boyutu",
+    "progress_overview": "İlerleme Genel Bakışı",
+    "recent_activity": "Son Aktivite"
+  },
+  "terminology_page_extra": {
+    "tooltip_delete_term": "Terimi Sil",
+    "edit_term_title": "Terimi Düzenle",
+    "label_source_term": "Kaynak Terim:",
+    "label_target_term": "Hedef Çeviri:",
+    "label_note": "Not:"
+  },
+  "text_editor_page_extra": {
+    "label_project": "Proje:",
+    "tooltip_close": "Dashboard sayfasına dön (ESC)",
+    "chapter_loading": "Bölüm Yüklüyor...",
+    "chapter_not_selected": "Bölüm Seçilmedi",
+    "counts_default": "Karakter: 0  |  Kelime: 0",
+    "placeholder_no_original": "Orijinal metin bulunamadı...",
+    "placeholder_no_translation": "Çeviri henüz yapılmadı...",
+    "no_terms_match": "Bu bölümde eşleşen terim yok."
   }
 }

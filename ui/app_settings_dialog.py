@@ -93,7 +93,7 @@ def apply_theme(app, theme_name: str):
         app_logger.info("Tema: Sistem varsayılanı uygulandı.")
         return
 
-    # ── Aşama 0: Özel JSON tema kontrolü ──
+    # -- Aşama 0: Özel JSON tema kontrolü --
     custom_json_file = os.path.join(os.getcwd(), "AppConfigs", "themes", f"{theme_name}.json")
     if os.path.exists(custom_json_file) and theme_name not in ("dark", "light"):
         try:

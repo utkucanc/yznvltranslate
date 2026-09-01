@@ -84,7 +84,7 @@ class MainWindow(QMainWindow):
         app_settings = load_app_settings()
         apply_theme(QApplication.instance(), app_settings.get("theme", "dark"))
 
-        # ── UI oluştur ──────────────────────────────────────────────
+        # -- UI oluştur ----------------------------------------------
         self.central_widget = QWidget()
         self.setCentralWidget(self.central_widget)
         self.outer_layout = QVBoxLayout(self.central_widget)
@@ -153,9 +153,9 @@ class MainWindow(QMainWindow):
         self._tray_icon = None
         self._setup_tray_icon()
 
-    # ──────────────────────────────────────────────────────────────────
+    # ------------------------------------------------------------------
     # Paylaşılan widget'lar — dashboard/project sayfaları bunları gömer
-    # ──────────────────────────────────────────────────────────────────
+    # ------------------------------------------------------------------
 
     def _init_shared_widgets(self):
         """
@@ -163,13 +163,13 @@ class MainWindow(QMainWindow):
         Bu widget'lar daha sonra dashboard/project sayfalarına yerleştirilir.
         Layout'a henüz eklenmez.
         """
-        # ── Proje listesi ──
+        # -- Proje listesi --
         self.project_list = QListWidget()
         self.project_list.setFont(QFont("Segoe UI", 9))
         self.project_list.currentItemChanged.connect(self.update_file_list_from_selection)
         self.project_list.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
 
-        # ── Proje arama ──
+        # -- Proje arama --
         self.project_search_input = QLineEdit()
         self.project_search_input.setPlaceholderText(tr("main_window.search_project_placeholder", "🔍 Proje ara..."))
         self.project_search_input.textChanged.connect(self.file_table_interactions.filter_project_list)
@@ -180,7 +180,7 @@ class MainWindow(QMainWindow):
         self.project_search_clear_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         self.project_search_clear_btn.clicked.connect(lambda: self.project_search_input.clear())
 
-        # ── Dosya tablosu ──
+        # -- Dosya tablosu --
         self.file_search_input = QLineEdit()
         self.file_search_input.setPlaceholderText(tr("main_window.search_file_placeholder", "🔍 Dosya ara..."))
         self.file_search_input.textChanged.connect(self.file_table_interactions.filter_file_table)
@@ -223,7 +223,7 @@ class MainWindow(QMainWindow):
         self.file_table.verticalHeader().setDefaultSectionSize(26)
         self.file_table.verticalHeader().setVisible(True)
 
-        # ── İndirme Yöntemi ──
+        # -- İndirme Yöntemi --
         self.downloadMethodCombo = QComboBox()
         self.downloadMethodCombo.addItems([
             tr("right_panel.download_method_booktoki", "Booktoki JS İle İndir (Selenium)"),
@@ -234,7 +234,7 @@ class MainWindow(QMainWindow):
         self.downloadMethodLabel = QLabel(tr("right_panel.download_method", "İndirme Yöntemi:"))
         self.downloadMethodLabel.setFont(QFont("Segoe UI", 8))
 
-        # ── Butonlar ──
+        # -- Butonlar --
         from PyQt6.QtGui import QFont as _QFont, QColor as _QColor
         from PyQt6.QtWidgets import QGraphicsDropShadowEffect
 
@@ -370,9 +370,9 @@ class MainWindow(QMainWindow):
         self.workflowButton.setObjectName("primaryBtn")
         self.workflowButton.setCursor(Qt.CursorShape.PointingHandCursor)
 
-    # ──────────────────────────────────────────────────────────────────
+    # ------------------------------------------------------------------
     # Navigasyon
-    # ──────────────────────────────────────────────────────────────────
+    # ------------------------------------------------------------------
 
     def set_active_nav(self, name: str):
         """Sidebar'daki aktif butonu günceller."""
@@ -392,9 +392,9 @@ class MainWindow(QMainWindow):
             self.main_stack.setCurrentIndex(3)
         self.set_active_nav("Text Editor")
 
-    # ──────────────────────────────────────────────────────────────────
+    # ------------------------------------------------------------------
     # Uygulama Yapısı
-    # ──────────────────────────────────────────────────────────────────
+    # ------------------------------------------------------------------
 
     def _ensure_app_structure(self):
         base_path = os.getcwd()
@@ -433,9 +433,9 @@ class MainWindow(QMainWindow):
             return config.get("Version", "model_name", fallback="gemini-2.5-flash")
         return "gemini-2.5-flash"
 
-    # ──────────────────────────────────────────────────────────────────
+    # ------------------------------------------------------------------
     # Controller'lara yönlendirme
-    # ──────────────────────────────────────────────────────────────────
+    # ------------------------------------------------------------------
 
     def start_download_process(self):       self.download_ctrl.start()
     def start_split_process(self):          self.split_ctrl.start()
@@ -451,9 +451,9 @@ class MainWindow(QMainWindow):
     def mark_highlighted_rows_checked(self):self.file_table_interactions.mark_highlighted_rows_checked()
     def show_api_stats_dialog(self):        show_api_stats_dialog(self)
 
-    # ──────────────────────────────────────────────────────────────────
+    # ------------------------------------------------------------------
     # Diyalog Açma
-    # ──────────────────────────────────────────────────────────────────
+    # ------------------------------------------------------------------
 
     def open_prompt_editor(self):
         PromptEditorDialog(self).exec()
@@ -487,9 +487,9 @@ class MainWindow(QMainWindow):
         apply_theme(QApplication.instance(), settings.get("theme", "dark"))
         app_logger.info("Uygulama ayarları güncellendi.")
 
-    # ──────────────────────────────────────────────────────────────────
+    # ------------------------------------------------------------------
     # Proje Yönetimi
-    # ──────────────────────────────────────────────────────────────────
+    # ------------------------------------------------------------------
 
     def load_existing_projects(self):
         self.project_list.clear()
@@ -664,9 +664,9 @@ class MainWindow(QMainWindow):
             except Exception as e:
                 QMessageBox.critical(self, tr("main_window.msg_settings_save_error_title", "Kaydetme Hatası"), tr("main_window.msg_settings_save_error_body", "Ayarlar kaydedilirken bir hata oluştu:\n{}").format(e))
 
-    # ──────────────────────────────────────────────────────────────────
+    # ------------------------------------------------------------------
     # Dosya Listesi Güncelleme
-    # ──────────────────────────────────────────────────────────────────
+    # ------------------------------------------------------------------
 
     def sync_database_if_exists(self):
         if not hasattr(self, "current_project_path") or not self.current_project_path:
@@ -826,9 +826,9 @@ class MainWindow(QMainWindow):
         refresh_terminology_page(self)
         refresh_text_editor_page(self)
 
-    # ──────────────────────────────────────────────────────────────────
+    # ------------------------------------------------------------------
     # UI Yardımcıları (controller'lar tarafından kullanılır)
-    # ──────────────────────────────────────────────────────────────────
+    # ------------------------------------------------------------------
 
     def _set_ui_state_on_process_start(self, button, text, bg_color, text_color, max_progress, status_text):
         self.startButton.setEnabled(False)
@@ -883,9 +883,9 @@ class MainWindow(QMainWindow):
     def add_file_to_table(self, file_path, file_name):
         pass
 
-    # ──────────────────────────────────────────────────────────────────
+    # ------------------------------------------------------------------
     # Yardımcı Metotlar
-    # ──────────────────────────────────────────────────────────────────
+    # ------------------------------------------------------------------
 
     def on_shutdown_checkbox_toggled(self, checked):
         if checked:
@@ -911,9 +911,9 @@ class MainWindow(QMainWindow):
                "Sürüm: 2.4.0 (Yeni Pro UI + Koyu Tema + Sidebar Navigasyonu)\n\n"
                "Geliştirici: UtkuCanC\n"))
 
-    # ──────────────────────────────────────────────────────────────────
+    # ------------------------------------------------------------------
     # Toast Bildirimi
-    # ──────────────────────────────────────────────────────────────────
+    # ------------------------------------------------------------------
 
     def _setup_tray_icon(self):
         try:
@@ -951,9 +951,9 @@ class MainWindow(QMainWindow):
             tr("main_window.toast_translation_complete_body", "{} dosya başarıyla çevrildi.").format(total_files)
         )
 
-    # ──────────────────────────────────────────────────────────────────
+    # ------------------------------------------------------------------
     # Kapatma
-    # ──────────────────────────────────────────────────────────────────
+    # ------------------------------------------------------------------
 
     def closeEvent(self, event):
         controllers = [

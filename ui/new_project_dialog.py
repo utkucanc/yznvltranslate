@@ -24,7 +24,7 @@ from PyQt6.QtCore import Qt, pyqtSignal, QObject
 from logger import app_logger
 from core.localization import tr
 
-# ─── V2.1.0 Geriye Uyumluluk Re-export'lar ───
+# --- V2.1.0 Geriye Uyumluluk Re-export'lar ---
 try:
     from ui.app_settings_dialog import AppSettingsDialog
     from ui.file_preview_dialog import FilePreviewDialog
@@ -185,7 +185,7 @@ class NewProjectDialog(QDialog):
         lay.setContentsMargins(24, 20, 24, 20)
         lay.setSpacing(16)
 
-        # ── Başlık ──
+        # -- Başlık --
         header = QHBoxLayout()
         icon_lbl = QLabel("📁")
         icon_lbl.setStyleSheet(
@@ -203,7 +203,7 @@ class NewProjectDialog(QDialog):
         header.addWidget(close_btn)
         lay.addLayout(header)
 
-        # ── 3 Sütun ──
+        # -- 3 Sütun --
         cols = QHBoxLayout()
         cols.setSpacing(20)
         cols.addLayout(self._build_column1(), 1)
@@ -213,7 +213,7 @@ class NewProjectDialog(QDialog):
         cols.addLayout(self._build_column3(), 1)
         lay.addLayout(cols, 1)
 
-        # ── Footer ──
+        # -- Footer --
         footer = QHBoxLayout()
         footer.addStretch()
         cancel_btn = QPushButton(tr("new_project.btn_cancel", "İptal"))
@@ -238,20 +238,20 @@ class NewProjectDialog(QDialog):
         # Proje adı
         col.addWidget(self._field_label(tr("new_project.label_project_name", "Proje Adı")))
         self.projectNameInput = QLineEdit()
-        self.projectNameInput.setPlaceholderText("Proje adını girin...")
+        self.projectNameInput.setPlaceholderText(tr("new_project_extra.placeholder_project_name", "Proje adını girin..."))
         col.addWidget(self.projectNameInput)
 
         # URL
         col.addWidget(self._field_label(tr("new_project.label_project_link", "Proje Linki / URL")))
         self.projectLinkInput = QLineEdit()
-        self.projectLinkInput.setPlaceholderText("https://...")
+        self.projectLinkInput.setPlaceholderText(tr("new_project_extra.placeholder_project_link", "https://..."))
         col.addWidget(self.projectLinkInput)
 
         # Maks sayfa
         col.addWidget(self._field_label(tr("new_project.label_max_pages", "Maksimum Sayfa (isteğe bağlı)")))
         self.maxPagesInput = QLineEdit()
         self.maxPagesInput.setValidator(QIntValidator(1, 999999))
-        self.maxPagesInput.setPlaceholderText("Boş bırakın = sınırsız")
+        self.maxPagesInput.setPlaceholderText(tr("new_project_extra.placeholder_max_pages", "Boş bırakın = sınırsız"))
         col.addWidget(self.maxPagesInput)
 
         # Maks deneme
@@ -260,7 +260,7 @@ class NewProjectDialog(QDialog):
         self.maxRetriesInput.setMinimum(1)
         self.maxRetriesInput.setMaximum(20)
         self.maxRetriesInput.setValue(3)
-        self.maxRetriesInput.setToolTip("API hatasında tekrar deneme sayısı")
+        self.maxRetriesInput.setToolTip(tr("new_project_extra.tooltip_max_retries", "API hatasında tekrar deneme sayısı"))
         col.addWidget(self.maxRetriesInput)
 
         # Çeviri sağlayıcısı
@@ -376,7 +376,7 @@ class NewProjectDialog(QDialog):
 
         col.addWidget(self._field_label(tr("new_project.label_selected_api_key", "Seçili API Key")))
         self.api_key_input = QLineEdit()
-        self.api_key_input.setPlaceholderText("Manuel giriş veya listeden seçin...")
+        self.api_key_input.setPlaceholderText(tr("new_project.placeholder_api_key", "Manuel giriş veya listeden seçin..."))
         self.api_key_input.setEchoMode(QLineEdit.EchoMode.Password)
         col.addWidget(self.api_key_input)
 

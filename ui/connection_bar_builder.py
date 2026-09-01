@@ -77,7 +77,7 @@ def build_connection_bar(main_window) -> QFrame:
     lay.setContentsMargins(16, 8, 16, 8)
     lay.setSpacing(20)
 
-    # ── MCP Bağlantısı ──────────────────────────────────────────────
+    # -- MCP Bağlantısı ----------------------------------------------
     mcp_row = QHBoxLayout()
     mcp_row.setSpacing(8)
     plug_lbl = QLabel("🔌")
@@ -104,7 +104,7 @@ def build_connection_bar(main_window) -> QFrame:
     lay.addWidget(mcp_w)
     lay.addWidget(_vline())
 
-    # ── Provider ──────────────────────────────────────────────────
+    # -- Provider --------------------------------------------------
     win.conn_provider_combo = QComboBox()
     win.conn_provider_combo.addItem("✨ Google Gemini", "gemini")
     win.conn_provider_combo.addItem("OpenAI", "openai")
@@ -113,14 +113,14 @@ def build_connection_bar(main_window) -> QFrame:
     win.conn_provider_combo.setFixedWidth(160)
     lay.addWidget(_labeled("Provider", win.conn_provider_combo))
 
-    # ── Model ──────────────────────────────────────────────────────
+    # -- Model ------------------------------------------------------
     current_model = win.get_gemini_model_version() if hasattr(win, 'get_gemini_model_version') else "gemini-2.5-flash"
     win.conn_model_label = QLabel(current_model)
     win.conn_model_label.setStyleSheet(f"color:{TEXT_MAIN}; font-size:12px; font-weight:600;")
     lay.addWidget(_labeled("Active Model", win.conn_model_label))
     lay.addWidget(_vline())
 
-    # ── Key Pool ──────────────────────────────────────────────────
+    # -- Key Pool --------------------------------------------------
     key_row = QHBoxLayout()
     key_row.setSpacing(8)
     key_row.addWidget(QLabel("🔑"))
@@ -147,7 +147,7 @@ def build_connection_bar(main_window) -> QFrame:
     key_w.setLayout(key_row)
     lay.addWidget(key_w)
 
-    # ── Rotation ──────────────────────────────────────────────────
+    # -- Rotation --------------------------------------------------
     rot_row = QHBoxLayout()
     rot_row.setSpacing(8)
     rot_row.addWidget(QLabel("⚡"))

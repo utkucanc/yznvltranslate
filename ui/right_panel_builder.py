@@ -32,7 +32,7 @@ def build_right_panel(main_window):
     right_layout.setSpacing(4)
     right_layout.setContentsMargins(4, 4, 4, 4)
 
-    # ── İndirme Yöntemi ──
+    # -- İndirme Yöntemi --
     win.downloadMethodCombo = QComboBox()
     win.downloadMethodCombo.addItems([
         tr("right_panel.download_method_booktoki", "Booktoki JS İle İndir (Selenium)"),
@@ -45,7 +45,7 @@ def build_right_panel(main_window):
     right_layout.addWidget(win.downloadMethodLabel)
     right_layout.addWidget(win.downloadMethodCombo)
 
-    # ── İndirme Butonu ──
+    # -- İndirme Butonu --
     win.startButton = QPushButton(tr("right_panel.btn_start_download", "⬇  İndirmeyi Başlat"))
     win.startButton.setFont(QFont("Segoe UI", 9, QFont.Weight.Bold))
     win.startButton.setProperty("class", "btn-success")
@@ -54,7 +54,7 @@ def build_right_panel(main_window):
     win.startButton.setGraphicsEffect(_make_glow("#2E7D32", blur=16, offset_y=2))
     right_layout.addWidget(win.startButton)
 
-    # ── Toplu Bölüm Ekle ──
+    # -- Toplu Bölüm Ekle --
     win.splitButton = QPushButton(tr("right_panel.btn_split", "✂  Toplu Bölüm Ekle"))
     win.splitButton.setFont(QFont("Segoe UI", 9, QFont.Weight.Bold))
     win.splitButton.setProperty("class", "btn-primary")
@@ -62,7 +62,7 @@ def build_right_panel(main_window):
     win.splitButton.clicked.connect(win.start_split_process)
     right_layout.addWidget(win.splitButton)
 
-    # ── Çeviri Butonu ──
+    # -- Çeviri Butonu --
     win.translateButton = QPushButton(tr("right_panel.btn_translate", "🌐  Seçilenleri Çevir"))
     win.translateButton.setFont(QFont("Segoe UI", 9, QFont.Weight.Bold))
     win.translateButton.setProperty("class", "btn-info")
@@ -72,7 +72,7 @@ def build_right_panel(main_window):
     win.translateButton.setGraphicsEffect(_make_glow("#0D47A1", blur=16, offset_y=2))
     right_layout.addWidget(win.translateButton)
 
-    # ── Sayılı Çevir ──
+    # -- Sayılı Çevir --
     limit_layout = QHBoxLayout()
     limit_layout.setSpacing(4)
     win.limit_checkbox = QCheckBox(tr("right_panel.limit_translate", "Sayılı çevir"))
@@ -90,14 +90,14 @@ def build_right_panel(main_window):
     limit_layout.addWidget(win.limit_spinbox)
     right_layout.addLayout(limit_layout)
 
-    # ── Kapatma Checkbox ──
+    # -- Kapatma Checkbox --
     win.shutdown_checkbox = QCheckBox(tr("right_panel.shutdown_on_complete", "⚡ Çeviri Bitince Kapat"))
     win.shutdown_checkbox.setFont(QFont("Segoe UI", 8))
     win.shutdown_checkbox.setToolTip(tr("right_panel.shutdown_on_complete_tooltip", "Çeviri tamamlanınca bilgisayarı ONAYSIZ kapar"))
     win.shutdown_checkbox.toggled.connect(win.on_shutdown_checkbox_toggled)
     right_layout.addWidget(win.shutdown_checkbox)
 
-    # ── Birleştirme Butonu ──
+    # -- Birleştirme Butonu --
     win.mergeButton = QPushButton(tr("right_panel.btn_merge", "🔗  Seçili Çevirileri Birleştir"))
     win.mergeButton.setFont(QFont("Segoe UI", 9, QFont.Weight.Bold))
     win.mergeButton.setProperty("class", "btn-purple")
@@ -106,7 +106,7 @@ def build_right_panel(main_window):
     win.mergeButton.setEnabled(False)
     right_layout.addWidget(win.mergeButton)
 
-    # ── Durdur Butonu ──
+    # -- Durdur Butonu --
     win.stopTranslationButton = QPushButton(tr("right_panel.btn_stop", "■  Çeviriyi Durdur"))
     win.stopTranslationButton.setFont(QFont("Segoe UI", 8, QFont.Weight.Bold))
     win.stopTranslationButton.setProperty("class", "btn-stop")
@@ -115,7 +115,7 @@ def build_right_panel(main_window):
     win.stopTranslationButton.setVisible(False)
     right_layout.addWidget(win.stopTranslationButton)
 
-    # ── Hata Kontrol Butonu ──
+    # -- Hata Kontrol Butonu --
     win.errorCheckButton = QPushButton(tr("right_panel.btn_error_check", "🔍  Çeviri Hata Kontrol"))
     win.errorCheckButton.setFont(QFont("Segoe UI", 9, QFont.Weight.Bold))
     win.errorCheckButton.setProperty("class", "btn-teal")
@@ -124,7 +124,7 @@ def build_right_panel(main_window):
     win.errorCheckButton.setEnabled(False)
     right_layout.addWidget(win.errorCheckButton)
 
-    # ── EPUB Butonu ──
+    # -- EPUB Butonu --
     win.epubButton = QPushButton(tr("right_panel.btn_epub", "📚  Seçilenleri EPUB Yap"))
     win.epubButton.setFont(QFont("Segoe UI", 9, QFont.Weight.Bold))
     win.epubButton.setProperty("class", "btn-brown")
@@ -133,7 +133,7 @@ def build_right_panel(main_window):
     win.epubButton.setEnabled(False)
     right_layout.addWidget(win.epubButton)
 
-    # ── Token Say Butonu ──
+    # -- Token Say Butonu --
     win.token_count_button = QPushButton(tr("right_panel.btn_token_count", "🔢  Token Say"))
     win.token_count_button.setFont(QFont("Segoe UI", 9, QFont.Weight.Bold))
     win.token_count_button.setProperty("class", "btn-deep-purple")
@@ -142,7 +142,7 @@ def build_right_panel(main_window):
     win.token_count_button.setEnabled(False)
     right_layout.addWidget(win.token_count_button)
 
-    # ── Progress Bar ──
+    # -- Progress Bar --
     win.progressBar = QProgressBar(win)
     win.progressBar.setTextVisible(True)
     win.progressBar.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -150,14 +150,14 @@ def build_right_panel(main_window):
     win.progressBar.setFixedHeight(14)
     right_layout.addWidget(win.progressBar)
 
-    # ── Durum Etiketi ──
+    # -- Durum Etiketi --
     win.statusLabel = QLabel(tr("right_panel.status_prefix", "Durum: {}").format(tr("right_panel.status_ready", "Hazır")))
     win.statusLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
     win.statusLabel.setFont(QFont("Segoe UI", 10))
     win.statusLabel.setWordWrap(True)
     right_layout.addWidget(win.statusLabel)
 
-    # ── Token Bilgileri — kompakt ──
+    # -- Token Bilgileri — kompakt --
     win.total_tokens_label = QLabel(tr("right_panel.label_total_tokens_short", "Toplam Token: {}").format(0))
     win.total_tokens_label.setFont(QFont("Segoe UI", 8))
     win.total_original_tokens_label = QLabel(tr("right_panel.label_original_tokens_short", "Orijinal Token: {}").format(0))
@@ -177,7 +177,7 @@ def build_right_panel(main_window):
     token_info_layout.addWidget(win.token_progress_bar)
     right_layout.addLayout(token_info_layout)
 
-    # ── Seç (Vurgulananları İşaretle) ──
+    # -- Seç (Vurgulananları İşaretle) --
     win.selectHighlightedButton = QPushButton(tr("right_panel.btn_select_highlighted", "☑  Seç (Vurgulananları İşaretle)"))
     win.selectHighlightedButton.setFont(QFont("Segoe UI", 9))
     win.selectHighlightedButton.setProperty("class", "btn-steel")
@@ -185,7 +185,7 @@ def build_right_panel(main_window):
     win.selectHighlightedButton.clicked.connect(win.mark_highlighted_rows_checked)
     right_layout.addWidget(win.selectHighlightedButton)
 
-    # ── Terminoloji Butonu ──
+    # -- Terminoloji Butonu --
     win.generateTerminologyButton = QPushButton(tr("right_panel.btn_ai_terminology", "🤖  YZ İle Terminoloji Üret"))
     win.generateTerminologyButton.setFont(QFont("Segoe UI", 9, QFont.Weight.Bold))
     win.generateTerminologyButton.setProperty("class", "btn-pink")
@@ -195,7 +195,7 @@ def build_right_panel(main_window):
     win.generateTerminologyButton.setGraphicsEffect(_make_glow("#880E4F", blur=14, offset_y=2))
     right_layout.addWidget(win.generateTerminologyButton)
 
-    # ── Proje Ayarları ──
+    # -- Proje Ayarları --
     win.projectSettingsButton = QPushButton(tr("right_panel.btn_project_settings", "⚙  Proje Ayarları"))
     win.projectSettingsButton.setFont(QFont("Segoe UI", 9))
     win.projectSettingsButton.setProperty("class", "btn-ocean")
@@ -203,7 +203,7 @@ def build_right_panel(main_window):
     win.projectSettingsButton.clicked.connect(win.open_project_settings_dialog)
     right_layout.addWidget(win.projectSettingsButton)
 
-    # ── Yardım ──
+    # -- Yardım --
     win.helpButton = QPushButton(tr("right_panel.btn_help", "❓  Yardım"))
     win.helpButton.setFont(QFont("Segoe UI", 9))
     win.helpButton.setProperty("class", "btn-ocean")

@@ -26,7 +26,7 @@ class ProjectManager:
         """
         self.base_dir = base_dir or os.getcwd()
 
-    # ─────────────── Proje Listeleme ───────────────
+    # --------------- Proje Listeleme ---------------
 
     def list_projects(self) -> list[str]:
         """config/config.ini dosyası olan tüm alt klasörleri proje olarak döndürür."""
@@ -42,7 +42,7 @@ class ProjectManager:
             app_logger.error(f"Proje listesi oluşturulamadı: {e}")
         return sorted(projects)
 
-    # ─────────────── Proje Oluşturma ───────────────
+    # --------------- Proje Oluşturma ---------------
 
     def create_project(
         self,
@@ -93,7 +93,7 @@ class ProjectManager:
             app_logger.error(f"Proje oluşturma hatası ({project_name}): {e}")
             return False, f"Proje oluşturulurken beklenmeyen bir hata oluştu:\n{e}"
 
-    # ─────────────── Proje Silme ───────────────
+    # --------------- Proje Silme ---------------
 
     def delete_project(self, project_name: str) -> tuple[bool, str]:
         """
@@ -114,7 +114,7 @@ class ProjectManager:
             app_logger.error(f"Proje silme hatası ({project_name}): {e}")
             return False, f"Proje silinirken beklenmeyen bir hata oluştu:\n{e}"
 
-    # ─────────────── Config Okuma / Yazma ───────────────
+    # --------------- Config Okuma / Yazma ---------------
 
     def get_project_path(self, project_name: str) -> str:
         return os.path.join(self.base_dir, project_name)

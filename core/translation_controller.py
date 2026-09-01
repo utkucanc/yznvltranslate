@@ -26,7 +26,7 @@ class TranslationController:
         self.worker = None
         self._has_error = False
 
-    # ─── Güvenli QThread Geçerlilik Kontrolü ───────────────────────────────
+    # --- Güvenli QThread Geçerlilik Kontrolü -------------------------------
     def _is_thread_alive(self):
         """QThread hâlâ geçerli ve çalışıyor mu? C++ deletion güvenli."""
         if self.thread is None:
@@ -45,7 +45,7 @@ class TranslationController:
         self.worker = None
         self._has_error = False
 
-    # ─── Başlatma ──────────────────────────────────────────────────────────
+    # --- Başlatma ----------------------------------------------------------
     def start(self):
         """Çeviri işlemini başlatır veya duraklatma/devam işlemini yönetir."""
         if self._is_thread_alive():
@@ -176,7 +176,7 @@ class TranslationController:
         self.win._current_status = "Çeviri yapılıyor"
         self.win.update_status_bar()
 
-    # ─── Duraklatma / Devam ────────────────────────────────────────────────
+    # --- Duraklatma / Devam ------------------------------------------------
     def _toggle_pause(self):
         if self.worker.is_paused:
             self.worker.resume()
@@ -189,7 +189,7 @@ class TranslationController:
             self.win.translateButton.setStyleSheet("background-color: #4CAF50; color: white; border-radius: 5px; padding: 10px;")
             self.win.statusLabel.setText("Durum: Çeviri duraklatıldı.")
 
-    # ─── Signal Handler'lar ────────────────────────────────────────────────
+    # --- Signal Handler'lar ------------------------------------------------
     def _on_progress(self, current, total):
         self.win.progressBar.setValue(current)
         self.win.progressBar.setMaximum(total)
@@ -274,7 +274,7 @@ class TranslationController:
             self.win, "Çeviri Hatası", f"Bir hata oluştu:\n{message}"
         ))
 
-    # ─── Dışarıdan Durdurma ────────────────────────────────────────────────
+    # --- Dışarıdan Durdurma ------------------------------------------------
     def stop_translation(self):
         """Çeviriyi tamamen durdurur (UI onaylı)."""
         if not self._is_thread_alive():
