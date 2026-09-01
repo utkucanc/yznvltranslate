@@ -72,6 +72,7 @@ class TerminologyDialog(QDialog):
         self.table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
         self.table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
         self.table.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeMode.Stretch)
+        self.table.itemChanged.connect(self._on_item_changed)
         layout.addWidget(self.table)
 
         # Yeni terim ekleme
@@ -98,6 +99,10 @@ class TerminologyDialog(QDialog):
         # Butonlar
         btn_layout = QHBoxLayout()
 
+        save_btn = QPushButton(tr("terminology.btn_save", "💾 Kaydet"))
+        save_btn.setStyleSheet("background-color: #2196F3; color: white; font-weight: bold;")
+        save_btn.clicked.connect(self.on_save_clicked)
+
         del_btn = QPushButton(tr("terminology.btn_delete_selected", "🗑️ Seçileni Sil"))
         del_btn.setStyleSheet("color: red;")
         del_btn.clicked.connect(self.delete_term)
@@ -111,6 +116,7 @@ class TerminologyDialog(QDialog):
         clear_btn = QPushButton(tr("terminology.btn_clear_all", "🧹 Tümünü Temizle"))
         clear_btn.clicked.connect(self.clear_terms)
 
+        btn_layout.addWidget(save_btn)
         btn_layout.addWidget(del_btn)
         btn_layout.addWidget(import_btn)
         btn_layout.addWidget(export_btn)
@@ -159,12 +165,65 @@ class TerminologyDialog(QDialog):
 
     def _refresh_table(self):
         from PyQt6.QtWidgets import QTableWidgetItem
+        self.table.blockSignals(True)
         terms = self.manager.get_all_terms()
         self.table.setRowCount(len(terms))
         for row, t in enumerate(terms):
             self.table.setItem(row, 0, QTableWidgetItem(t.get("source", "")))
             self.table.setItem(row, 1, QTableWidgetItem(t.get("target", "")))
             self.table.setItem(row, 2, QTableWidgetItem(t.get("note", "")))
+        self.table.blockSignals(False)
+
+    def save_table_terms(self):
+        """Tablodaki tüm satırları okur ve manager.terms'i güncelleyip dosyaya kaydeder."""
+        new_terms = []
+        existing_map = {t["source"].lower(): t for t in self.manager.get_all_terms()}
+
+        for row in range(self.table.rowCount()):
+            s_item = self.table.item(row, 0)
+            t_item = self.table.item(row, 1)
+            n_item = self.table.item(row, 2)
+
+            source = s_item.text().strip() if s_item else ""
+            target = t_item.text().strip() if t_item else ""
+            note = n_item.text().strip() if n_item else ""
+
+            if source and target:
+                old_term = existing_map.get(source.lower(), {})
+                ambiguous = old_term.get("ambiguous", False)
+                new_terms.append({
+                    "source": source,
+                    "target": target,
+                    "note": note,
+                    "ambiguous": ambiguous
+                })
+
+        self.manager.terms = new_terms
+        self.manager._save()
+        self.manager._invalidate_pattern_cache()
+
+    def _on_item_changed(self, item):
+        """Hücre içeriği değiştirildiğinde otomatik kaydeder."""
+        self.save_table_terms()
+
+    def on_save_clicked(self):
+        """'Kaydet' butonuna basıldığında tabloyu kaydeder ve kullanıcıyı bilgilendirir."""
+        self.save_table_terms()
+        QMessageBox.information(
+            self,
+            tr("menu_bar.msg_save_success_title", "Başarılı"),
+            tr("terminology.msg_save_success", "Terminoloji değişiklikleri başarıyla kaydedildi.")
+        )
+
+    def accept(self):
+        """Pencere kapatılırken son tablo içeriklerini kaydeder."""
+        self.save_table_terms()
+        super().accept()
+
+    def closeEvent(self, event):
+        """Pencere X ile kapatılırken son tablo içeriklerini kaydeder."""
+        self.save_table_terms()
+        super().closeEvent(event)
 
     def add_term(self):
         source = self.source_input.text().strip()
