@@ -9,13 +9,14 @@ new_project_dialog.py — Yeni Proje Oluştur diyaloğu (v2).
 get_data() API'si DEĞİŞMEDİ — mevcut main_window.new_project_clicked() kırılmaz.
 """
 
+from PyQt6.QtWidgets import QFormLayout
 import sys
 import os
 import configparser
 
 from PyQt6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
-    QLineEdit, QTextEdit, QComboBox, QSpinBox, QCheckBox,
+    QLineEdit, QTextEdit, QComboBox, QSpinBox, QCheckBox, QFormLayout,
     QSlider, QFrame, QWidget, QGroupBox, QApplication, QInputDialog
 )
 from PyQt6.QtGui import QIntValidator, QFont, QIcon
@@ -269,8 +270,30 @@ class NewProjectDialog(QDialog):
         self.provider_combo.addItem(tr("project_settings.provider_llm", "Yapay Zeka (LLM / MCP)"), "llm")
         self.provider_combo.addItem(tr("project_settings.provider_google", "Google Translate (Ücretsiz)"), "google")
         self.provider_combo.addItem(tr("project_settings.provider_yandex", "Yandex Translate (Ücretsiz)"), "yandex")
+        self.provider_combo.addItem(tr("project_settings.provider_deepl", "DeepL Translate (Ücretli)"), "deepl")
         self.provider_combo.currentIndexChanged.connect(self.on_provider_changed)
         col.addWidget(self.provider_combo)
+        #deepl api
+        self.deepl_api_group = QGroupBox(tr("project_settings.provider_deepl", "DeepL API Key"))
+        self.deepl_api_group_layout = QFormLayout(self.deepl_api_group)
+        self.deepl_api_group_layout.addWidget(QLabel(tr("project_settings.provider_deepl", "DeepL API Key")))
+        self.deepl_api_key_input = QLineEdit()
+        self.deepl_api_key_input.setPlaceholderText(tr("project_setting.provider_deepl_api_key_placeholder", "DeepL API Key"))
+        self.deepl_api_group_layout.addWidget(self.deepl_api_key_input)
+        col.addWidget(self.deepl_api_group)
+
+        # yandex api
+        self.yandex_api_group = QGroupBox(tr("project_settings.provider_yandex", "Yandex API Key"))
+        self.yandex_api_group_layout = QFormLayout(self.yandex_api_group)
+        self.yandex_api_group_layout.addWidget(QLabel(tr("project_settings.provider_yandex", "Yandex API Key")))
+        self.yandex_api_key_input = QLineEdit()
+        self.yandex_api_key_input.setPlaceholderText(tr("project_setting.provider_yandex_api_key_placeholder", "Yandex API Key"))
+        self.yandex_api_group_layout.addWidget(self.yandex_api_key_input)
+        col.addWidget(self.yandex_api_group)
+        
+        
+        prov = self.provider_combo.currentData()
+        self.isllm = (prov == "llm")
 
         col.addStretch()
         return col
@@ -484,8 +507,12 @@ class NewProjectDialog(QDialog):
     def on_provider_changed(self):
         prov = self.provider_combo.currentData()
         is_llm = (prov == "llm")
+        isdeepl = (prov == "deepl")
+        isyandex = (prov == "yandex")
+        self.deepl_api_group.setVisible(isdeepl)
+        self.yandex_api_group.setVisible(isyandex)
         self.api_key_combo.setEnabled(is_llm)
-        self.api_key_input.setEnabled(is_llm or prov == "yandex")
+        self.api_key_input.setEnabled(is_llm)
         if hasattr(self, 'edit_keys_btn'):
             self.edit_keys_btn.setEnabled(is_llm)
         self.promt_combo.setEnabled(is_llm)
@@ -594,4 +621,6 @@ class NewProjectDialog(QDialog):
             api_key_name,
             mcp_endpoint_id,
             self.provider_combo.currentData(),
+            self.deepl_api_key_input.text(),
+            self.yandex_api_key_input.text(),
         )

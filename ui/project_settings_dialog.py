@@ -54,7 +54,7 @@ def load_files_to_combo(combobox, subfolder):
 
 class ProjectSettingsDialog(QDialog):
     """Mevcut proje ayarlarını düzenleme penceresi."""
-    def __init__(self, project_name, project_link, max_pages, api_key, start_promt, gemini_version, parent=None,
+    def __init__(self, project_name, project_link, max_pages, api_key, start_promt, gemini_version, deepl_api, yandex_api, parent=None,
                  mcp_endpoint_id=None, cache_enabled=True, terminology_enabled=True,
                  async_enabled=False, async_threads=3,
                  batch_enabled=False, max_batch_chars=33000, max_chapters_per_batch=5,
@@ -83,11 +83,11 @@ class ProjectSettingsDialog(QDialog):
 
         # İçerik widget'ı
         content_widget = QWidget()
-        layout = QFormLayout(content_widget)
-        layout.setContentsMargins(14, 10, 14, 10)
-        layout.setSpacing(8)
-        layout.setLabelAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
-        layout.setFieldGrowthPolicy(QFormLayout.FieldGrowthPolicy.ExpandingFieldsGrow)
+        self.form_layout = QFormLayout(content_widget)
+        self.form_layout.setContentsMargins(14, 10, 14, 10)
+        self.form_layout.setSpacing(8)
+        self.form_layout.setLabelAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+        self.form_layout.setFieldGrowthPolicy(QFormLayout.FieldGrowthPolicy.ExpandingFieldsGrow)
 
         scroll.setWidget(content_widget)
         outer_layout.addWidget(scroll, 1)
@@ -127,6 +127,8 @@ class ProjectSettingsDialog(QDialog):
         self.provider_combo.addItem(tr("project_settings.provider_llm", "Yapay Zeka (LLM / MCP)"), "llm")
         self.provider_combo.addItem(tr("project_settings.provider_google", "Google Translate (Ücretsiz)"), "google")
         self.provider_combo.addItem(tr("project_settings.provider_yandex", "Yandex Translate (Ücretsiz)"), "yandex")
+        self.provider_combo.addItem(tr("project_settings.provider_deepl", "DeepL Translate (Ücretli)"), "deepl")
+
         idx = self.provider_combo.findData(translation_provider)
         if idx >= 0:
             self.provider_combo.setCurrentIndex(idx)
@@ -223,10 +225,10 @@ class ProjectSettingsDialog(QDialog):
 
         # Gelişmiş Özellikler
         advanced_group = QGroupBox(tr("project_settings.group_advanced", "Performans ve Altyapı"))
-        advanced_layout = QFormLayout()
-        advanced_layout.setSpacing(6)
-        advanced_layout.setContentsMargins(8, 6, 8, 6)
-        
+        self.advanced_layout = QFormLayout()
+        self.advanced_layout.setSpacing(6)
+        self.advanced_layout.setContentsMargins(8, 6, 8, 6)
+
         self.async_checkbox = QCheckBox(tr("project_settings.checkbox_async", "Asenkron Çeviri [RPM Değeri Önemli]"))
         self.async_checkbox.setChecked(async_enabled)
         self.async_checkbox.setToolTip(tr("project_settings.checkbox_async_tooltip", "Çevirileri aynı anda başlatarak performansı ciddi oranda arttırır."))
@@ -263,11 +265,11 @@ class ProjectSettingsDialog(QDialog):
         self.batch_chapters_spinbox.setEnabled(batch_enabled)
         self.batch_chapters_spinbox.setToolTip(tr("project_settings.checkbox_batch_tooltip_chapters", "Bir batch'e konabilecek maksimum bölüm sayısı."))
 
-        advanced_layout.addRow(self.async_checkbox)
-        advanced_layout.addRow(tr("project_settings.label_async_threads", "Thread sayısı:"), self.async_threads_spinbox)
-        advanced_layout.addRow(self.batch_checkbox)
-        advanced_layout.addRow(tr("project_settings.label_max_chars_batch", "Maks karakter/batch:"), self.batch_chars_spinbox)
-        advanced_layout.addRow(tr("project_settings.label_max_chapters_batch", "Maks bölüm/batch:"), self.batch_chapters_spinbox)
+        self.advanced_layout.addRow(self.async_checkbox)
+        self.advanced_layout.addRow(tr("project_settings.label_async_threads", "Thread sayısı:"), self.async_threads_spinbox)
+        self.advanced_layout.addRow(self.batch_checkbox)
+        self.advanced_layout.addRow(tr("project_settings.label_max_chars_batch", "Maks karakter/batch:"), self.batch_chars_spinbox)
+        self.advanced_layout.addRow(tr("project_settings.label_max_chapters_batch", "Maks bölüm/batch:"), self.batch_chapters_spinbox)
         
         # Veritabanı Taşıma
         from core.database_manager import DatabaseManager
@@ -283,8 +285,8 @@ class ProjectSettingsDialog(QDialog):
         if self.db_mgr.db_exists():
             self.db_migrate_btn.setVisible(False)
             
-        advanced_layout.addRow(self.db_migrate_btn)
-        advanced_group.setLayout(advanced_layout)
+        self.advanced_layout.addRow(self.db_migrate_btn)
+        advanced_group.setLayout(self.advanced_layout)
 
         # Terminoloji Sözlüğü Butonu
         self.terminology_manage_btn = QPushButton(tr("project_settings.btn_terminology_manage", "📖 Terminoloji Sözlüğünü Yönet / Düzenle"))
@@ -294,22 +296,43 @@ class ProjectSettingsDialog(QDialog):
         )
         self.terminology_manage_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         self.terminology_manage_btn.clicked.connect(self.open_terminology_dialog)
-        
+
+        # Deepl api key
+        deepl_group = QGroupBox(tr("project_settings.group_deepl", "DeepL API Key (Ücretli)"))
+        self.deepl_layout = QFormLayout(deepl_group)
+        self.deepl_layout.setSpacing(2)
+        self.deepl_layout.setContentsMargins(8, 6, 8, 6)
+        self.deepl_layout.addRow(QLabel(tr("project_settings.label_deepl_api_key", "DeepL API Key:")))
+        self.deepl_api_key_combo = QLineEdit()
+        self.deepl_api_key_combo.setText(deepl_api)
+        self.deepl_layout.addWidget(self.deepl_api_key_combo)
+        # Yandex Api key
+        yandex_group = QGroupBox(tr("project_settings.group_yandex", "Yandex API Key (Ücretsiz)"))
+        self.yandex_layout = QFormLayout(yandex_group)
+        self.yandex_layout.setSpacing(2)
+        self.yandex_layout.setContentsMargins(8, 6, 8, 6)
+        self.yandex_layout.addRow(QLabel(tr("project_settings.label_yandex_api_key", "Yandex API Key:")))
+        self.yandex_api_key_combo = QLineEdit()
+        self.yandex_api_key_combo.setText(yandex_api)
+        self.yandex_layout.addWidget(self.yandex_api_key_combo)
         # Form'u doldur 
-        layout.addRow(tr("project_settings.label_provider_select", "Çeviri Sağlayıcısı:"), self.provider_combo)
-        layout.addRow(tr("project_settings.label_project_name", "Proje Adı:"), self.projectNameLabel)
-        layout.addRow(tr("project_settings.label_project_link", "Proje Linki:"), self.projectLinkInput)
-        layout.addRow(tr("project_settings.label_max_pages", "Maks. Sayfa:"), self.maxPagesInput)
-        layout.addRow(tr("project_settings.label_max_retries", "Maks. Deneme:"), self.maxRetriesInput)
-        layout.addRow(mcp_group)
-        layout.addRow(tr("project_settings.label_api_key_select", "API Key Seç:"), key_layout)
-        layout.addRow(tr("project_settings.label_current_api_key", "Mevcut API Key:"), self.api_key_input)
-        layout.addRow(tr("project_settings.label_prompt_select", "Prompt Seç:"), promt_layout)
-        layout.addRow(tr("project_settings.label_prompt_content", "Prompt İçeriği:"), self.startpromtinput)
-        layout.addRow(self.prompt_gen_btn)
-        layout.addRow(self.terminology_manage_btn)
-        layout.addRow(features_group)
-        layout.addRow(advanced_group)
+        self.form_layout.addRow(tr("project_settings.label_provider_select", "Çeviri Sağlayıcısı:"), self.provider_combo)
+        self.form_layout.addRow(deepl_group)
+        self.form_layout.addRow(yandex_group)
+        self.form_layout.addRow(tr("project_settings.label_project_name", "Proje Adı:"), self.projectNameLabel)
+        self.form_layout.addRow(tr("project_settings.label_project_link", "Proje Linki:"), self.projectLinkInput)
+        self.form_layout.addRow(tr("project_settings.label_max_pages", "Maks. Sayfa:"), self.maxPagesInput)
+        self.form_layout.addRow(tr("project_settings.label_max_retries", "Maks. Deneme:"), self.maxRetriesInput)
+        self.form_layout.addRow(mcp_group)
+        self.form_layout.addRow(tr("project_settings.label_api_key_select", "API Key Seç:"), key_layout)
+        self.form_layout.addRow(tr("project_settings.label_current_api_key", "Mevcut API Key:"), self.api_key_input)
+        self.form_layout.addRow(tr("project_settings.label_prompt_select", "Prompt Seç:"), promt_layout)
+        self.form_layout.addRow(tr("project_settings.label_prompt_content", "Prompt İçeriği:"), self.startpromtinput)
+        self.form_layout.addRow(self.prompt_gen_btn)
+        self.form_layout.addRow(self.terminology_manage_btn)
+        self.form_layout.addRow(features_group)
+        self.form_layout.addRow(advanced_group)
+
         
         self.refresh_combos()
         self.on_provider_changed()
@@ -317,15 +340,27 @@ class ProjectSettingsDialog(QDialog):
     def on_provider_changed(self):
         prov = self.provider_combo.currentData()
         is_llm = (prov == "llm")
-        self.api_key_combo.setEnabled(is_llm)
-        self.api_key_input.setEnabled(is_llm or prov == "yandex")
-        self.edit_keys_btn.setEnabled(is_llm)
-        self.promt_combo.setEnabled(is_llm)
-        self.edit_promt_btn.setEnabled(is_llm)
-        self.startpromtinput.setEnabled(is_llm)
-        self.use_custom_endpoint.setEnabled(is_llm)
-        self.endpoint_combo.setEnabled(is_llm and self.use_custom_endpoint.isChecked())
-        self.mcp_manage_btn.setEnabled(is_llm)
+        is_deepl = (prov == "deepl")
+        is_yandex = (prov == "yandex")
+        print(f"Provider changed to: {prov}, is_llm: {is_llm}, is_deepl: {is_deepl}, is_yandex: {is_yandex}")
+        self.form_layout.setRowVisible(1, is_deepl)  # Deepl API Key
+        self.form_layout.setRowVisible(2, is_yandex)  # Yandex
+        self.form_layout.setRowVisible(5, is_llm)  # MCP Group
+        self.form_layout.setRowVisible(6, is_llm)  # API Key
+        self.form_layout.setRowVisible(7, is_llm)  # Prompt Combo
+        self.form_layout.setRowVisible(8, is_llm)  # Prompt Content
+        self.form_layout.setRowVisible(9, is_llm)  # Prompt Generator Button
+        self.form_layout.setRowVisible(10, is_llm)  # Terminology Manage Button
+        self.form_layout.setRowVisible(11, is_llm)  # Features Group
+        self.form_layout.setRowVisible(12, is_llm)  # Advanced Group
+        self.advanced_layout.setRowVisible(0, is_llm)  # Async Checkbox
+        self.advanced_layout.setRowVisible(1, is_llm)  # Async Threads
+        self.advanced_layout.setRowVisible(2, is_llm)  # Batch Checkbox
+        self.advanced_layout.setRowVisible(3, is_llm)  # Batch Chars
+        self.advanced_layout.setRowVisible(4, is_llm)  # Batch Chapters
+
+
+        
 
     def _on_batch_toggled(self, checked: bool):
         """Batch modu açılırken uyarı gösterir."""
@@ -414,6 +449,8 @@ class ProjectSettingsDialog(QDialog):
             "max_pages": max_pages,
             "max_retries": self.maxRetriesInput.value(),
             "api_key": self.api_key_input.text(),
+            "deepl_api": self.deepl_api_key_combo.text(),
+            "yandex_api": self.yandex_api_key_combo.text(),
             "api_key_name": api_key_name,
             "Startpromt": self.startpromtinput.toPlainText(),
             "mcp_endpoint_id": mcp_endpoint_id,

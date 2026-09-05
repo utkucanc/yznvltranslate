@@ -511,12 +511,16 @@ class MainWindow(QMainWindow):
     def new_project_clicked(self):
         dialog = NewProjectDialog(self)
         if dialog.exec():
-            project_name, project_link, max_pages, max_retries, api_key, startpromt, api_key_name, mcp_endpoint_id, translation_provider = dialog.get_data()
+            project_name, project_link, max_pages, max_retries, api_key, startpromt, api_key_name, mcp_endpoint_id, translation_provider, deepl_api, yandex_api = dialog.get_data()
             if not project_name or not project_link:
                 QMessageBox.warning(self, tr("main_window.msg_project_missing_info_title", "Eksik Bilgi"), tr("main_window.msg_project_missing_info_body", "Proje adı ve linki boş bırakılamaz."))
                 return
             if not api_key and not mcp_endpoint_id and translation_provider == "llm":
                 QMessageBox.warning(self, tr("main_window.msg_project_config_missing_title", "Yapılandırma Eksik"), tr("main_window.msg_project_config_missing_body", "Çeviri ve token sayımı için Gemini API anahtarı veya MCP bağlantısı gereklidir."))
+            if not deepl_api and translation_provider == "deepl":
+                QMessageBox.warning(self, tr("main_window.msg_project_config_missing_title", "Yapılandırma Eksik"), tr("main_window.msg_project_config_missing_body", "Çeviri ve token sayımı için DeepL API anahtarı gereklidir."))
+            if not yandex_api and translation_provider == "yandex":
+                QMessageBox.warning(self, tr("main_window.msg_project_config_missing_title", "Yapılandırma Eksik"), tr("main_window.msg_project_config_missing_body", "Çeviri ve token sayımı için Yandex API anahtarı gereklidir."))
             try:
                 base_path = os.path.join(os.getcwd(), project_name)
                 if os.path.exists(base_path):
@@ -528,7 +532,7 @@ class MainWindow(QMainWindow):
                 if max_pages is not None:
                     self.config["ProjectInfo"]["max_pages"] = str(max_pages)
                 self.config["ProjectInfo"]["max_retries"] = str(max_retries)
-                self.config["API"] = {"gemini_api_key": api_key, "api_key_name": api_key_name, "translation_provider": translation_provider}
+                self.config["API"] = {"gemini_api_key": api_key, "api_key_name": api_key_name, "translation_provider": translation_provider,"deepl_api": deepl_api,"yandex_api": yandex_api}
                 self.config["Startpromt"] = {"startpromt": startpromt}
                 if mcp_endpoint_id:
                     self.config["MCP"] = {"endpoint_id": mcp_endpoint_id}
@@ -578,6 +582,8 @@ class MainWindow(QMainWindow):
         max_pages = None
         max_retries = 3
         api_key = ""
+        deepl_api = ""
+        yandex_api = ""
         startpromt = ""
         gemini_version = self.get_gemini_model_version()
         mcp_endpoint_id = None
@@ -597,6 +603,8 @@ class MainWindow(QMainWindow):
                 max_pages = self.config.getint("ProjectInfo", "max_pages", fallback=None)
                 max_retries = self.config.getint("ProjectInfo", "max_retries", fallback=3)
                 api_key = self.config.get("API", "gemini_api_key", fallback="")
+                deepl_api = self.config.get("API", "deepl_api", fallback="")
+                yandex_api = self.config.get("API", "yandex_api", fallback="")
                 startpromt = self.config.get("Startpromt", "startpromt", fallback="")
                 mcp_endpoint_id = self.config.get("MCP", "endpoint_id", fallback=None)
                 cache_enabled = self.config.getboolean("Features", "cache_enabled", fallback=False)
@@ -611,7 +619,7 @@ class MainWindow(QMainWindow):
                 pass
         self.max_retries = max_retries
         dialog = ProjectSettingsDialog(
-            project_name, project_link, max_pages, api_key, startpromt, gemini_version, self,
+            project_name, project_link, max_pages, api_key,deepl_api,yandex_api, startpromt, gemini_version, self,
             mcp_endpoint_id=mcp_endpoint_id, cache_enabled=cache_enabled,
             terminology_enabled=terminology_enabled, async_enabled=async_enabled,
             async_threads=async_threads, batch_enabled=batch_enabled,
@@ -633,6 +641,8 @@ class MainWindow(QMainWindow):
                 if "API" not in self.config:
                     self.config["API"] = {}
                 self.config["API"]["gemini_api_key"] = updated_data["api_key"]
+                self.config["API"]["deepl_api"] = updated_data["deepl_api"]
+                self.config["API"]["yandex_api"] = updated_data["yandex_api"]
                 if "api_key_name" in updated_data and updated_data["api_key_name"]:
                     self.config["API"]["api_key_name"] = updated_data["api_key_name"]
                 if "Startpromt" not in self.config:

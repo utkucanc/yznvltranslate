@@ -49,11 +49,14 @@ class ProjectManager:
         project_name: str,
         project_link: str,
         api_key: str = "",
+        deepl_api: str = "",
+        yandex_api: str = "",
         startpromt: str = "",
         max_pages: int = None,
         max_retries: int = 3,
         api_key_name: str = "",
         mcp_endpoint_id: str = None,
+
     ) -> tuple[bool, str]:
         """
         Yeni bir proje klasörü ve config.ini oluşturur.
@@ -75,6 +78,8 @@ class ProjectManager:
                 config["ProjectInfo"]["max_pages"] = str(max_pages)
             config["ProjectInfo"]["max_retries"] = str(max_retries)
             config["API"] = {"gemini_api_key": api_key, "api_key_name": api_key_name}
+            config["DEEPL"] = {"deepl_api": deepl_api}
+            config["YANDEX"] = {"yandex_api": yandex_api}
             config["Startpromt"] = {"startpromt": startpromt}
             if mcp_endpoint_id:
                 config["MCP"] = {"endpoint_id": mcp_endpoint_id}
