@@ -6,7 +6,7 @@ new_project_dialog.py — Yeni Proje Oluştur diyaloğu (v2).
   Kolon 2: Proje Ayarları (Translation Style, model, workers slider, toggle'lar)
   Kolon 3: Gelişmiş (API Key, Prompt, MCP)
 
-get_data() API'si DEĞİŞMEDİ — mevcut main_window.new_project_clicked() kırılmaz.
+
 """
 
 from PyQt6.QtWidgets import QFormLayout
@@ -309,18 +309,21 @@ class NewProjectDialog(QDialog):
 
         # Translation Style
         col.addWidget(self._field_label(tr("new_project.label_translation_style", "Çeviri Stili")))
-        style_row = QHBoxLayout()
-        style_row.setSpacing(8)
-        style_row.addWidget(
-            StyleOptionCard("⇄", "Literal", "Kelime kelime doğru çeviri.", self.style_group, "literal")
+        self.style_row = QHBoxLayout()
+        self.style_row.setSpacing(8)
+        self.literalcard = StyleOptionCard("⇄", "Literal", "Kelime kelime doğru çeviri.", self.style_group, "literal")
+        self.style_row.addWidget(
+            self.literalcard
         )
-        style_row.addWidget(
-            StyleOptionCard("⚖", "Balanced", "Doğruluk ve okunabilirlik dengesi.", self.style_group, "balanced", checked=True)
+        self.balancedcard = StyleOptionCard("⚖", "Balanced", "Doğruluk ve okunabilirlik dengesi.", self.style_group, "balanced", checked=True)
+        self.style_row.addWidget(
+            self.balancedcard
         )
-        style_row.addWidget(
-            StyleOptionCard("🍃", "Natural", "Doğal ve akıcı çeviri.", self.style_group, "natural")
+        self.naturalcard = StyleOptionCard("🍃", "Natural", "Doğal ve akıcı çeviri.", self.style_group, "natural")
+        self.style_row.addWidget(
+            self.naturalcard
         )
-        col.addLayout(style_row)
+        col.addLayout(self.style_row)
 
         # Model
         col.addWidget(self._field_label(tr("new_project.label_model", "Varsayılan Model")))
@@ -347,11 +350,11 @@ class NewProjectDialog(QDialog):
         )
         col.addWidget(self.workers_slider)
 
-        minmax = QHBoxLayout()
-        l1 = QLabel("1"); l1.setStyleSheet(f"color:{TEXT_FAINT}; font-size:10px;")
-        l2 = QLabel("10"); l2.setStyleSheet(f"color:{TEXT_FAINT}; font-size:10px;")
-        minmax.addWidget(l1); minmax.addStretch(); minmax.addWidget(l2)
-        col.addLayout(minmax)
+        self.minmax = QHBoxLayout()
+        self.l1 = QLabel("1"); self.l1.setStyleSheet(f"color:{TEXT_FAINT}; font-size:10px;")
+        self.l2 = QLabel("10"); self.l2.setStyleSheet(f"color:{TEXT_FAINT}; font-size:10px;")
+        self.minmax.addWidget(self.l1); self.minmax.addStretch(); self.minmax.addWidget(self.l2)
+        col.addLayout(self.minmax)
         col.addWidget(self._hint_label("Öneri: Gemini için 3 (RPM: 11-12)"))
 
         # Toggle switch'ler
@@ -359,11 +362,6 @@ class NewProjectDialog(QDialog):
             "Batch Mode",
             "Birden fazla bölümü tek istekte paketler (kota tasarrufu).",
             False
-        ))
-        col.addLayout(self._toggle_row(
-            "Translation Cache",
-            "Otomatik cache aktif — maliyet ve hız iyileştirir.",
-            True
         ))
         col.addLayout(self._toggle_row(
             "Quality Check",
@@ -509,6 +507,13 @@ class NewProjectDialog(QDialog):
         is_llm = (prov == "llm")
         isdeepl = (prov == "deepl")
         isyandex = (prov == "yandex")
+        
+        self.literalcard.setEnabled(is_llm)
+        self.balancedcard.setEnabled(is_llm)
+        self.naturalcard.setEnabled(is_llm)
+        self.model_combo.setEnabled(is_llm)
+        self.workers_slider.setEnabled(is_llm)
+        self.minmax.setEnabled(is_llm)
         self.deepl_api_group.setVisible(isdeepl)
         self.yandex_api_group.setVisible(isyandex)
         self.api_key_combo.setEnabled(is_llm)

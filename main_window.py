@@ -619,7 +619,7 @@ class MainWindow(QMainWindow):
                 pass
         self.max_retries = max_retries
         dialog = ProjectSettingsDialog(
-            project_name, project_link, max_pages, api_key,deepl_api,yandex_api, startpromt, gemini_version, self,
+            project_name, project_link, max_pages, api_key, startpromt, gemini_version,deepl_api,yandex_api, self,
             mcp_endpoint_id=mcp_endpoint_id, cache_enabled=cache_enabled,
             terminology_enabled=terminology_enabled, async_enabled=async_enabled,
             async_threads=async_threads, batch_enabled=batch_enabled,
