@@ -1,6 +1,6 @@
 """
 translation_quality_checker.py
-───────────────────────────────
+-------------------------------
 Çevirinin başarısız olduğunu tespit eden çok katmanlı kontrol modülü.
 
 Kontrol akışı:

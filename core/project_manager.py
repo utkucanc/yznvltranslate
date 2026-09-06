@@ -26,7 +26,7 @@ class ProjectManager:
         """
         self.base_dir = base_dir or os.getcwd()
 
-    # ─────────────── Proje Listeleme ───────────────
+    # --------------- Proje Listeleme ---------------
 
     def list_projects(self) -> list[str]:
         """config/config.ini dosyası olan tüm alt klasörleri proje olarak döndürür."""
@@ -42,18 +42,21 @@ class ProjectManager:
             app_logger.error(f"Proje listesi oluşturulamadı: {e}")
         return sorted(projects)
 
-    # ─────────────── Proje Oluşturma ───────────────
+    # --------------- Proje Oluşturma ---------------
 
     def create_project(
         self,
         project_name: str,
         project_link: str,
         api_key: str = "",
+        deepl_api: str = "",
+        yandex_api: str = "",
         startpromt: str = "",
         max_pages: int = None,
         max_retries: int = 3,
         api_key_name: str = "",
         mcp_endpoint_id: str = None,
+
     ) -> tuple[bool, str]:
         """
         Yeni bir proje klasörü ve config.ini oluşturur.
@@ -75,6 +78,8 @@ class ProjectManager:
                 config["ProjectInfo"]["max_pages"] = str(max_pages)
             config["ProjectInfo"]["max_retries"] = str(max_retries)
             config["API"] = {"gemini_api_key": api_key, "api_key_name": api_key_name}
+            config["DEEPL"] = {"deepl_api": deepl_api}
+            config["YANDEX"] = {"yandex_api": yandex_api}
             config["Startpromt"] = {"startpromt": startpromt}
             if mcp_endpoint_id:
                 config["MCP"] = {"endpoint_id": mcp_endpoint_id}
@@ -93,7 +98,7 @@ class ProjectManager:
             app_logger.error(f"Proje oluşturma hatası ({project_name}): {e}")
             return False, f"Proje oluşturulurken beklenmeyen bir hata oluştu:\n{e}"
 
-    # ─────────────── Proje Silme ───────────────
+    # --------------- Proje Silme ---------------
 
     def delete_project(self, project_name: str) -> tuple[bool, str]:
         """
@@ -114,7 +119,7 @@ class ProjectManager:
             app_logger.error(f"Proje silme hatası ({project_name}): {e}")
             return False, f"Proje silinirken beklenmeyen bir hata oluştu:\n{e}"
 
-    # ─────────────── Config Okuma / Yazma ───────────────
+    # --------------- Config Okuma / Yazma ---------------
 
     def get_project_path(self, project_name: str) -> str:
         return os.path.join(self.base_dir, project_name)
