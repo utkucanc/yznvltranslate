@@ -71,11 +71,18 @@ class TranslationController:
         try:
             with open(config_path, 'r', encoding='utf-8') as f:
                 self.win.config.read_file(f)
-            api_key = self.win.config.get('API', 'gemini_api_key', fallback=None)
+            translation_provider = self.win.config.get('API', 'translation_provider', fallback='llm')
+
+            if translation_provider == 'deepl':
+                api_key = self.win.config.get('API', 'deepl_api', fallback=None) or self.win.config.get('DEEPL', 'deepl_api', fallback=None)
+            elif translation_provider == 'yandex':
+                api_key = self.win.config.get('API', 'yandex_api', fallback=None) or self.win.config.get('YANDEX', 'yandex_api', fallback=None)
+            else:
+                api_key = self.win.config.get('API', 'gemini_api_key', fallback=None)
+
             api_key_name = self.win.config.get('API', 'api_key_name', fallback='Varsayılan')
             startpromt = self.win.config.get('Startpromt', 'startpromt', fallback=None)
             mcp_endpoint_id = self.win.config.get('MCP', 'endpoint_id', fallback=None)
-            translation_provider = self.win.config.get('API', 'translation_provider', fallback='llm')
 
             if translation_provider == 'llm' and not api_key and not mcp_endpoint_id:
                 QMessageBox.critical(self.win, "Yapılandırma Eksik", "Seçili proje için API anahtarı veya MCP bağlantısı bulunamadı. Lütfen proje ayarlarından yapılandırın.")
