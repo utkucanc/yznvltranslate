@@ -10,9 +10,6 @@ __pycache__/
 ## Bölüm - 529 ##
 # Distribution / packaging
 oydvar/
-AppConfigs/APIKeys/
-AppConfigs/APIKeys/MCP/
-AppConfigs/Promts/
 #AppConfigs/*.json
 .Python
 oydvar/
@@ -210,7 +207,5 @@ free-translate-update.md
 /kapalıbeta
 bugfix.md
 /test4
-AppConfigs/app_settings.json
-AppConfigs/MCP_Endpoints.json
 AppConfigs/request_count.json
 AppConfigs/request_stats.json

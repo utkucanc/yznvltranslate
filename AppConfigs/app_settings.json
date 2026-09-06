@@ -1,8 +1,4 @@
 {
-  "_comment": [
-    "Bu dosyanın adını app_settings.json olarak düzeltin.",
-    "Rename this file to app_settings.json."
-  ],
   "theme": "dark",
   "ml_max_tokens": 50000,
   "log_level": "DEBUG",
@@ -14,25 +10,25 @@
     "google",
     "yandex"
   ],
-  "deepl_api_key": "deepl_api_key",
-  "yandex_api_key": "yandex_api_key",
+  "deepl_api_key": "api-key",
+  "yandex_api_key": "api-key",
   "google_proxy": {
-    "http": "socks5://ip:port",
-    "https": "socks5://ip:port"
+    "http": "socks5://ip:1080",
+    "https": "socks5://ip:1080"
   },
   "deepl_keys": [
-    "deepl_keys"
+    "api-key"
   ],
   "deepl_use_rotation": true,
   "yandex_keys": [
-    "yandex_api_key"
+    "api-key"
   ],
   "yandex_use_rotation": false,
   "proxies": [
     {
       "id": "p1",
       "type": "socks5",
-      "host": "ip",
+      "host": "31.207.45.69",
       "port": 1080,
       "active": true
     }
