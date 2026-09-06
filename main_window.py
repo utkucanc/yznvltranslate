@@ -466,6 +466,16 @@ class MainWindow(QMainWindow):
 
     def open_mcp_dialog(self):
         MCPServerDialog(self).exec()
+        try:
+            from ui.connection_bar_builder import _refresh_connection_bar
+            _refresh_connection_bar(self)
+        except Exception:
+            pass
+
+    def open_free_translators_dialog(self):
+        from ui.free_translators_dialog import FreeTranslatorsDialog
+        dlg = FreeTranslatorsDialog(self)
+        dlg.exec()
 
     def open_app_settings_dialog(self):
         dialog = AppSettingsDialog(self)

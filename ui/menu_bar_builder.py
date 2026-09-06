@@ -44,6 +44,8 @@ def build_menu_bar(main_window):
     gemini_version_action.triggered.connect(win.open_gemini_version_dialog)
     mcp_action = settings_menu.addAction(tr("menu_bar.ai_source_mcp", "Yapay Zeka Kaynağı (MCP)"))
     mcp_action.triggered.connect(win.open_mcp_dialog)
+    free_translators_action = settings_menu.addAction(tr("menu_bar.free_translators", "🌐 Ücretsiz Çeviriciler & Proxy"))
+    free_translators_action.triggered.connect(win.open_free_translators_dialog)
     settings_menu.addSeparator()
     theme_manager_action = settings_menu.addAction(tr("menu_bar.theme_manager", "🎨 Tema Yöneticisi"))
     theme_manager_action.triggered.connect(win.open_theme_manager_dialog)
