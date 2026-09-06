@@ -83,72 +83,8 @@ def load_files_to_combo(combobox: QComboBox, subfolder: str):
 
 
 # ------------------------------------------------------------------
-# StyleCardGroup — Tekli seçim yöneticisi
+# ToggleSwitch
 # ------------------------------------------------------------------
-
-class StyleCardGroup:
-    def __init__(self):
-        self.cards = []
-        self.selected_value = "balanced"  # varsayılan
-
-    def add_card(self, c):
-        self.cards.append(c)
-
-    def select(self, card):
-        for c in self.cards:
-            c.set_checked(c is card)
-        self.selected_value = card.value
-
-
-class StyleOptionCard(QFrame):
-    """Translation Style seçim kartı."""
-
-    def __init__(self, icon: str, title: str, sub: str,
-                 group: StyleCardGroup, value: str, checked: bool = False):
-        super().__init__()
-        self.setObjectName("styleCardActive" if checked else "styleCard")
-        self.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.value = value
-        self._checked = checked
-
-        lay = QVBoxLayout(self)
-        lay.setContentsMargins(10, 10, 10, 10)
-        lay.setSpacing(4)
-
-        top = QHBoxLayout()
-        icon_lbl = QLabel(icon)
-        icon_lbl.setStyleSheet(f"font-size:16px; color:{ACCENT_BLUE};")
-        top.addWidget(icon_lbl)
-        top.addStretch()
-        self.check_dot = QLabel("●")
-        self.check_dot.setStyleSheet(f"color:{ACCENT_BLUE};")
-        self.check_dot.setVisible(checked)
-        top.addWidget(self.check_dot)
-        lay.addLayout(top)
-
-        t = QLabel(title)
-        t.setStyleSheet(f"color:{TEXT_MAIN}; font-size:12px; font-weight:700;")
-        lay.addWidget(t)
-
-        s = QLabel(sub)
-        s.setWordWrap(True)
-        s.setStyleSheet(f"color:{TEXT_FAINT}; font-size:10px;")
-        lay.addWidget(s)
-
-        self.group = group
-        group.add_card(self)
-        if checked:
-            group.selected_value = value
-
-    def set_checked(self, val: bool):
-        self._checked = val
-        self.check_dot.setVisible(val)
-        self.setObjectName("styleCardActive" if val else "styleCard")
-        self.style().unpolish(self)
-        self.style().polish(self)
-
-    def mousePressEvent(self, event):
-        self.group.select(self)
 
 
 class ToggleSwitch(QCheckBox):
@@ -171,8 +107,6 @@ class NewProjectDialog(QDialog):
         self.setModal(True)
         self.setMinimumSize(1020, 660)
         self.resize(1060, 700)
-
-        self.style_group = StyleCardGroup()
 
         outer = QVBoxLayout(self)
         outer.setContentsMargins(0, 0, 0, 0)
@@ -306,24 +240,6 @@ class NewProjectDialog(QDialog):
         col = QVBoxLayout()
         col.setSpacing(8)
         col.addWidget(self._section_title("2. " + tr("new_project.col2_title", "Proje Ayarları")))
-
-        # Translation Style
-        col.addWidget(self._field_label(tr("new_project.label_translation_style", "Çeviri Stili")))
-        self.style_row = QHBoxLayout()
-        self.style_row.setSpacing(8)
-        self.literalcard = StyleOptionCard("⇄", "Literal", "Kelime kelime doğru çeviri.", self.style_group, "literal")
-        self.style_row.addWidget(
-            self.literalcard
-        )
-        self.balancedcard = StyleOptionCard("⚖", "Balanced", "Doğruluk ve okunabilirlik dengesi.", self.style_group, "balanced", checked=True)
-        self.style_row.addWidget(
-            self.balancedcard
-        )
-        self.naturalcard = StyleOptionCard("🍃", "Natural", "Doğal ve akıcı çeviri.", self.style_group, "natural")
-        self.style_row.addWidget(
-            self.naturalcard
-        )
-        col.addLayout(self.style_row)
 
         # Model
         col.addWidget(self._field_label(tr("new_project.label_model", "Varsayılan Model")))
@@ -492,10 +408,13 @@ class NewProjectDialog(QDialog):
         top.addStretch()
         sw = ToggleSwitch(checked)
         # Toggle'ları kaydet (get_data için)
-        setattr(self, f"_toggle_{title.lower().replace(' ', '_').replace('(', '').replace(')', '')}", sw)
+        attr_name = title.lower().replace(" ", "_").replace("(", "").replace(")", "")
+        setattr(self, f"_toggle_{attr_name}", sw)
         top.addWidget(sw)
         row.addLayout(top)
-        row.addWidget(self._hint_label(sub))
+        hint = self._hint_label(sub)
+        setattr(self, f"_hint_{attr_name}", hint)
+        row.addWidget(hint)
         return row
 
     # ------------------------------------------------------------------
@@ -507,15 +426,41 @@ class NewProjectDialog(QDialog):
         is_llm = (prov == "llm")
         isdeepl = (prov == "deepl")
         isyandex = (prov == "yandex")
-        
-        self.literalcard.setEnabled(is_llm)
-        self.balancedcard.setEnabled(is_llm)
-        self.naturalcard.setEnabled(is_llm)
+
         self.model_combo.setEnabled(is_llm)
         self.workers_slider.setEnabled(is_llm)
         self.minmax.setEnabled(is_llm)
         self.deepl_api_group.setVisible(isdeepl)
         self.yandex_api_group.setVisible(isyandex)
+
+        # Otomatik API Key tamamlama (app_settings.json'dan)
+        try:
+            from core.free_translators import load_free_translators_config
+            free_cfg = load_free_translators_config()
+            if isdeepl and not self.deepl_api_key_input.text().strip():
+                if free_cfg.get("deepl_keys"):
+                    self.deepl_api_key_input.setText(free_cfg["deepl_keys"][0])
+            if isyandex and not self.yandex_api_key_input.text().strip():
+                if free_cfg.get("yandex_keys"):
+                    self.yandex_api_key_input.setText(free_cfg["yandex_keys"][0])
+        except Exception:
+            pass
+
+        # Batch Mode kısıtlaması (LLM dışı seçildiğinde devre dışı ve açıklama gösterilir)
+        if hasattr(self, '_toggle_batch_mode'):
+            self._toggle_batch_mode.setEnabled(is_llm)
+            if not is_llm:
+                self._toggle_batch_mode.setChecked(False)
+                msg = "Batch Mode sadece LLM tabanlı sağlayıcılarda kullanılabilir"
+                self._toggle_batch_mode.setToolTip(msg)
+                if hasattr(self, '_hint_batch_mode'):
+                    self._hint_batch_mode.setText(f"ℹ️ {msg}")
+                    self._hint_batch_mode.setStyleSheet(f"color:{ACCENT_ORANGE}; font-size:10px;")
+            else:
+                self._toggle_batch_mode.setToolTip("")
+                if hasattr(self, '_hint_batch_mode'):
+                    self._hint_batch_mode.setText("Birden fazla bölümü tek istekte paketler (kota tasarrufu).")
+                    self._hint_batch_mode.setStyleSheet(f"color:{TEXT_FAINT}; font-size:10px;")
         self.api_key_combo.setEnabled(is_llm)
         self.api_key_input.setEnabled(is_llm)
         if hasattr(self, 'edit_keys_btn'):
