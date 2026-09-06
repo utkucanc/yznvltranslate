@@ -53,9 +53,6 @@ MATERIAL_THEME_MAP = {
     "light":       "light_blue.xml",
 }
 
-def __init__(self, main_window):
-    self.win = main_window
-
 def load_app_settings() -> dict:
     """AppConfigs/app_settings.json dosyasını okur. Yoksa varsayılanı döndürür."""
     if os.path.exists(APP_SETTINGS_FILE):
@@ -96,7 +93,7 @@ def apply_theme(app, theme_name: str):
         app_logger.info("Tema: Sistem varsayılanı uygulandı.")
         return
 
-    # ── Aşama 0: Özel JSON tema kontrolü ──
+    # -- Aşama 0: Özel JSON tema kontrolü --
     custom_json_file = os.path.join(os.getcwd(), "AppConfigs", "themes", f"{theme_name}.json")
     if os.path.exists(custom_json_file) and theme_name not in ("dark", "light"):
         try:
@@ -164,6 +161,7 @@ class AppSettingsDialog(QDialog):
 
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.win = parent
         self.setWindowTitle(tr("app_settings.window_title", "⚙️ Uygulama Ayarları"))
         self.resize(580, 520)
         self.settings = load_app_settings()
@@ -479,7 +477,8 @@ class AppSettingsDialog(QDialog):
             f"language={self.settings['language']}"
         )
         QMessageBox.information(self, tr("app_settings.msg_settings_saved_title", "Kaydedildi"), tr("app_settings.msg_settings_saved_body", "Ayarlar başarıyla kaydedildi ve uygulandı."))
-        self.win.refresh_ui_and_theme()
+        if self.win and hasattr(self.win, "refresh_ui_and_theme"):
+            self.win.refresh_ui_and_theme()
 
     def get_settings(self) -> dict:
         return self.settings

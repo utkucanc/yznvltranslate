@@ -12,7 +12,7 @@ from PyQt6.QtCore import Qt, QThread, pyqtSignal, QObject, QSize
 from logger import app_logger
 from core.localization import tr
 
-# ─── V2.1.0 Geriye Uyumluluk Re-export'lar ───
+# --- V2.1.0 Geriye Uyumluluk Re-export'lar ---
 # ui/ paketine taşınan sınıflar burada da erişilebilir kalır.
 # Eski "from dialogs import X" çağrıları kırılmaz.
 try:
@@ -60,7 +60,7 @@ class MCPServerDialog(QDialog):
         
         main_layout = QHBoxLayout(self)
         
-        # ── Sol Panel: Endpoint Listesi ──
+        # -- Sol Panel: Endpoint Listesi --
         left_layout = QVBoxLayout()
         left_layout.addWidget(QLabel(tr("mcp_server.saved_servers", "Kayıtlı Sunucular:")))
         
@@ -86,7 +86,7 @@ class MCPServerDialog(QDialog):
         active_layout.addWidget(self.set_active_btn)
         left_layout.addLayout(active_layout)
         
-        # ── Sağ Panel: Endpoint Formu ──
+        # -- Sağ Panel: Endpoint Formu --
         right_layout = QVBoxLayout()
         
         form = QFormLayout()
@@ -95,12 +95,12 @@ class MCPServerDialog(QDialog):
         self.name_input = QLineEdit()
         self.name_input.setPlaceholderText(tr("mcp_server.placeholder_name", "Sunucu Adı [Listeleme için gerekli. Önemsiz.]"))
         
-        # ── Tür Seçimi ──
+        # -- Tür Seçimi --
         self.type_combo = QComboBox()
         self.type_combo.addItems(["gemini", "openai_compatible"])
         self.type_combo.currentTextChanged.connect(self._on_type_changed)
         
-        # ── Model Seçimi (gemini → combo, openai → text) ──
+        # -- Model Seçimi (gemini → combo, openai → text) --
         # Gemini model combo
         self.model_combo = QComboBox()
         self.model_combo.setEditable(True)
@@ -110,7 +110,7 @@ class MCPServerDialog(QDialog):
         self.model_input = QLineEdit()
         self.model_input.setPlaceholderText(tr("mcp_server.placeholder_model_id", "model-id (ör: gpt-4o, llama-3.3-70b)"))
 
-        # ── URL Girişi ──
+        # -- URL Girişi --
         self.url_input = QLineEdit()
         self.url_input.setPlaceholderText(tr("mcp_server.placeholder_url", "https://api.example.com/v1 (Zorunlu!)"))
         
@@ -137,7 +137,7 @@ class MCPServerDialog(QDialog):
         self.keys_edit.setMaximumHeight(120)
         right_layout.addWidget(self.keys_edit)
         
-        # ── API Aktar Butonu (üstte) ──
+        # -- API Aktar Butonu (üstte) --
         self.import_api_btn = QPushButton(tr("mcp_server.btn_import_api", "📥 API Editöründen API Aktar"))
         self.import_api_btn.setStyleSheet("background-color: #607D8B; color: white; font-weight: bold; padding: 6px;")
         self.import_api_btn.clicked.connect(self.import_from_api_editor)
@@ -170,7 +170,7 @@ class MCPServerDialog(QDialog):
         self._on_type_changed("gemini")
         self._load_list()
 
-    # ── Tür Değişince Model ve URL Göster/Gizle ──
+    # -- Tür Değişince Model ve URL Göster/Gizle --
     def _on_type_changed(self, type_text: str):
         """Tür seçimine göre model alanı ve URL alanını göster/gizle."""
         is_gemini = (type_text == "gemini")
@@ -276,7 +276,7 @@ class MCPServerDialog(QDialog):
             self.keys_edit.setText('\n'.join(existing_list))
             QMessageBox.information(self, tr("menu_bar.msg_save_success_title", "Başarılı"), tr("mcp_server.msg_keys_imported", "{} anahtar içe aktarıldı.").format(len(added_keys)))
 
-    # ── Mevcut endpoint seçilince formu doldur ──
+    # -- Mevcut endpoint seçilince formu doldur --
     def _load_list(self):
         """Endpoint listesini yükler."""
         self.endpoint_list.clear()

@@ -1,0 +1,23 @@
+{
+  "active_endpoint_id": "default_gemini",
+  "endpoints": [
+    {
+      "id": "default_gemini",
+      "name": "Standart Gemini",
+      "type": "gemini",
+      "model_id": "gemini-3.6-flash",
+      "base_url": null,
+      "use_key_rotation": true,
+      "headers": {}
+    },
+    {
+      "id": "localllm",
+      "name": "localllm",
+      "type": "openai_compatible",
+      "model_id": "qwen2.5-14b-instruct-uncensored",
+      "base_url": "http://127.0.0.1:1234/v1",
+      "use_key_rotation": true,
+      "headers": {}
+    }
+  ]
+}

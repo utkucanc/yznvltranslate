@@ -26,7 +26,7 @@ class TranslationController:
         self.worker = None
         self._has_error = False
 
-    # ─── Güvenli QThread Geçerlilik Kontrolü ───────────────────────────────
+    # --- Güvenli QThread Geçerlilik Kontrolü -------------------------------
     def _is_thread_alive(self):
         """QThread hâlâ geçerli ve çalışıyor mu? C++ deletion güvenli."""
         if self.thread is None:
@@ -45,7 +45,7 @@ class TranslationController:
         self.worker = None
         self._has_error = False
 
-    # ─── Başlatma ──────────────────────────────────────────────────────────
+    # --- Başlatma ----------------------------------------------------------
     def start(self):
         """Çeviri işlemini başlatır veya duraklatma/devam işlemini yönetir."""
         if self._is_thread_alive():
@@ -71,11 +71,18 @@ class TranslationController:
         try:
             with open(config_path, 'r', encoding='utf-8') as f:
                 self.win.config.read_file(f)
-            api_key = self.win.config.get('API', 'gemini_api_key', fallback=None)
+            translation_provider = self.win.config.get('API', 'translation_provider', fallback='llm')
+
+            if translation_provider == 'deepl':
+                api_key = self.win.config.get('API', 'deepl_api', fallback=None) or self.win.config.get('DEEPL', 'deepl_api', fallback=None)
+            elif translation_provider == 'yandex':
+                api_key = self.win.config.get('API', 'yandex_api', fallback=None) or self.win.config.get('YANDEX', 'yandex_api', fallback=None)
+            else:
+                api_key = self.win.config.get('API', 'gemini_api_key', fallback=None)
+
             api_key_name = self.win.config.get('API', 'api_key_name', fallback='Varsayılan')
             startpromt = self.win.config.get('Startpromt', 'startpromt', fallback=None)
             mcp_endpoint_id = self.win.config.get('MCP', 'endpoint_id', fallback=None)
-            translation_provider = self.win.config.get('API', 'translation_provider', fallback='llm')
 
             if translation_provider == 'llm' and not api_key and not mcp_endpoint_id:
                 QMessageBox.critical(self.win, "Yapılandırma Eksik", "Seçili proje için API anahtarı veya MCP bağlantısı bulunamadı. Lütfen proje ayarlarından yapılandırın.")
@@ -176,7 +183,7 @@ class TranslationController:
         self.win._current_status = "Çeviri yapılıyor"
         self.win.update_status_bar()
 
-    # ─── Duraklatma / Devam ────────────────────────────────────────────────
+    # --- Duraklatma / Devam ------------------------------------------------
     def _toggle_pause(self):
         if self.worker.is_paused:
             self.worker.resume()
@@ -189,7 +196,7 @@ class TranslationController:
             self.win.translateButton.setStyleSheet("background-color: #4CAF50; color: white; border-radius: 5px; padding: 10px;")
             self.win.statusLabel.setText("Durum: Çeviri duraklatıldı.")
 
-    # ─── Signal Handler'lar ────────────────────────────────────────────────
+    # --- Signal Handler'lar ------------------------------------------------
     def _on_progress(self, current, total):
         self.win.progressBar.setValue(current)
         self.win.progressBar.setMaximum(total)
@@ -274,7 +281,7 @@ class TranslationController:
             self.win, "Çeviri Hatası", f"Bir hata oluştu:\n{message}"
         ))
 
-    # ─── Dışarıdan Durdurma ────────────────────────────────────────────────
+    # --- Dışarıdan Durdurma ------------------------------------------------
     def stop_translation(self):
         """Çeviriyi tamamen durdurur (UI onaylı)."""
         if not self._is_thread_alive():

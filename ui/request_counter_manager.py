@@ -44,7 +44,7 @@ class RequestCounterManager:
         self.last_api_key_name = ""
         self._load_legacy()
 
-    # ─────────────── Yeni Çok-API İstatistik Sistemi ───────────────
+    # --------------- Yeni Çok-API İstatistik Sistemi ---------------
 
     def _load_stats(self):
         """Detaylı istatistikleri yükler."""
@@ -106,7 +106,7 @@ class RequestCounterManager:
                 result[day] = self._stats[day]
         return result
 
-    # ─────────────── Geriye Uyumluluk (Eski API) ───────────────
+    # --------------- Geriye Uyumluluk (Eski API) ---------------
 
     def _load_legacy(self):
         """Eski request_count.json'dan yükler (geriye uyumluluk)."""

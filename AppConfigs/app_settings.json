@@ -1,0 +1,36 @@
+{
+  "theme": "dark",
+  "ml_max_tokens": 50000,
+  "log_level": "DEBUG",
+  "custom_js_sources": [],
+  "notifications_enabled": true,
+  "promt_generator_max_tokens": 20000,
+  "language": "tr",
+  "translation_providers": [
+    "google",
+    "yandex"
+  ],
+  "deepl_api_key": "api-key",
+  "yandex_api_key": "api-key",
+  "google_proxy": {
+    "http": "socks5://ip:1080",
+    "https": "socks5://ip:1080"
+  },
+  "deepl_keys": [
+    "api-key"
+  ],
+  "deepl_use_rotation": true,
+  "yandex_keys": [
+    "api-key"
+  ],
+  "yandex_use_rotation": false,
+  "proxies": [
+    {
+      "id": "p1",
+      "type": "socks5",
+      "host": "31.207.45.69",
+      "port": 1080,
+      "active": true
+    }
+  ]
+}

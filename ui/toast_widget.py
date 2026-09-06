@@ -27,7 +27,7 @@ class _ToastWidget(QFrame):
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         self.duration = duration
 
-        # ── Stil ──
+        # -- Stil --
         self.setStyleSheet("""
             QFrame#toast {
                 background-color: #1E1E2E;
@@ -39,7 +39,7 @@ class _ToastWidget(QFrame):
         self.setObjectName("toast")
         self.setFixedWidth(320)
 
-        # ── Layout ──
+        # -- Layout --
         layout = QVBoxLayout(self)
         layout.setContentsMargins(14, 10, 14, 10)
         layout.setSpacing(4)
@@ -71,12 +71,12 @@ class _ToastWidget(QFrame):
 
         self.adjustSize()
 
-        # ── Opaklık efekti ──
+        # -- Opaklık efekti --
         self._opacity_effect = QGraphicsOpacityEffect(self)
         self._opacity_effect.setOpacity(1.0)
         self.setGraphicsEffect(self._opacity_effect)
 
-        # ── Otomatik kapatma zamanlayıcısı ──
+        # -- Otomatik kapatma zamanlayıcısı --
         self._timer = QTimer(self)
         self._timer.setSingleShot(True)
         self._timer.timeout.connect(self._start_fade_out)
