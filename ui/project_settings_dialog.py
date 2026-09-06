@@ -55,7 +55,7 @@ def load_files_to_combo(combobox, subfolder):
 class ProjectSettingsDialog(QDialog):
     """Mevcut proje ayarlarını düzenleme penceresi."""
     def __init__(self, project_name, project_link, max_pages, api_key, start_promt, gemini_version, deepl_api, yandex_api, parent=None,
-                 mcp_endpoint_id=None, cache_enabled=True, terminology_enabled=True,
+                 mcp_endpoint_id=None, terminology_enabled=True,
                  async_enabled=False, async_threads=3,
                  batch_enabled=False, max_batch_chars=33000, max_chapters_per_batch=5,
                  translation_provider="llm"):
@@ -213,13 +213,9 @@ class ProjectSettingsDialog(QDialog):
         features_layout = QVBoxLayout()
         features_layout.setSpacing(4)
         features_layout.setContentsMargins(8, 6, 8, 6)
-        self.cache_checkbox = QCheckBox(tr("project_settings.checkbox_cache", "Çeviri Önbelleği (Translation Cache) [Tekrardan Geliştirilecektir.]"))
-        self.cache_checkbox.setChecked(cache_enabled)
-        self.cache_checkbox.setToolTip(tr("project_settings.checkbox_cache_tooltip", "Aynı metin tekrar çevrildiğinde API çağrısı yapmadan önbellekten döner."))
         self.terminology_checkbox = QCheckBox(tr("project_settings.checkbox_terminology", "Terminoloji Hafızası (Terminology Memory)"))
         self.terminology_checkbox.setChecked(terminology_enabled)
         self.terminology_checkbox.setToolTip(tr("project_settings.checkbox_terminology_tooltip", "Proje terminoloji sözlüğünü otomatik olarak prompta ekler."))
-        features_layout.addWidget(self.cache_checkbox)
         features_layout.addWidget(self.terminology_checkbox)
         features_group.setLayout(features_layout)
 
@@ -462,7 +458,6 @@ class ProjectSettingsDialog(QDialog):
             "api_key_name": api_key_name,
             "Startpromt": self.startpromtinput.toPlainText(),
             "mcp_endpoint_id": mcp_endpoint_id,
-            "cache_enabled": self.cache_checkbox.isChecked(),
             "terminology_enabled": self.terminology_checkbox.isChecked(),
             "async_enabled": self.async_checkbox.isChecked(),
             "async_threads": self.async_threads_spinbox.value(),
