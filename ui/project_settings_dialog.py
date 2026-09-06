@@ -342,7 +342,7 @@ class ProjectSettingsDialog(QDialog):
         is_llm = (prov == "llm")
         is_deepl = (prov == "deepl")
         is_yandex = (prov == "yandex")
-        print(f"Provider changed to: {prov}, is_llm: {is_llm}, is_deepl: {is_deepl}, is_yandex: {is_yandex}")
+        
         self.form_layout.setRowVisible(1, is_deepl)  # Deepl API Key
         self.form_layout.setRowVisible(2, is_yandex)  # Yandex
         self.form_layout.setRowVisible(5, is_llm)  # MCP Group
@@ -358,6 +358,14 @@ class ProjectSettingsDialog(QDialog):
         self.advanced_layout.setRowVisible(2, is_llm)  # Batch Checkbox
         self.advanced_layout.setRowVisible(3, is_llm)  # Batch Chars
         self.advanced_layout.setRowVisible(4, is_llm)  # Batch Chapters
+
+        # Batch Mode kısıtlaması
+        self.batch_checkbox.setEnabled(is_llm)
+        if not is_llm:
+            self.batch_checkbox.setChecked(False)
+            self.batch_checkbox.setToolTip("Batch Mode sadece LLM tabanlı sağlayıcılarda kullanılabilir")
+        else:
+            self.batch_checkbox.setToolTip("")
 
 
         
