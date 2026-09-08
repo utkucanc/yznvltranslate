@@ -5,7 +5,7 @@
   "custom_js_sources": [],
   "notifications_enabled": true,
   "promt_generator_max_tokens": 20000,
-  "language": "tr",
+  "language": "en",
   "translation_providers": [
     "google",
     "yandex"
@@ -32,5 +32,9 @@
       "port": 1080,
       "active": true
     }
-  ]
+  ],
+  "split_separator": "## Bölüm - {num} ##",
+  "export_separator": "\n\n---test---\n\n",
+  "prompt_gen_prompt_override": "",
+  "ml_extractor_prompt_override": ""
 }

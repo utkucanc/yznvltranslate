@@ -15,6 +15,7 @@ from PyQt6.QtWidgets import QMessageBox
 
 from core.workers.translation_worker import TranslationWorker
 from logger import app_logger
+from core.path_resolver import get_project_dir, get_subfolder_path
 
 
 class TranslationController:
@@ -62,8 +63,9 @@ class TranslationController:
             return
 
         project_name = current_item.text()
-        project_path = os.path.join(os.getcwd(), project_name)
-        config_path = os.path.join(project_path, 'config', 'config.ini')
+        project_path = get_project_dir(os.getcwd(), project_name)
+        config_dir = get_subfolder_path(project_path, 'config')
+        config_path = os.path.join(config_dir, 'config.ini')
         if not os.path.exists(config_path):
             QMessageBox.critical(self.win, "Hata", f"'{project_name}' projesi için config.ini bulunamadı. API anahtarı okunamıyor.")
             return
@@ -94,8 +96,8 @@ class TranslationController:
             QMessageBox.critical(self.win, "Genel Hata", f"API anahtarı okunurken beklenmeyen bir hata oluştu:\n{e}")
             return
 
-        input_folder = os.path.join(project_path, 'dwnld')
-        output_folder = os.path.join(project_path, 'trslt')
+        input_folder = get_subfolder_path(project_path, 'download')
+        output_folder = get_subfolder_path(project_path, 'translate', create=True)
         os.makedirs(output_folder, exist_ok=True)
 
         files_to_translate = [f for f in os.listdir(input_folder) if f.endswith('.txt')]
@@ -148,7 +150,6 @@ class TranslationController:
         self.thread.start()
 
         # Buton durumlarını ayarla
-        self.win.startButton.setEnabled(False)
         self.win.mergeButton.setEnabled(False)
         self.win.errorCheckButton.setEnabled(False)
         self.win.projectSettingsButton.setEnabled(False)
@@ -208,7 +209,6 @@ class TranslationController:
 
     def _restore_ui(self):
         """Çeviri bittikten sonra UI butonlarını sıfırlar."""
-        self.win.startButton.setEnabled(True)
         self.win.translateButton.setEnabled(True)
         self.win.mergeButton.setEnabled(True)
         self.win.epubButton.setEnabled(True)

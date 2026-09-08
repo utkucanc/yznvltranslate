@@ -2,8 +2,8 @@
 ProjectManager — Proje yaşam döngüsü yönetimi.
 
 Sorumluluklar:
-  - Mevcut projeleri yükleme / listeleme
-  - Yeni proje oluşturma (klasör yapısı + config.ini)
+  - Mevcut projeleri yükleme / listeleme (Project/<Ad> ve kök/<Ad> geriye uyumlu)
+  - Yeni proje oluşturma (Project/<Ad>/ klasör yapısı + config.ini)
   - Proje silme
   - Proje config okuma / yazma
 """
@@ -12,12 +12,13 @@ import os
 import shutil
 import configparser
 from logger import app_logger
+from core.path_resolver import get_project_dir, get_subfolder_path
 
 
 class ProjectManager:
     """Proje dizin ve konfigürasyon yöneticisi."""
 
-    PROJECT_SUBFOLDERS = ["dwnld", "trslt", "cmplt", "config"]
+    PROJECT_SUBFOLDERS = ["download", "translate", "completed", "config"]
 
     def __init__(self, base_dir: str = None):
         """
@@ -29,18 +30,29 @@ class ProjectManager:
     # --------------- Proje Listeleme ---------------
 
     def list_projects(self) -> list[str]:
-        """config/config.ini dosyası olan tüm alt klasörleri proje olarak döndürür."""
-        projects = []
-        try:
-            for item in os.listdir(self.base_dir):
-                full_path = os.path.join(self.base_dir, item)
-                if os.path.isdir(full_path):
-                    config_path = os.path.join(full_path, "config", "config.ini")
-                    if os.path.exists(config_path):
-                        projects.append(item)
-        except Exception as e:
-            app_logger.error(f"Proje listesi oluşturulamadı: {e}")
-        return sorted(projects)
+        """config/config.ini dosyası olan tüm klasörleri (Project/ dizininde ve kökte) proje olarak döndürür."""
+        projects = set()
+        dirs_to_check = [self.base_dir]
+        
+        project_root = os.path.join(self.base_dir, "Project")
+        if os.path.exists(project_root):
+            dirs_to_check.append(project_root)
+
+        for scan_dir in dirs_to_check:
+            try:
+                for item in os.listdir(scan_dir):
+                    if item == "Project":
+                        continue
+                    full_path = os.path.join(scan_dir, item)
+                    if os.path.isdir(full_path):
+                        config_dir = get_subfolder_path(full_path, "config")
+                        config_path = os.path.join(config_dir, "config.ini")
+                        if os.path.exists(config_path):
+                            projects.add(item)
+            except Exception as e:
+                app_logger.error(f"Proje listesi taranırken hata ({scan_dir}): {e}")
+
+        return sorted(list(projects))
 
     # --------------- Proje Oluşturma ---------------
 
@@ -56,15 +68,15 @@ class ProjectManager:
         max_retries: int = 3,
         api_key_name: str = "",
         mcp_endpoint_id: str = None,
-
     ) -> tuple[bool, str]:
         """
         Yeni bir proje klasörü ve config.ini oluşturur.
+        Yeni projeler base_dir/Project/<project_name> altında oluşturulur.
 
         Returns:
             (success, message) tuple
         """
-        project_path = os.path.join(self.base_dir, project_name)
+        project_path = get_project_dir(self.base_dir, project_name, create_if_new=True)
         if os.path.exists(project_path):
             return False, f"'{project_name}' adında bir proje zaten mevcut."
 
@@ -84,7 +96,8 @@ class ProjectManager:
             if mcp_endpoint_id:
                 config["MCP"] = {"endpoint_id": mcp_endpoint_id}
 
-            config_path = os.path.join(project_path, "config", "config.ini")
+            config_dir = get_subfolder_path(project_path, "config", create=True)
+            config_path = os.path.join(config_dir, "config.ini")
             with open(config_path, "w", encoding="utf-8") as f:
                 config.write(f)
 
@@ -107,9 +120,10 @@ class ProjectManager:
         Returns:
             (success, message) tuple
         """
-        project_path = os.path.join(self.base_dir, project_name)
+        project_path = get_project_dir(self.base_dir, project_name)
         try:
-            shutil.rmtree(project_path)
+            if os.path.exists(project_path):
+                shutil.rmtree(project_path)
             app_logger.info(f"Proje silindi: {project_name}")
             return True, f"'{project_name}' projesi başarıyla silindi."
         except OSError as e:
@@ -122,12 +136,14 @@ class ProjectManager:
     # --------------- Config Okuma / Yazma ---------------
 
     def get_project_path(self, project_name: str) -> str:
-        return os.path.join(self.base_dir, project_name)
+        return get_project_dir(self.base_dir, project_name)
 
     def load_config(self, project_name: str) -> configparser.ConfigParser:
         """Proje config.ini'sini okur ve döndürür."""
         config = configparser.ConfigParser()
-        config_path = os.path.join(self.base_dir, project_name, "config", "config.ini")
+        project_path = get_project_dir(self.base_dir, project_name)
+        config_dir = get_subfolder_path(project_path, "config")
+        config_path = os.path.join(config_dir, "config.ini")
         if os.path.exists(config_path):
             try:
                 with open(config_path, "r", encoding="utf-8") as f:
@@ -138,7 +154,9 @@ class ProjectManager:
 
     def save_config(self, project_name: str, config: configparser.ConfigParser) -> bool:
         """Proje config.ini'sini kaydeder."""
-        config_path = os.path.join(self.base_dir, project_name, "config", "config.ini")
+        project_path = get_project_dir(self.base_dir, project_name)
+        config_dir = get_subfolder_path(project_path, "config", create=True)
+        config_path = os.path.join(config_dir, "config.ini")
         try:
             with open(config_path, "w", encoding="utf-8") as f:
                 config.write(f)
@@ -147,3 +165,4 @@ class ProjectManager:
         except Exception as e:
             app_logger.error(f"Config kayıt hatası ({project_name}): {e}")
             return False
+

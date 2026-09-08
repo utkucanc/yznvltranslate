@@ -141,7 +141,25 @@ class ContextBuilder:
 
 # Meta-Prompt
 
-META_PROMPT_TEMPLATE = tr("promt_generator.promt","deneme")
+def _get_meta_prompt_template() -> str:
+    """
+    app_settings.json'daki prompt_gen_prompt_override boş değilse onu döndürür,
+    boşsa locale'den gelen META_PROMPT_TEMPLATE varsayılanını kullanır.
+    """
+    try:
+        import json as _json
+        _settings_file = os.path.join(os.getcwd(), "AppConfigs", "app_settings.json")
+        if os.path.exists(_settings_file):
+            with open(_settings_file, "r", encoding="utf-8") as _f:
+                _data = _json.load(_f)
+            override = _data.get("prompt_gen_prompt_override", "").strip()
+            if override:
+                return override
+    except Exception:
+        pass
+    return tr("promt_generator.promt", "deneme")
+
+META_PROMPT_TEMPLATE = tr("promt_generator.promt", "deneme")
 
 # Worker
 
@@ -191,7 +209,7 @@ class PromptGenWorker(QObject):
             self.progress.emit(f"Prompt üretiliyor ({info['name']} — {info['model_id']})... Bu işlem 30-60 saniye sürebilir")
             app_logger.warning(f"Debug - Model: {info['name']} ({info['model_id']}) ") 
             app_logger.info(f"Prompt üretiliyor ({info['name']} — {info['model_id']})... Bu işlem 30-60 saniye sürebilir")
-            full_prompt = META_PROMPT_TEMPLATE.format(context=self.context)
+            full_prompt = _get_meta_prompt_template().format(context=self.context)
             result = provider.generate(full_prompt)
             self.finished.emit(result)
 

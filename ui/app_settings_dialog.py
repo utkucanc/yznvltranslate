@@ -4,7 +4,8 @@ AppSettingsDialog — Uygulama geneli ayarlar penceresi.
 Özellikler:
   - Tema seçeneği (Karanlık / Aydınlık / Sistem)
   - ML Terminoloji maks token limiti
-  - Özel JS Script kaynağı ekleme (site adı + JS dosya yolu)
+  - Toplu bölüm ekleme / export ayracı düzenleme
+  - Prompt Generator ve ML Extractor prompt override
   - Log seviyesi seçimi
   - Ayarlar AppConfigs/app_settings.json içinde saklanır
 """
@@ -15,7 +16,7 @@ from PyQt6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
     QComboBox, QSpinBox, QGroupBox, QFormLayout, QLineEdit,
     QListWidget, QListWidgetItem, QFileDialog, QMessageBox,
-    QTabWidget, QWidget, QFrame, QInputDialog
+    QTabWidget, QWidget, QFrame, QInputDialog, QTextEdit
 )
 from PyQt6.QtGui import QFont, QIcon
 from PyQt6.QtCore import Qt, pyqtSignal
@@ -28,11 +29,16 @@ DEFAULT_SETTINGS = {
     "theme": "dark",
     "ml_max_tokens": 450000,
     "log_level": "INFO",
-    "custom_js_sources": [],   # [{"name": "Site Adı", "js_path": "/path/to/script.js"}, ...]
     "notifications_enabled": True,
     "promt_generator_max_tokens": 40000,
     "language": "tr",
     "translation_providers": ["google", "yandex"],
+    # Ayraç ayarları
+    "split_separator": "## Bölüm - {num} ##",
+    "export_separator": "\n\n---BÖLÜM BAŞLANGICI---\n\n",
+    # Prompt override (boş = varsayılan locale prompt kullanılır)
+    "prompt_gen_prompt_override": "",
+    "ml_extractor_prompt_override": "",
 }
 
 THEMES = {
@@ -163,7 +169,7 @@ class AppSettingsDialog(QDialog):
         super().__init__(parent)
         self.win = parent
         self.setWindowTitle(tr("app_settings.window_title", "⚙️ Uygulama Ayarları"))
-        self.resize(580, 520)
+        self.resize(780, 520)
         self.settings = load_app_settings()
 
         layout = QVBoxLayout(self)
@@ -254,46 +260,121 @@ class AppSettingsDialog(QDialog):
 
         tabs.addTab(ml_tab, tr("app_settings.tab_ml", "🤖 ML / Terminoloji"))
 
-        # Sekme 3: Özel JS Kaynaklar
-        js_tab = QWidget()
-        js_layout = QVBoxLayout(js_tab)
+        # Sekme 3: Birleştirme (Export) Ayarları
+        merge_tab = QWidget()
+        merge_layout = QFormLayout(merge_tab)
+        merge_layout.setSpacing(12)
 
-        js_note = QLabel(tr("app_settings.js_sources_note", "İndirme yöntemi listesine özel JavaScript tabanlı site kaynaklarınızı ekleyebilirsiniz."))
-        js_note.setWordWrap(True)
-        js_note.setStyleSheet("color: #AAA; font-size: 9pt; margin-bottom: 6px;")
-        js_layout.addWidget(js_note)
+        merge_note = QLabel(tr("app_settings.export_separator_note",
+            "Birleştirme işleminde (çevrilen dosyaları tek dosyada toplarken)\n"
+            "bölümler arasına eklenecek ayırıcıyı düzenleyin."
+        ))
+        merge_note.setStyleSheet("color: #888; font-size: 9pt;")
+        merge_note.setWordWrap(True)
+        merge_layout.addRow("", merge_note)
 
-        self.js_list_widget = QListWidget()
-        self.js_list_widget.setMaximumHeight(160)
-        self._refresh_js_list()
-        js_layout.addWidget(self.js_list_widget)
+        self.export_sep_edit = QTextEdit()
+        self.export_sep_edit.setPlaceholderText("\\n\\n---BÖLÜM BAŞLANGICI---\\n\\n")
+        self.export_sep_edit.setFixedHeight(80)
+        self.export_sep_edit.setPlainText(
+            self.settings.get("export_separator", "\n\n---BÖLÜM BAŞLANGICI---\n\n")
+        )
+        merge_layout.addRow(tr("app_settings.export_separator", "🔗 Export Ayıracı:"), self.export_sep_edit)
 
-        # Ekleme alanı
-        add_frame = QFrame()
-        add_layout = QHBoxLayout(add_frame)
-        add_layout.setContentsMargins(0, 0, 0, 0)
-        self.js_name_input = QLineEdit()
-        self.js_name_input.setPlaceholderText(tr("app_settings.placeholder_site_name", "Site adı (örn: Wuxia World)"))
-        self.js_path_input = QLineEdit()
-        self.js_path_input.setPlaceholderText(tr("app_settings.placeholder_js_path", "JS dosya yolu..."))
-        self.js_path_input.setReadOnly(True)
-        browse_btn = QPushButton("📂")
-        browse_btn.setFixedWidth(36)
-        browse_btn.clicked.connect(self._browse_js_file)
-        add_btn = QPushButton(tr("app_settings.btn_add_js", "➕ Ekle"))
-        add_btn.setFixedWidth(80)
-        add_btn.clicked.connect(self._add_js_source)
-        remove_btn = QPushButton(tr("app_settings.btn_remove_js", "🗑 Sil"))
-        remove_btn.setFixedWidth(80)
-        remove_btn.clicked.connect(self._remove_js_source)
-        add_layout.addWidget(self.js_name_input, 2)
-        add_layout.addWidget(self.js_path_input, 3)
-        add_layout.addWidget(browse_btn)
-        add_layout.addWidget(add_btn)
-        add_layout.addWidget(remove_btn)
-        js_layout.addWidget(add_frame)
+        reset_export_btn = QPushButton(tr("app_settings.btn_reset_default", "↺ Varsayılana Dön"))
+        reset_export_btn.setFixedWidth(140)
+        reset_export_btn.clicked.connect(
+            lambda: self.export_sep_edit.setPlainText("\n\n---BÖLÜM BAŞLANGICI---\n\n")
+        )
+        merge_layout.addRow("", reset_export_btn)
 
-        tabs.addTab(js_tab, tr("app_settings.tab_js", "🌐 JS Kaynaklar"))
+        tabs.addTab(merge_tab, tr("app_settings.tab_merge", "🔗 Birleştirme"))
+
+        # Sekme 4: Toplu Bölüm Ekleme Ayarları
+        split_tab = QWidget()
+        split_layout = QFormLayout(split_tab)
+        split_layout.setSpacing(12)
+
+        split_note = QLabel(tr("app_settings.split_separator_note",
+            "\"Toplu Bölüm Ekle\" işleminde, tek büyük dosyayı bölümlere\n"
+            "ayırmak için kullanılan başlık kalıbını düzenleyin.\n"
+            "{num} ifadesi bölüm numarasını temsil eder."
+        ))
+        split_note.setStyleSheet("color: #888; font-size: 9pt;")
+        split_note.setWordWrap(True)
+        split_layout.addRow("", split_note)
+
+        self.split_sep_edit = QLineEdit()
+        self.split_sep_edit.setPlaceholderText("## Bölüm - {num} ##")
+        self.split_sep_edit.setText(
+            self.settings.get("split_separator", "## Bölüm - {num} ##")
+        )
+        split_layout.addRow(tr("app_settings.split_separator", "✂️ Bölüm Başlığı:"), self.split_sep_edit)
+
+        reset_split_btn = QPushButton(tr("app_settings.btn_reset_default", "↺ Varsayılana Dön"))
+        reset_split_btn.setFixedWidth(140)
+        reset_split_btn.clicked.connect(
+            lambda: self.split_sep_edit.setText("## Bölüm - {num} ##")
+        )
+        split_layout.addRow("", reset_split_btn)
+
+        tabs.addTab(split_tab, tr("app_settings.tab_split", "✂️ Bölüm Ekleme"))
+
+        # Sekme 5: Prompt Düzenleme
+        prompt_tab = QWidget()
+        prompt_layout = QVBoxLayout(prompt_tab)
+        prompt_layout.setSpacing(8)
+
+        prompt_tabs = QTabWidget()
+
+        # 5a: Prompt Generator override
+        pg_widget = QWidget()
+        pg_layout = QVBoxLayout(pg_widget)
+        pg_note = QLabel(tr("app_settings.prompt_gen_override_note",
+            "Prompt Generator'un yapay zekaya göndereceği sistem promptunu özelleştirin."
+        ))
+        pg_note.setStyleSheet("color: #888; font-size: 9pt;")
+        pg_note.setWordWrap(True)
+        pg_layout.addWidget(pg_note)
+        self.prompt_gen_override_edit = QTextEdit()
+        self.prompt_gen_override_edit.setPlaceholderText(
+            tr("app_settings.prompt_gen_placeholder", "Prompt metnini doğrudan buradan düzenleyebilirsiniz...")
+        )
+        pg_initial_text = self.settings.get("prompt_gen_prompt_override", "").strip()
+        if not pg_initial_text:
+            pg_initial_text = self._get_default_prompt_gen()
+        self.prompt_gen_override_edit.setPlainText(pg_initial_text)
+        pg_layout.addWidget(self.prompt_gen_override_edit)
+        reset_pg_btn = QPushButton(tr("app_settings.btn_reset_default", "↺ Varsayılana Dön"))
+        reset_pg_btn.clicked.connect(lambda: self.prompt_gen_override_edit.setPlainText(self._get_default_prompt_gen()))
+        pg_layout.addWidget(reset_pg_btn)
+        prompt_tabs.addTab(pg_widget, tr("app_settings.tab_prompt_gen", "Prompt Generator"))
+
+        # 5b: ML Extractor override
+        ml_widget = QWidget()
+        ml_layout2 = QVBoxLayout(ml_widget)
+        ml_note2 = QLabel(tr("app_settings.ml_extractor_override_note",
+            "ML Terminoloji Çıkarıcı'nın yapay zekaya gönderdiği sistem promptunu özelleştirin."
+        ))
+        ml_note2.setStyleSheet("color: #888; font-size: 9pt;")
+        ml_note2.setWordWrap(True)
+        ml_layout2.addWidget(ml_note2)
+        self.ml_extractor_override_edit = QTextEdit()
+        self.ml_extractor_override_edit.setPlaceholderText(
+            tr("app_settings.ml_extractor_placeholder", "Prompt metnini doğrudan buradan düzenleyebilirsiniz...")
+        )
+        ml_initial_text = self.settings.get("ml_extractor_prompt_override", "").strip()
+        if not ml_initial_text:
+            ml_initial_text = self._get_default_ml_extractor()
+        self.ml_extractor_override_edit.setPlainText(ml_initial_text)
+        ml_layout2.addWidget(self.ml_extractor_override_edit)
+        reset_ml_btn = QPushButton(tr("app_settings.btn_reset_default", "↺ Varsayılana Dön"))
+        reset_ml_btn.clicked.connect(lambda: self.ml_extractor_override_edit.setPlainText(self._get_default_ml_extractor()))
+        ml_layout2.addWidget(reset_ml_btn)
+        prompt_tabs.addTab(ml_widget, tr("app_settings.tab_ml_extractor", "ML Terminoloji"))
+
+        prompt_layout.addWidget(prompt_tabs)
+        tabs.addTab(prompt_tab, tr("app_settings.tab_prompts", "🧠 Prompt Düzenle"))
 
         layout.addWidget(tabs)
 
@@ -363,7 +444,46 @@ class AppSettingsDialog(QDialog):
         all_codes = [self.lang_combo.itemData(i) for i in range(self.lang_combo.count())]
         idx = all_codes.index(current_lang) if current_lang in all_codes else 0
         self.lang_combo.setCurrentIndex(idx)
+        self.lang_combo.currentIndexChanged.connect(self._on_lang_changed)
         self.lang_combo.blockSignals(False)
+
+    def _get_default_prompt_gen(self, lang_code=None) -> str:
+        if not lang_code:
+            lang_code = self.lang_combo.currentData() if hasattr(self, "lang_combo") and self.lang_combo.currentData() else self.settings.get("language", "tr")
+        locale_file = os.path.join(os.getcwd(), "AppConfigs", "locales", f"{lang_code}.json")
+        if os.path.exists(locale_file):
+            try:
+                with open(locale_file, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                val = data.get("promt_generator", {}).get("promt", "")
+                if val:
+                    return val
+            except Exception:
+                pass
+        return tr("promt_generator.promt", "")
+
+    def _get_default_ml_extractor(self, lang_code=None) -> str:
+        if not lang_code:
+            lang_code = self.lang_combo.currentData() if hasattr(self, "lang_combo") and self.lang_combo.currentData() else self.settings.get("language", "tr")
+        locale_file = os.path.join(os.getcwd(), "AppConfigs", "locales", f"{lang_code}.json")
+        if os.path.exists(locale_file):
+            try:
+                with open(locale_file, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                p1 = data.get("ml_terminology_extractor", {}).get("promt_part1", "")
+                p2 = data.get("ml_terminology_extractor", {}).get("promt_part2", "")
+                if p1 or p2:
+                    return f"{p1}{{source_text}}{p2}"
+            except Exception:
+                pass
+        return tr("ml_terminology_extractor.promt_part1", "") + "{source_text}" + tr("ml_terminology_extractor.promt_part2", "")
+
+    def _on_lang_changed(self):
+        new_lang = self.lang_combo.currentData()
+        if not self.settings.get("prompt_gen_prompt_override", "").strip():
+            self.prompt_gen_override_edit.setPlainText(self._get_default_prompt_gen(new_lang))
+        if not self.settings.get("ml_extractor_prompt_override", "").strip():
+            self.ml_extractor_override_edit.setPlainText(self._get_default_ml_extractor(new_lang))
 
     def _open_theme_manager(self):
         """Tema Yöneticisi diyalogunu açar."""
@@ -412,50 +532,6 @@ class AppSettingsDialog(QDialog):
         else:
             QMessageBox.critical(self, "Hata", "Farklı kaydetme başarısız.")
 
-    # JS Kaynak Yönetimi
-
-    def _refresh_js_list(self):
-        self.js_list_widget.clear()
-        for src in self.settings.get("custom_js_sources", []):
-            name = src.get("name", "?")
-            path = src.get("js_path", "")
-            item = QListWidgetItem(f"📄 {name}  ←  {os.path.basename(path)}")
-            item.setToolTip(path)
-            self.js_list_widget.addItem(item)
-
-    def _browse_js_file(self):
-        path, _ = QFileDialog.getOpenFileName(
-            self, "JS Dosyası Seç", "", "JavaScript Dosyaları (*.js);;Tüm Dosyalar (*)"
-        )
-        if path:
-            self.js_path_input.setText(path)
-
-    def _add_js_source(self):
-        name = self.js_name_input.text().strip()
-        path = self.js_path_input.text().strip()
-        if not name or not path:
-            QMessageBox.warning(self, tr("app_settings.msg_missing_js_info_title", "Eksik Bilgi"), tr("app_settings.msg_missing_js_info_body", "Site adı ve JS dosya yolunu doldurun."))
-            return
-        sources = self.settings.setdefault("custom_js_sources", [])
-        # Aynı adda kaynak varsa güncelle
-        for src in sources:
-            if src["name"] == name:
-                src["js_path"] = path
-                self._refresh_js_list()
-                self.js_name_input.clear()
-                self.js_path_input.clear()
-                return
-        sources.append({"name": name, "js_path": path})
-        self._refresh_js_list()
-        self.js_name_input.clear()
-        self.js_path_input.clear()
-
-    def _remove_js_source(self):
-        row = self.js_list_widget.currentRow()
-        sources = self.settings.get("custom_js_sources", [])
-        if 0 <= row < len(sources):
-            sources.pop(row)
-            self._refresh_js_list()
 
     # Kaydet 
 
@@ -466,6 +542,21 @@ class AppSettingsDialog(QDialog):
         self.settings["ml_max_tokens"] = self.ml_token_spin.value()
         self.settings["promt_generator_max_tokens"] = self.prompt_gen_token_spin.value()
         self.settings["language"] = self.lang_combo.currentData()
+        self.settings["export_separator"] = self.export_sep_edit.toPlainText()
+        self.settings["split_separator"] = self.split_sep_edit.text()
+
+        pg_text = self.prompt_gen_override_edit.toPlainText().strip()
+        if pg_text == self._get_default_prompt_gen().strip():
+            self.settings["prompt_gen_prompt_override"] = ""
+        else:
+            self.settings["prompt_gen_prompt_override"] = self.prompt_gen_override_edit.toPlainText()
+
+        ml_text = self.ml_extractor_override_edit.toPlainText().strip()
+        if ml_text == self._get_default_ml_extractor().strip():
+            self.settings["ml_extractor_prompt_override"] = ""
+        else:
+            self.settings["ml_extractor_prompt_override"] = self.ml_extractor_override_edit.toPlainText()
+
         save_app_settings(self.settings)
         from core.localization import reload_translations
         reload_translations()

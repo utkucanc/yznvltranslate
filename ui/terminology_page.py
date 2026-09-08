@@ -26,6 +26,7 @@ from ui.dark_theme import (
     ACCENT_RED, ACCENT_CYAN
 )
 from core.localization import tr
+from core.path_resolver import get_project_dir, get_subfolder_path
 from terminology.terminology_manager import TerminologyManager
 
 
@@ -143,9 +144,9 @@ def _build_overview_card(win) -> QFrame:
     row = QHBoxLayout()
     row.setSpacing(10)
 
-    win.term_stat_total = _mini_stat_widget("Toplam Terim", "0")
-    win.term_stat_approved = _mini_stat_widget("Onaylı", "0", "0%", ACCENT_GREEN)
-    win.term_stat_pending = _mini_stat_widget("Gözden Geçirilecek", "0", "0%", ACCENT_ORANGE)
+    win.term_stat_total = _mini_stat_widget(tr("terminology.stat_total", "Toplam Terim"), "0")
+    win.term_stat_approved = _mini_stat_widget(tr("terminology.stat_approved", "Onaylı"), "0", "0%", ACCENT_GREEN)
+    win.term_stat_pending = _mini_stat_widget(tr("terminology.stat_pending", "Gözden Geçirilecek"), "0", "0%", ACCENT_ORANGE)
 
     row.addWidget(win.term_stat_total)
     row.addWidget(win.term_stat_approved)
@@ -218,12 +219,16 @@ def _build_toolbar_row(win) -> QHBoxLayout:
     row.setSpacing(8)
 
     win.term_page_search_input = QLineEdit()
-    win.term_page_search_input.setPlaceholderText("🔍  Terimlerde ara...")
+    win.term_page_search_input.setPlaceholderText(tr("terminology.search_placeholder", "🔍  Terimlerde ara..."))
     win.term_page_search_input.textChanged.connect(lambda: _filter_table(win))
     row.addWidget(win.term_page_search_input, 3)
 
     win.term_page_status_filter = QComboBox()
-    win.term_page_status_filter.addItems(["Tüm Durumlar", "Onaylı", "Gözden Geçirilecek"])
+    win.term_page_status_filter.addItems([
+        tr("terminology.filter_all", "Tüm Durumlar"),
+        tr("terminology.filter_approved", "Onaylı"),
+        tr("terminology.filter_pending", "Gözden Geçirilecek")
+    ])
     win.term_page_status_filter.currentIndexChanged.connect(lambda: _filter_table(win))
     row.addWidget(win.term_page_status_filter, 2)
 
@@ -232,7 +237,13 @@ def _build_toolbar_row(win) -> QHBoxLayout:
 
 # -- Terim Tablosu ----------------------------------------------------
 
-_TABLE_HEADERS = ["Kaynak Terim (Source)", "Hedef Çeviri (Target)", "Not", "Durum", "İşlem"]
+_TABLE_HEADERS = [
+    tr("terminology.header_source", "Kaynak Terim (Source)"),
+    tr("terminology.header_target", "Hedef Çeviri (Target)"),
+    tr("terminology.header_note", "Not"),
+    tr("terminology.header_status", "Durum"),
+    tr("terminology.header_action", "İşlem")
+]
 
 
 def _build_terms_table_card(win) -> QFrame:
@@ -286,12 +297,12 @@ def _build_terms_table_card(win) -> QFrame:
 
 def _build_last_extraction_card(win) -> QFrame:
     frame, lay = _card()
-    lay.addWidget(_section_title("Son İşlem Bilgisi"))
+    lay.addWidget(_section_title(tr("terminology.last_op_title", "Son İşlem Bilgisi")))
 
     win.term_last_start_lbl = QLabel("—")
     win.term_last_end_lbl = QLabel("—")
 
-    for k, lbl in [("Başlangıç Bölümü", win.term_last_start_lbl), ("Bitiş Bölümü", win.term_last_end_lbl)]:
+    for k, lbl in [(tr("terminology.last_op_start", "Başlangıç Bölümü"), win.term_last_start_lbl), (tr("terminology.last_op_end", "Bitiş Bölümü"), win.term_last_end_lbl)]:
         r = QHBoxLayout()
         kl = QLabel(k)
         kl.setStyleSheet(f"color:{TEXT_FAINT}; font-size:11px;")
@@ -310,10 +321,10 @@ def _build_term_details_card(win) -> QFrame:
     frame, lay = _card()
 
     header = QHBoxLayout()
-    header.addWidget(_section_title("Terim Detayları"))
+    header.addWidget(_section_title(tr("terminology.term_details_title", "Terim Detayları")))
     header.addStretch()
 
-    edit_btn = QPushButton("✎ Düzenle")
+    edit_btn = QPushButton(tr("terminology.btn_edit", "✎ Düzenle"))
     edit_btn.setObjectName("smallBtn")
     edit_btn.clicked.connect(lambda: _on_edit_selected_term(win))
     win.term_detail_edit_btn = edit_btn
@@ -321,36 +332,36 @@ def _build_term_details_card(win) -> QFrame:
 
     lay.addLayout(header)
 
-    lay.addWidget(_kv_label("Kaynak Terim", TEXT_FAINT, 10))
+    lay.addWidget(_kv_label(tr("terminology.label_source", "Kaynak Terim"), TEXT_FAINT, 10))
     win.term_detail_source = QLabel("—")
     win.term_detail_source.setStyleSheet(f"color:{TEXT_MAIN}; font-size:18px; font-weight:700;")
     lay.addWidget(win.term_detail_source)
 
-    lay.addWidget(_kv_label("Hedef Çeviri", TEXT_FAINT, 10))
+    lay.addWidget(_kv_label(tr("terminology.label_target", "Hedef Çeviri"), TEXT_FAINT, 10))
     win.term_detail_target = QLabel("—")
     win.term_detail_target.setStyleSheet(f"color:{TEXT_MAIN}; font-size:14px; font-weight:600;")
     lay.addWidget(win.term_detail_target)
 
-    lay.addWidget(_kv_label("Notlar", TEXT_FAINT, 10))
+    lay.addWidget(_kv_label(tr("terminology.label_notes", "Notlar"), TEXT_FAINT, 10))
     win.term_detail_note = QLabel("—")
     win.term_detail_note.setWordWrap(True)
     win.term_detail_note.setStyleSheet(f"color:{TEXT_DIM}; font-size:11px;")
     lay.addWidget(win.term_detail_note)
 
-    lay.addWidget(_kv_label("Durum", TEXT_FAINT, 10))
-    win.term_detail_status_badge = _badge("Approved", ACCENT_GREEN)
+    lay.addWidget(_kv_label(tr("terminology.label_status", "Durum"), TEXT_FAINT, 10))
+    win.term_detail_status_badge = _badge(tr("terminology.status_approved", "Onaylı"), ACCENT_GREEN)
     lay.addWidget(win.term_detail_status_badge)
 
     lay.addSpacing(10)
 
     # Detay içi hızlı işlem butonları
     btn_row = QHBoxLayout()
-    win.term_detail_approve_btn = QPushButton("✓ Onayla")
+    win.term_detail_approve_btn = QPushButton(tr("terminology.btn_approve", "✓ Onayla"))
     win.term_detail_approve_btn.setObjectName("smallBtn")
     win.term_detail_approve_btn.setStyleSheet(f"background-color: {ACCENT_GREEN}; color: white;")
     win.term_detail_approve_btn.clicked.connect(lambda: _on_approve_selected_term(win))
 
-    win.term_detail_delete_btn = QPushButton("🗑️ Sil")
+    win.term_detail_delete_btn = QPushButton(tr("terminology.btn_delete", "🗑️ Sil"))
     win.term_detail_delete_btn.setObjectName("smallBtn")
     win.term_detail_delete_btn.setStyleSheet(f"background-color: {ACCENT_RED}; color: white;")
     win.term_detail_delete_btn.clicked.connect(lambda: _on_delete_selected_term(win))
@@ -372,7 +383,7 @@ def _get_manager(win) -> TerminologyManager | None:
     if not project_path and hasattr(win, 'project_list') and win.project_list.currentItem():
         p_name = win.project_list.currentItem().text()
         if p_name:
-            project_path = os.path.join(os.getcwd(), p_name)
+            project_path = get_project_dir(os.getcwd(), p_name)
     if project_path and os.path.exists(project_path):
         return TerminologyManager(project_path)
     return None
@@ -408,7 +419,8 @@ def refresh_terminology_page(win):
     # Son işlem bilgisini config.ini'den oku
     project_path = getattr(win, 'current_project_path', '')
     if project_path:
-        config_path = os.path.join(project_path, "config", "config.ini")
+        config_dir = get_subfolder_path(project_path, "config")
+        config_path = os.path.join(config_dir, "config.ini")
         if os.path.exists(config_path):
             try:
                 cfg = configparser.ConfigParser()

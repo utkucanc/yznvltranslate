@@ -18,12 +18,13 @@ from core.localization import tr
 from dialogs import (
     NewProjectDialog, ProjectSettingsDialog, PromptEditorDialog,
     ApiKeyEditorDialog, GeminiVersionDialog, MCPServerDialog,
-    TerminologyDialog, SeleniumMenuDialog
+    TerminologyDialog
 )
 from core.workers.token_counter import load_token_data, save_token_data
 from logger import app_logger
 from ui.request_counter_manager import RequestCounterManager
 from ui.app_settings_dialog import AppSettingsDialog, load_app_settings, apply_theme
+from core.path_resolver import get_project_dir, get_subfolder_path
 from ui.menu_bar_builder import build_menu_bar
 from ui.status_bar_manager import StatusBarManager
 from ui.file_table_interactions import FileTableInteractions
@@ -38,7 +39,7 @@ from ui.dashboard_page import (
 from ui.project_page import build_project_page, refresh_project_details
 from ui.terminology_page import build_terminology_page, refresh_terminology_page
 from ui.text_editor_page import build_text_editor_page, refresh_text_editor_page
-from core.download_controller import DownloadController
+
 from core.translation_controller import TranslationController
 from core.merge_controller import MergeController
 from core.token_controller import TokenController
@@ -69,7 +70,6 @@ class MainWindow(QMainWindow):
         self.project_token_cache = {}
 
         # Controller'ları oluştur
-        self.download_ctrl = DownloadController(self)
         self.translation_ctrl = TranslationController(self)
         self.merge_ctrl = MergeController(self)
         self.token_ctrl = TokenController(self)
@@ -223,16 +223,7 @@ class MainWindow(QMainWindow):
         self.file_table.verticalHeader().setDefaultSectionSize(26)
         self.file_table.verticalHeader().setVisible(True)
 
-        # -- İndirme Yöntemi --
-        self.downloadMethodCombo = QComboBox()
-        self.downloadMethodCombo.addItems([
-            tr("right_panel.download_method_booktoki", "Booktoki JS İle İndir (Selenium)"),
-            tr("right_panel.download_method_69shuba", "69shuba JS İle İndir (Selenium)"),
-            tr("right_panel.download_method_novelfire", "Novelfire JS İle İndir (Selenium)"),
-            tr("right_panel.download_method_requests", "Normal Web Kazıma (Requests) (Tavsiye Edilmez)"),
-        ])
-        self.downloadMethodLabel = QLabel(tr("right_panel.download_method", "İndirme Yöntemi:"))
-        self.downloadMethodLabel.setFont(QFont("Segoe UI", 8))
+
 
         # -- Butonlar --
         from PyQt6.QtGui import QFont as _QFont, QColor as _QColor
@@ -246,11 +237,7 @@ class MainWindow(QMainWindow):
             s.setColor(QColor(color))
             return s
 
-        self.startButton = QPushButton(tr("right_panel.btn_start_download", "⬇  İndirmeyi Başlat"))
-        self.startButton.setFont(QFont("Segoe UI", 9, QFont.Weight.Bold))
-        self.startButton.setObjectName("primaryBtn")
-        self.startButton.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.startButton.clicked.connect(self.start_download_process)
+
 
         self.splitButton = QPushButton(tr("right_panel.btn_split", "✂  Toplu Bölüm Ekle"))
         self.splitButton.setFont(QFont("Segoe UI", 9, QFont.Weight.Bold))
@@ -437,7 +424,7 @@ class MainWindow(QMainWindow):
     # Controller'lara yönlendirme
     # ------------------------------------------------------------------
 
-    def start_download_process(self):       self.download_ctrl.start()
+
     def start_split_process(self):          self.split_ctrl.start()
     def start_translation_process(self):    self.translation_ctrl.start()
     def stop_translation_process(self):     self.translation_ctrl.stop_translation()
@@ -503,13 +490,10 @@ class MainWindow(QMainWindow):
 
     def load_existing_projects(self):
         self.project_list.clear()
-        current_dir = os.getcwd()
-        for item in os.listdir(current_dir):
-            full_path = os.path.join(current_dir, item)
-            if os.path.isdir(full_path):
-                config_file_path = os.path.join(full_path, "config", "config.ini")
-                if os.path.exists(config_file_path):
-                    self.project_list.addItem(item)
+        from core.project_manager import ProjectManager
+        projects = ProjectManager(os.getcwd()).list_projects()
+        for proj in projects:
+            self.project_list.addItem(proj)
         try:
             from ui.project_page import update_project_list_widgets
             update_project_list_widgets(self)
@@ -532,12 +516,12 @@ class MainWindow(QMainWindow):
             if not yandex_api and translation_provider == "yandex":
                 QMessageBox.warning(self, tr("main_window.msg_project_config_missing_title", "Yapılandırma Eksik"), tr("main_window.msg_project_config_missing_body", "Çeviri ve token sayımı için Yandex API anahtarı gereklidir."))
             try:
-                base_path = os.path.join(os.getcwd(), project_name)
+                base_path = get_project_dir(os.getcwd(), project_name, create_if_new=True)
                 if os.path.exists(base_path):
                     QMessageBox.warning(self, tr("main_window.msg_project_exists_title", "Hata"), tr("main_window.msg_project_exists_body", "'{}' adında bir proje zaten mevcut.").format(project_name))
                     return
-                for folder in ["dwnld", "trslt", "cmplt", "config"]:
-                    os.makedirs(os.path.join(base_path, folder))
+                for folder in ["download", "translate", "completed", "config"]:
+                    os.makedirs(os.path.join(base_path, folder), exist_ok=True)
                 self.config["ProjectInfo"] = {"link": project_link}
                 if max_pages is not None:
                     self.config["ProjectInfo"]["max_pages"] = str(max_pages)
@@ -548,7 +532,8 @@ class MainWindow(QMainWindow):
                     self.config["MCP"] = {"endpoint_id": mcp_endpoint_id}
                 elif "MCP" in self.config:
                     del self.config["MCP"]
-                config_path = os.path.join(base_path, "config", "config.ini")
+                config_dir = get_subfolder_path(base_path, "config", create=True)
+                config_path = os.path.join(config_dir, "config.ini")
                 with open(config_path, "w", encoding="utf-8") as configfile:
                     self.config.write(configfile)
                 self.project_list.addItem(project_name)
@@ -571,7 +556,7 @@ class MainWindow(QMainWindow):
                                      QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
                                      QMessageBox.StandardButton.No)
         if reply == QMessageBox.StandardButton.Yes:
-            project_path = os.path.join(os.getcwd(), project_name)
+            project_path = get_project_dir(os.getcwd(), project_name)
             try:
                 shutil.rmtree(project_path)
                 self.project_list.takeItem(self.project_list.row(current_item))
@@ -586,8 +571,9 @@ class MainWindow(QMainWindow):
             QMessageBox.warning(self, "Proje Seçilmedi", "Lütfen ayarlarını düzenlemek istediğiniz bir proje seçin.")
             return
         project_name = current_item.text()
-        project_path = os.path.join(os.getcwd(), project_name)
-        config_path = os.path.join(project_path, "config", "config.ini")
+        project_path = get_project_dir(os.getcwd(), project_name)
+        config_dir = get_subfolder_path(project_path, "config")
+        config_path = os.path.join(config_dir, "config.ini")
         project_link = ""
         max_pages = None
         max_retries = 3
@@ -727,15 +713,7 @@ class MainWindow(QMainWindow):
 
     def update_rigt_panel(self):
         """Sağ panel widget metinlerini lokalizasyon ile günceller."""
-        if hasattr(self, "downloadMethodLabel"):
-            self.downloadMethodLabel.setText(tr("right_panel.download_method", "İndirme Yöntemi:"))
-        if hasattr(self, "downloadMethodCombo"):
-            self.downloadMethodCombo.setItemText(0, tr("right_panel.download_method_booktoki", "Booktoki JS İle İndir (Selenium)"))
-            self.downloadMethodCombo.setItemText(1, tr("right_panel.download_method_69shuba", "69shuba JS İle İndir (Selenium)"))
-            self.downloadMethodCombo.setItemText(2, tr("right_panel.download_method_novelfire", "Novelfire JS İle İndir (Selenium)"))
-            self.downloadMethodCombo.setItemText(3, tr("right_panel.download_method_requests", "Normal Web Kazıma (Requests) (Tavsiye Edilmez)"))
-        if hasattr(self, "startButton"):
-            self.startButton.setText(tr("right_panel.btn_start_download", "⬇  İndirmeyi Başlat"))
+
         if hasattr(self, "translateButton"):
             self.translateButton.setText(tr("right_panel.btn_translate", "🌐  Seçilenleri Çevir"))
         if hasattr(self, "limit_checkbox"):
@@ -782,7 +760,6 @@ class MainWindow(QMainWindow):
 
         if not current_item:
             self.current_project_path = None
-            self.downloadMethodCombo.setEnabled(False)
             self.translateButton.setEnabled(False)
             self.splitButton.setEnabled(False)
             self.mergeButton.setEnabled(False)
@@ -806,8 +783,7 @@ class MainWindow(QMainWindow):
             return
 
         project_name = current_item.text()
-        self.current_project_path = os.path.join(os.getcwd(), project_name)
-        self.downloadMethodCombo.setEnabled(True)
+        self.current_project_path = get_project_dir(os.getcwd(), project_name)
         self.translateButton.setEnabled(True)
         self.splitButton.setEnabled(True)
         self.mergeButton.setEnabled(True)
@@ -850,9 +826,7 @@ class MainWindow(QMainWindow):
     # ------------------------------------------------------------------
 
     def _set_ui_state_on_process_start(self, button, text, bg_color, text_color, max_progress, status_text):
-        self.startButton.setEnabled(False)
         self.splitButton.setEnabled(False)
-        self.downloadMethodCombo.setEnabled(False)
         self.translateButton.setEnabled(False)
         self.mergeButton.setEnabled(False)
         self.projectSettingsButton.setEnabled(False)
@@ -873,9 +847,7 @@ class MainWindow(QMainWindow):
         self.token_progress_bar.setVisible(False)
 
     def _set_ui_state_on_process_end(self, button, text, bg_color, text_color, status_text):
-        self.startButton.setEnabled(True)
         self.splitButton.setEnabled(True)
-        self.downloadMethodCombo.setEnabled(True)
         self.translateButton.setEnabled(True)
         self.mergeButton.setEnabled(True)
         self.epubButton.setEnabled(True)
@@ -891,7 +863,6 @@ class MainWindow(QMainWindow):
         self.statusLabel.setText(status_text)
 
     def _set_all_buttons_enabled_state(self, enabled: bool):
-        self.startButton.setEnabled(enabled)
         self.translateButton.setEnabled(enabled)
         self.mergeButton.setEnabled(enabled)
         self.errorCheckButton.setEnabled(enabled)
@@ -976,7 +947,7 @@ class MainWindow(QMainWindow):
 
     def closeEvent(self, event):
         controllers = [
-            self.download_ctrl, self.translation_ctrl, self.cleaning_ctrl,
+            self.translation_ctrl, self.cleaning_ctrl,
             self.merge_ctrl, self.token_ctrl, self.chapter_check_ctrl,
             self.epub_ctrl, self.error_check_ctrl, self.split_ctrl,
         ]

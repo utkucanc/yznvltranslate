@@ -27,18 +27,40 @@ except ImportError as e:
     logger.error("llm_provider.py bulunamadı. Lütfen aracın yznvltranslate-main klasöründe olduğundan emin olun.")
     raise e
 
+def _get_extract_prompt() -> str:
+    """
+    app_settings.json'daki ml_extractor_prompt_override boş değilse onu döndürür,
+    boşsa locale'den gelen varsayılan promptu kullanır.
+    """
+    try:
+        import json as _json
+        _settings_file = os.path.join(os.getcwd(), "AppConfigs", "app_settings.json")
+        if os.path.exists(_settings_file):
+            with open(_settings_file, "r", encoding="utf-8") as _f:
+                _data = _json.load(_f)
+            override = _data.get("ml_extractor_prompt_override", "").strip()
+            if override:
+                return override
+    except Exception:
+        pass
+    return tr("ml_terminology_extractor.promt_part1", "") + "{source_text}" + tr("ml_terminology_extractor.promt_part2", "")
+
 EXTRACT_PROMPT_V2 = tr("ml_terminology_extractor.promt_part1","") + "{source_text}" + tr("ml_terminology_extractor.promt_part2","")
+
+
+from core.path_resolver import get_subfolder_path
+
 
 class MLTerminologyExtractor:
     """
-    MLTerminologyExtractor, verilen proje dizinindeki "dwnld" klasöründen çevrilmemiş metinleri toplayarak, 
+    MLTerminologyExtractor, verilen proje dizinindeki indirilen metinler klasöründen çevrilmemiş metinleri toplayarak, 
     LLM kullanarak önemli terimleri ve çevirilerini çıkartır. 
     Sonuçları "config/terminology.json" dosyasına kaydeder.
     """
     def __init__(self, project_path: str):
         self.project_path = project_path
-        self.dwnld_dir = os.path.join(project_path, "dwnld")
-        self.config_dir = os.path.join(project_path, "config")
+        self.dwnld_dir = get_subfolder_path(project_path, "download")
+        self.config_dir = get_subfolder_path(project_path, "config")
         self.llm_provider = None
         
         try:
@@ -194,7 +216,7 @@ class MLTerminologyExtractor:
 
         logger.info("Yapay zekaya terminoloji çıkarma isteği gönderiliyor. Bu işlem model bağlam penceresine göre uzun (1-5 dakika) sürebilir...")
         
-        prompt = EXTRACT_PROMPT_V2.format(source_text=source_text_with_context)
+        prompt = _get_extract_prompt().format(source_text=source_text_with_context)
         
         try:
             response = self.llm_provider.generate(prompt)

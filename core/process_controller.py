@@ -21,6 +21,7 @@ from core.chapter_check_worker import ChapterCheckWorker
 from core.workers.translation_error_check_worker import TranslationErrorCheckWorker
 from core.workers.ml_terminology_worker import MLTerminologyWorker
 from core.utils import natural_sort_key
+from core.path_resolver import get_project_dir, get_subfolder_path
 
 
 class CleaningController:
@@ -37,7 +38,10 @@ class CleaningController:
             QMessageBox.warning(self.win, "Proje Seçilmedi", "Lütfen sol listeden bir proje seçin.")
             return
         project_name = current_item.text()
-        project_path = os.path.join(os.getcwd(), project_name)
+        project_path = get_project_dir(os.getcwd(), project_name)
+
+        trslt_dir = get_subfolder_path(project_path, 'translate')
+        dwnld_dir = get_subfolder_path(project_path, 'download')
 
         selected_file_paths = []
         for row in range(self.win.file_table.rowCount()):
@@ -47,11 +51,11 @@ class CleaningController:
                 translated_file_name = self.win.file_table.item(row, 2).text()
 
                 if translated_file_name and translated_file_name != "Yok":
-                    file_path = os.path.join(project_path, 'trslt', translated_file_name)
+                    file_path = os.path.join(trslt_dir, translated_file_name)
                     if os.path.exists(file_path):
                         selected_file_paths.append(file_path)
                 elif original_file_name and original_file_name != "Orijinali Yok":
-                    file_path = os.path.join(project_path, 'dwnld', original_file_name)
+                    file_path = os.path.join(dwnld_dir, original_file_name)
                     if os.path.exists(file_path):
                         selected_file_paths.append(file_path)
 
@@ -62,7 +66,7 @@ class CleaningController:
         self._stop_existing()
 
         self.thread = QThread()
-        self.worker = CleaningWorker(selected_file_paths, os.path.join(project_path, 'trslt'))
+        self.worker = CleaningWorker(selected_file_paths, trslt_dir)
         self.worker.moveToThread(self.thread)
         self.thread.started.connect(self.worker.run)
         self.worker.finished.connect(self.thread.quit)
@@ -73,7 +77,6 @@ class CleaningController:
         self.worker.progress.connect(self._on_progress)
         self.thread.start()
 
-        self.win.startButton.setEnabled(False)
         self.win.translateButton.setEnabled(False)
         self.win.mergeButton.setEnabled(False)
         self.win.projectSettingsButton.setEnabled(False)
@@ -109,7 +112,6 @@ class CleaningController:
         self.win.update_file_list_from_selection()
 
     def _restore_buttons(self):
-        self.win.startButton.setEnabled(True)
         self.win.translateButton.setEnabled(True)
         self.win.mergeButton.setEnabled(True)
         self.win.epubButton.setEnabled(True)
@@ -147,7 +149,7 @@ class SplitController:
             QMessageBox.warning(self.win, "Proje Seçilmedi", "Lütfen sol listeden bir proje seçin.")
             return
         project_name = current_item.text()
-        project_path = os.path.join(os.getcwd(), project_name)
+        project_path = get_project_dir(os.getcwd(), project_name)
 
         input_file_path, _ = QFileDialog.getOpenFileName(
             self.win, "Bölünecek TXT Dosyasını Seçin", "",
@@ -156,7 +158,7 @@ class SplitController:
         if not input_file_path:
             return
 
-        output_folder = os.path.join(project_path, 'dwnld')
+        output_folder = get_subfolder_path(project_path, 'download', create=True)
         os.makedirs(output_folder, exist_ok=True)
         self._stop_existing()
 
@@ -223,15 +225,16 @@ class EpubController:
             QMessageBox.warning(self.win, "Proje Seçilmedi", "Lütfen sol listeden bir proje seçin.")
             return
         project_name = current_item.text()
-        project_path = os.path.join(os.getcwd(), project_name)
+        project_path = get_project_dir(os.getcwd(), project_name)
 
+        trslt_dir = get_subfolder_path(project_path, 'translate')
         selected_files = []
         for row in range(self.win.file_table.rowCount()):
             checkbox_item = self.win.file_table.item(row, 0)
             if checkbox_item and checkbox_item.checkState() == Qt.CheckState.Checked:
                 translated_file_name = self.win.file_table.item(row, 2).text()
                 if translated_file_name and translated_file_name not in ["Yok", "N/A"]:
-                    file_path = os.path.join(project_path, 'trslt', translated_file_name)
+                    file_path = os.path.join(trslt_dir, translated_file_name)
                     if os.path.exists(file_path):
                         selected_files.append(file_path)
 
@@ -242,7 +245,7 @@ class EpubController:
         selected_files.sort(key=lambda x: natural_sort_key(os.path.basename(x)))
         self._stop_existing()
 
-        output_folder = os.path.join(project_path, 'cmplt')
+        output_folder = get_subfolder_path(project_path, 'completed', create=True)
         os.makedirs(output_folder, exist_ok=True)
 
         self.thread = QThread()
@@ -313,12 +316,12 @@ class ErrorCheckController:
         if not self.win.current_project_path:
             QMessageBox.warning(self.win, "Proje Seçilmedi", "Lütfen bir proje seçin.")
             return
-        trslt_folder = os.path.join(self.win.current_project_path, 'trslt')
+        trslt_folder = get_subfolder_path(self.win.current_project_path, 'translate')
         if not os.path.exists(trslt_folder):
-            QMessageBox.warning(self.win, "Klasör Yok", "Çeviri klasörü (trslt) bulunamadı.")
+            QMessageBox.warning(self.win, "Klasör Yok", "Çeviri klasörü bulunamadı.")
             return
 
-        report_folder = os.path.join(self.win.current_project_path, 'trslt', 'hata_kontrol')
+        report_folder = os.path.join(trslt_folder, 'hata_kontrol')
         self.win._set_all_buttons_enabled_state(False)
         self.win.statusLabel.setText("Durum: Çeviri hata kontrolü yapılıyor...")
         self.win.progressBar.setValue(0)
@@ -424,15 +427,16 @@ class ChapterCheckController:
             QMessageBox.warning(self.win, "Proje Seçilmedi", "Lütfen sol listeden bir proje seçin.")
             return
         project_name = current_item.text()
-        project_path = os.path.join(os.getcwd(), project_name)
+        project_path = get_project_dir(os.getcwd(), project_name)
 
+        trslt_dir = get_subfolder_path(project_path, 'translate')
         files_to_check = []
         for row in range(self.win.file_table.rowCount()):
             checkbox_item = self.win.file_table.item(row, 0)
             if checkbox_item and checkbox_item.checkState() == Qt.CheckState.Checked:
                 translated_file_name = self.win.file_table.item(row, 2).text()
                 if translated_file_name and translated_file_name != "Yok" and translated_file_name != "N/A":
-                    file_path = os.path.join(project_path, 'trslt', translated_file_name)
+                    file_path = os.path.join(trslt_dir, translated_file_name)
                     files_to_check.append((translated_file_name, file_path))
 
         if not files_to_check:
@@ -497,7 +501,7 @@ class MLTerminologyController:
             QMessageBox.warning(self.win, "Proje Seçilmedi", "Lütfen sol listeden bir proje seçin.")
             return
         project_name = current_item.text()
-        project_path = os.path.join(os.getcwd(), project_name)
+        project_path = get_project_dir(os.getcwd(), project_name)
 
         if self.thread and self.thread.isRunning():
             QMessageBox.warning(self.win, "Çalışıyor", "Terminoloji işlemi zaten devam ediyor.")
@@ -541,7 +545,8 @@ class MLTerminologyController:
     def _save_last_operation(self, project_path: str, start_ch: int, end_ch: int):
         """Son terminoloji işleminin bölüm numaralarını proje config.ini'sine yazar."""
         import configparser
-        config_path = os.path.join(project_path, "config", "config.ini")
+        config_dir = get_subfolder_path(project_path, "config", create=True)
+        config_path = os.path.join(config_dir, "config.ini")
         cfg = configparser.ConfigParser()
         try:
             if os.path.exists(config_path):

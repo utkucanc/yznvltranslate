@@ -8,16 +8,17 @@ import time
 from core.utils import format_file_size, natural_sort_key
 from core.workers.token_counter import load_token_data
 from logger import app_logger
+from core.path_resolver import get_subfolder_path
 
 class FileListManager:
     """Projedeki dosyaları tarar, eşleştirir ve durumlarını derler."""
     
     def __init__(self, project_path: str):
         self.project_path = project_path
-        self.config_folder = os.path.join(project_path, 'config')
-        self.download_folder = os.path.join(project_path, 'dwnld')
-        self.translated_folder = os.path.join(project_path, 'trslt')
-        self.completed_folder = os.path.join(project_path, 'cmplt')
+        self.config_folder = get_subfolder_path(project_path, 'config')
+        self.download_folder = get_subfolder_path(project_path, 'download')
+        self.translated_folder = get_subfolder_path(project_path, 'translate')
+        self.completed_folder = get_subfolder_path(project_path, 'completed')
 
     def _load_json_silent(self, filepath: str) -> dict:
         if os.path.exists(filepath):
