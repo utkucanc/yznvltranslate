@@ -53,7 +53,7 @@ from ui.toast_widget import _ToastWidget
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle(tr("main_window.title", "Novel Çeviri Aracı V3.0.0"))
+        self.setWindowTitle(tr("main_window.title", "Novel Çeviri Aracı V3.1.0"))
         self.setWindowIcon(QIcon("logo256.ico"))
         self.setGeometry(100, 100, 1440, 860)
 
@@ -687,7 +687,7 @@ class MainWindow(QMainWindow):
             app_logger.error(f"UI DB Sync Hatası: {e}")
 
     def refresh_ui_and_theme(self):
-        self.setWindowTitle(tr("main_window.title", "Novel Çeviri Aracı V3.0.0"))
+        self.setWindowTitle(tr("main_window.title", "Novel Çeviri Aracı V3.1.0"))
         if hasattr(self, "project_search_input"):
             self.project_search_input.setPlaceholderText(tr("main_window.search_project_placeholder", "🔍 Proje ara..."))
         if hasattr(self, "file_search_input"):

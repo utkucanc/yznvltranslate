@@ -5,7 +5,7 @@
   "custom_js_sources": [],
   "notifications_enabled": true,
   "promt_generator_max_tokens": 20000,
-  "language": "en",
+  "language": "tr",
   "translation_providers": [
     "google",
     "yandex"

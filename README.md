@@ -4,145 +4,106 @@
 [![downloads-latest](https://img.shields.io/github/downloads/utkucanc/yznvltranslate/latest/total?label=Latest%20release)](https://github.com/utkucanc/yznvltranslate/releases/latest)
 
 Discord : Utkucan#5700
-# NCA
+# NCA (Novel Çeviri Aracı v3.1.0)
 
-Bu proje, yabancı dildeki (özellikle İngilizce, Korece, Çince gibi) web romanlarını (novel) indirmek, Google Gemini API kullanarak yerel bağlantıda toplu çevirisini yapmak ve sonrasında bu metinleri temizleyip EPUB veya benzeri formatlarda birleştirmek için tasarlanmış, PyQt6 tabanlı masaüstü bir uygulamadır.
+Bu proje, yabancı dildeki (özellikle Çince, Korece, İngilizce vb.) web romanlarını (novel) yerel ortamda organize etmek, yapay zeka (Google Gemini, OpenAI/MCP) ve klasik çeviri sağlayıcıları (DeepL, Yandex, Google Translate) kullanarak toplu çevirisini yapmak, metin içi terminoloji entegrasyonu sağlamak ve sonuçları temizleyip EPUB/TXT formatlarında birleştirmek için tasarlanmış, PyQt6 tabanlı modern bir masaüstü uygulamasıdır.
+
 ## Nasıl Kullanılır?
 - [![Youtube Video Link](https://img.shields.io/badge/Youtube%20Video%20Link-red?style=for-the-badge&logo=youtube)](https://youtu.be/4HQpAn_qiBU)
 - https://youtu.be/4HQpAn_qiBU
-## Özellikler
 
-* **Toplu İndirme**: 
-  - Standart Web Kazıma (Requests/BS4)
-  - JavaScript destekli indirme (Novelfire, Booktoki ve 69shuba için Selenium Webdriver entegrasyonu)
-* **Gelişmiş Çeviri Sistemi**: 
-  - OpenAI uyumlu sunucu desteği ve Google Gemini (`google-genai`) ile çalışan **MCP (Multi-endpoint Connection Provider)** mimarisi.
-  - Sınırsız sayıda API Anahtarından oluşan rotasyonlu Key Pool desteği.
-  - Otomatik **Translation Cache** ve **Terminology Memory** ile maliyet tasarrufu ve terim tutarlılığı.
-  - **Prompt Generator (PromtGen)** ile projeye özel (Literal/Natural/Balanced) çeviri promptlarının AI tarafından otomatik çıkarılması.
-  - **Çeviri Hata ve Kalite Kontrolü (v2.5.0):** Çince/Korece CJK taramasının yanı sıra İngilizce gibi Latin alfabeli diller için **Metin Benzerlik Oranı (%80+)** (`difflib`) ve **`langdetect` Dil Tespiti** entegrasyonu. Çevrilmeden kaydedilen dosyaları otomatik tespit eder.
-  - **Paragraf Bazlı Çeviri (v2.1.0):** Cache aktif olsun olmasın her dosya otomatik olarak paragraflara bölünür; her paragraf bağımsız çevrilip birleştirilir. Büyük dosyalarda token verimliliğini artırır.
-  - **Asenkron Çeviri (V2.1.0):** Proje ayarları kısmından sayısı düzenlenebilir paralel çeviri sistemi. Aynı anda API isteği göndererek birden fazla dosyanın çeviri yapılabilmesine imkan sağlar.(Gemini için worker sayısı 3 tavsiye edilmektedir. 3 Worker RPM değeri 11-12 aralığındadır.)
-  - **Toplu Çeviri / Batch Mode (v2.1.0 - Test):** Birden fazla bölümü `===CHAPTER_START===` / `===CHAPTER_END===` ayraçlarıyla tek bir API isteğine paketler. Aynı RPD kotasıyla daha fazla bölüm çevrilmesini sağlar. Parse başarısız olursa otomatik tekli moda düşer.
-  - **Gelişmiş Terminoloji Sistemi(V2.4.0):** Terminoloji işlemine bölüm aralığı seçim diyalogu eklendi. Son işlem bilgisi kaydediliyor ve terminoloji penceresinde gösteriliyor. Böylece TPM sınırlarını kontrol ederek tüm hikayenin terminolojisini çıkarma imkanı elde edildi.
-* **Dosya Manipülasyonu**:
-  - `Toplu Bölüm Ekle`: Büyük boyutlu `.txt` dosyalarını "## Bölüm - X ##" ayracı baz alınarak otomatik parçalara ayırma.
-  - Geliştirilmiş çift tıklama ile açılan Metin Düzenleyici (Text Editor) üzerinden anlık düzeltme.
-  - Çevrilmiş bölümleri tek bir `.txt` veya `.epub` formatında birleştirme.
-* **Token ve Limit Sayacı**: Akıllı durum çubuğu ile maliyet hesaplama, hız takibi ve kalıcı API istek istatistikleri. Grafik ve tablo olarak api istek sayısı listeleme.
+---
 
-## Gereksinimler
+## 🚀 Öne Çıkan Özellikler
+
+* **Çoklu Çeviri Sağlayıcı Desteği (v3.0.0)**:
+  - **Yapay Zeka (LLM / MCP):** Google Gemini (`google-genai`), OpenAI uyumlu MCP (Multi-endpoint Connection Provider) sunucu mimarisi ve rotasyonlu API Key Havuzu.
+  - **Klasik Çeviri Servisleri:** DeepL, Yandex Translate ve Proxy destekli (HTTP / HTTPS / SOCKS4 / SOCKS5) Google Translate.
+  - **Otomatik Key Rotasyonu:** 429 Kota aşımı alındığında havuzdaki sıradaki anahtara veya endpoint'e otomatik geçiş.
+
+* **Gelişmiş Metin İçi Terminoloji Sistemi (v3.0.0 & v3.1.0)**:
+  - **Metin İçi Enjeksiyon:** Kayıtlı terimler isteğe gönderilmeden önce doğrudan kaynak metne yerleştirilir. Bu sayede AI terimleri doğru Türkçe eklerle doğal bir şekilde bağlama oturtur ve %80'e varan token tasarrufu sağlanır.
+  - **Bölüm Aralıklı Terminoloji Çıkarma:** ML tabanlı otomatik terim çıkarıcı ile belirlenen bölüm aralıklarındaki en önemli özel isim ve teknikler otomatik tespit edilip sözlüğe eklenir.
+
+* **Esnek Ayarlar ve Prompt Yönetimi (v3.1.0)**:
+  - **Uygulama İçi Prompt Düzenleme:** Prompt Generator ve ML Terminoloji Çıkarıcı için kullanılan sistem promptları uygulama içinden doğrudan düzenlenebilir; aktif dil seçeneğine göre varsayılana dönüştürülebilir.
+  - **Özelleştirilebilir Ayraçlar:** Bölüm birleştirme (`export_separator`) ve toplu bölüm parçalama (`split_separator`) ayraçları ayarlar penceresinden dinamik olarak ayarlanabilir.
+
+* **Yeni Proje Mimarisi & Geriye Uyumlu Yapı (v3.1.0)**:
+  - Yeni projeler `Project/<ProjeAdı>/` klasör hiyerarşisinde düzenli isimlerle (`completed`, `config`, `download`, `translate`) oluşturulur.
+  - Eski sürüm projeleri (`cmplt`, `config`, `dwnld`, `trslt`) `path_resolver` modülü sayesinde geriye dönük tam uyumlulukla sorunsuz açılır.
+
+* **Gelişmiş Performans ve İş Akışları**:
+  - **Asenkron Çeviri:** Ayarlanabilir paralel worker sayısı ile aynı anda birden fazla bölümü eşzamanlı çevirme.
+  - **Toplu Çeviri (Batch Mode):** Birden fazla bölümü tek bir API isteğine paketleyerek RPD (Daily Limit) kotasından maksimum verim alma.
+  - **Çeviri Kalite ve Hata Kontrolü:** Metin Benzerlik Oranı (%80+) ve `langdetect` ile çevrilmeden kalan dosyaları otomatik tespit etme.
+  - **Dosya İşlemleri & EPUB Oluşturma:** Tek tıkla EPUB oluşturma, dahili Metin Editörü (Text Editor) ile anlık düzeltme ve bölüm parçalama.
+
+---
+
+## 📋 Gereksinimler
 
 Programın kaynak koddan çalıştırılabilmesi için sisteminizde aşağıdaki kütüphanelerin yüklü olması gerekir:
 
 ```bash
 pip install -r requirements.txt
 ```
-- Tavsiye edilen Python versiyonu:
-```bash
-Python 3.13 
-```
-  
-Not: JavaScript tabanlı Booktoki ve 69shuba indirmelerini (Selenium) kullanmak için bilgisayarınızda Google Chrome tarayıcısı yüklü olmalıdır. `webdriver-manager` aracı ChromeDriver eşleştirmelerini kendi kendine yapacaktır.
+- Tavsiye edilen Python sürümü: **Python 3.13**
 
-## Kurulum ve Çalıştırma
+---
+
+## 🛠️ Kurulum ve Çalıştırma
 
 ### 1- Geliştirici Ortamı (Python) ile Çalıştırma:
-Gerekli bağımlılıkları yükledikten sonra komut satırında proje dizinindeyken:
+Gerekli bağımlılıkları yükledikten sonra terminalde proje dizinindeyken:
 ```bash
 python main_window.py
 ```
 komutu ile arayüzü başlatabilirsiniz.
 
-### 2- Windows İçin Kullanıma Hazır .EXE (Build) Alma:
-Projeyi `cx_Freeze` ile derleyerek, Python yüklü olmayan Windows cihazlarda da çalışabilen bir çalıştırılabilir dosya haline getirebilirsiniz.
+### 2- Windows İçin Portable .EXE / MSI Kurulumu Alma:
+Projeyi `cx_Freeze` ile derleyerek Python gerektirmeyen bağımsız bir Windows uygulaması haline getirebilirsiniz.
 
-Derleme (build) klasörü oluşturmak için:
+**Taşınabilir (Portable) Klasör Derlemesi:**
 ```bash
 python setup.py build
 ```
-Çıkan dosyalar `build/` klasörü içerisinde `CeviriUygulamasi.exe` olarak belirecektir.
+Çıktı `build/NovelCeviriAraci-Portable/` klasöründe `CeviriUygulamasi.exe` olarak oluşturulur.
 
-Tıklayıp kurulan bir MSI Kurulum Dosyası (Installer) oluşturmak isterseniz:
+**Windows MSI Kurulum Dosyası (Setup Installer):**
 ```bash
 python setup.py bdist_msi
 ```
-komutunu kullanabilirsiniz. İşlem tamamlandıktan sonra proje dosyalarınızın içerisindeki `dist/` klasöründe kurulum dosyasına erişebilirsiniz.
+Çıktı `dist/` klasörü altında `NovelCeviriAraci-3.0.0-win64.msi` olarak hazırlanır.
 
-## Proje Yapısı
+---
 
-Uygulamanın düzgün çalışabilmesi için veritabanı benzeri dosyaları `AppConfigs` isimli bir klasör hiyerarşisinde saklamaktadır:
-* `AppConfigs/APIKeys/`: Yeni projelerde veya genel uygulamada kullanılacak `.txt` formatındaki Gemini API Anahtarlarını tutar.
-* `AppConfigs/Promts/`: Çeviride veya metin düzeltmelerinde kullanılan yapay zeka yönlendirme (promt) dosyalarını saklar.
+## 📁 Proje Dizin Yapısı
 
-Her "Yeni Proje" oluşturduğunuzda uygulama, uygulamanın kurulu olduğu dizinde veya seçtiğiniz hedefte o projeye özel alt klasörler oluşturur (`dwnld`, `trslt`, `cmplt` vs.) ve indirmeleri, çevirileri birbirine karışmadan bu ortamların içinde saklar. 
+Uygulama, genel yapılandırma ve tema dosyalarını `AppConfigs` klasöründe saklar:
+* `AppConfigs/locales/`: Dil dosyaları (`tr.json`, `en.json`).
+* `AppConfigs/themes/`: Tema şablonları ve QSS özelleştirmeleri.
+* `AppConfigs/app_settings.json`: Uygulama geneli ayarlar.
+* `AppConfigs/app.log`: Günlük izleme ve hata kayıtları.
 
-## JS Dosyalarını Tarayıcıda Elle Kullanma
-Uygulamanın içindeki üst gezinti çubuğunda yer alan **JS Save** menüsüne tıklayarak Booktoki.js ve 69shuba.js komut dosyalarını kolayca Masaüstünüze alabilirsiniz. Eğer indirme aracını kullanmak yerine direkt tarayıcıyı tercih ediyorsanız; ilgili romanın okuma sayfasına girip, Geliştirici Seçeneklerini (`F12`) açarak **Konsol** sekmesine bu indirilen JS kodlarını kopyalayıp enter'a basmanız yeterlidir. Kod, tüm bölümleri kendi kendine tarayıp size bir metin dosyası indirecektir.
+Yeni projeler `Project/<ProjeAdı>/` dizini altında otomatik oluşturulur:
+- `download/`: Orijinal ham metin dosyaları.
+- `translate/`: Çevrilmiş metin dosyaları.
+- `completed/`: Birleştirilmiş `.txt` ve `.epub` çıktıları.
+- `config/`: Projeye özel `config.ini` ve `terminology.json` verileri.
 
-## Loglama Sistemi
-Sürüm 1.9.9 itibarıyla uygulama, çalışma sürecindeki tüm önemli olayları, uyarıları ve hataları otomatik olarak `AppConfigs/app.log` dosyasına kaydeder. Herhangi bir hata ile karşılaşırsanız bu dosyayı inceleyerek sorunun kaynağını kolayca tespit edebilirsiniz. Log dosyası her uygulama başlatıldığında üzerine ekleme yapılarak güncellenir (üzerine yazılmaz).
+---
 
-## Proje Yapısı
-
-Uygulamanın düzgün çalışabilmesi için veritabanı benzeri dosyaları `AppConfigs` isimli bir klasör hiyerarşisinde saklamaktadır:
-* `AppConfigs/APIKeys/`: Yeni projelerde veya genel uygulamada kullanılacak `.txt` formatındaki Gemini API Anahtarlarını tutar.
-* `AppConfigs/Promts/`: Çeviride veya metin düzeltmelerinde kullanılan yapay zeka yönlendirme (promt) dosyalarını saklar.
-* `AppConfigs/app.log`: Uygulama genelinde oluşturulan log/izleme dosyası. Hata ayıklama için kullanışlıdır. *(v1.9.9)*
-
-Her "Yeni Proje" oluşturduğunuzda uygulama, uygulamanın kurulu olduğu dizinde veya seçtiğiniz hedefte o projeye özel alt klasörler oluşturur (`dwnld`, `trslt`, `cmplt` vs.) ve indirmeleri, çevirileri birbirine karışmadan bu ortamların içinde saklar.
-## Dizin Ağacı
-```text
-yznvltranslate-main/
-├── AppConfigs/         # Uygulama yapılandırması ve günlükler
-├── cache/             # Çeviri önbellek yönetimi
-├── core/              # Çekirdek iş mantığı
-│   └── workers/       # Çeviri görevleri için asenkron işçiler
-├── terminology/       # Terminoloji yönetimi
-├── ui/                # Kullanıcı arayüzü bileşenleri ve diyaloglar
-├── main_window.py     # Ana Giriş Noktası
-├── dialogs.py         # Genel diyaloglar
-├── logger.py          # Günlük tutma yapılandırması
-├── 69shuba.js         # Kazıyıcı Mantığı
-├── booktoki.js        # Kazıyıcı Mantığı
-├── novelfire.js       # Kazıyıcı Mantığı
-├── requirements.txt   # Bağımlılıklar
-├── setup.py           # Kurulum betiği
-└── file-tree.md       # Proje dizin yapısı ve temel dosyalar hakkında açıklama
-```
-## API Pool ve MCP Endpoint Rotasyonu
-```text
-429 Kota aşıldı hatası alındı
-    │
-    ▼
-CAS: başka thread zaten geçti mi?
-    ├─ Evet → mevcut kaynakla devam (True)
-    └─ Hayır (ilk raporlayan ben)
-          │
-          ▼
-    Adım 1: provider.rotate_key()
-          ├─ True → aynı endpoint, yeni anahtar (K0→K1→K2) ✓
-          └─ False (pool tükendi)
-                │
-                ▼
-          Adım 2: _all_endpoints[next_idx] → yeni MCP endpoint ✓
-                └─ Hepsi bitti → is_running=False, dur
-```
-
-## Sürüm Geçmişi
+## 📜 Sürüm Geçmişi (Changelog)
 
 | Sürüm | Değişiklikler |
-|-------|--------------| 
-| 2.6.0 | **Gelişmiş Çeviri Hata Kontrolü:** İngilizce ve Latin alfabesi kullanan kaynak diller için **Metin Benzerlik Oranı (%80+)** ve **`langdetect` Dil Tespiti** entegrasyonu sağlandı. Orijinal dosya ile çeviri dosyası karşılaştırılarak çevrilmeden kaydedilen dosyalar tespit ediliyor ve raporlanıyor. |
-| 2.5.0 | **Lokalizasyon çalışması başlatıldı:** İngilizce ve Türkçe dil seçenekleri eklendi. Mevcut durumda tamamlanmadı. Eksikler olabilir. Dil seçeneği değiştirildiğinde hedef çeviri dili ayarlanan dil olarak kabul ediliyor. |
-| 2.4.0 | **Token Say** butonu API gerektirmeden yerel (offline) sayıma geçirildi. **Tema dosyaları** artık build'de otomatik oluşturuluyor (`dark.qss`, `light.qss` vb.). **MCP Diyalogu** iyileştirildi: Gemini seçilince model listesi açılıyor, URL alanı gizleniyor; "API Editöründen API Aktar" butonu eklendi. **Dosya Listesi** sıralaması düzeltildi: birleştirilmiş (cmplt) dosyalar artık listenin başında görünüyor. **ML Terminoloji** işlemine bölüm aralığı seçim diyalogu eklendi; son işlem bilgisi kaydediliyor ve terminoloji penceresinde gösteriliyor. |
-| 2.3.0 | Yeni bir arayüz ve iyileştirmelerle birlikte daha stabil ve hızlı bir deneyim sunuldu. Tema düzenleme paneli eklendi. |
-| 2.1.0 | **SRP** yeniden yapılandırma. **Paragraf Bazlı Çeviri** standart hale getirildi (cache bağımsız). **Toplu Çeviri (Batch Mode)** eklendi: birden fazla bölümü tek API isteğinde göndererek aynı RPD ile daha fazla bölüm çevirme. **Asenkron Çeviri** eklendi. Aynı anda birden fazla API isteği göndererek daha hızlı çeviri yapılabilir. Proje Ayarlarından aktif/deaktif edilebilir. |
-| 2.0.0 | Majör Güncelleme! MCP Mimarisi, Prompt Generator, Translation Cache, Terminology Memory, Yeni GenAI SDK, CJK Çeviri Hata Kontrolü ve gelişmiş Metin Düzenleyicisi eklendi. |
-| 1.9.9 | Uygulama genelinde `logger.py` ile loglama sistemi eklendi. Token sayımı sonrasında oluşan UI donma hatası giderildi. Token verisi kısmi sayımda sıfırlanma (veri kaybı) sorunu çözüldü. |
-| 1.9.8 | Çalışmayı etkileyen genel hatalar giderildi (retry_count, statusLabel wordwrap, cx_Freeze base). |
-| 1.9.7 | Toplu bölüm ekleme (`split_worker.py`) özelliği eklendi. |
-| 1.9.6 | JS dosyalarını kaydetme özelliği (JS Save menüsü) eklendi. |
-| 1.9.5 | Seçili dosyaların EPUB dosyası olarak kaydı sağlandı. |
-| 1.9.4 | Çevirilecek dosya sayısının sınırlandırılması (`file_limit`) getirildi. |
-| 1.9.3 | Bölüm başlığı kontrolü getirildi. |
+|-------|--------------|
+| 3.1.0 | **Yeni Proje Mimarisi & Geriye Uyumlu Klasör Yapısı:** Projeler `Project/<ProjeAdı>/` dizininde düzenli isimlerle (`completed`, `config`, `download`, `translate`) oluşturulur; eski yapılar geriye dönük uyumla (`path_resolver`) desteklenir. **Prompt Düzenleme:** Prompt Generator ve ML Terminoloji için sistem promptları App Settings üzerinden doğrudan düzenlenebilir. **Dinamik Ayraçlar:** Split ve Export ayraçları ayarlardan özelleştirilebilir. **İndirme Temizliği:** Karmaşık Selenium/Web scraping kodları temizlendi, arayüz hafifletildi. **Tam Lokalizasyon:** Terminoloji sayfası ve tüm yeni bileşenler i18n (`tr()`) ile Türkçe/İngilizce olarak tamamlandı. |
+| 3.0.0 | **Yenilenmiş Koyu UI:** Dashboard, Proje detay paneli ve gömülü Terminoloji/Metin Editörü sayfaları ile kart tabanlı yeni tasarım. **Metin İçi Terminoloji Enjeksiyonu:** Terimler AI'a gönderilmeden önce metne enjekte edilerek %80 token tasarrufu ve daha akıcı çekimleme sağlandı. **Yeni Çeviri Sağlayıcıları:** DeepL, Yandex Translate, Google Translate ve Proxy (SOCKS/HTTP) desteği eklendi. Stabil çalışmayan çeviri önbelleği (cache) kaldırıldı. |
+| 2.6.0 | **Gelişmiş Çeviri Hata Kontrolü:** İngilizce ve Latin alfabesi kullanan kaynak diller için Metin Benzerlik Oranı (%80+) ve `langdetect` Dil Tespiti entegrasyonu sağlandı. |
+| 2.5.0 | **Lokalizasyon çalışması başlatıldı:** İngilizce ve Türkçe dil seçenekleri altyapısı eklendi. |
+| 2.4.0 | Offline Token Sayımı, Tema Dosyalarının Otomatik Oluşturulması, MCP Diyalog İyileştirmeleri, ML Terminoloji Bölüm Aralığı Seçimi. |
+| 2.3.0 | Yeni Arayüz Tasarımı ve Tema Düzenleme Paneli. |
+| 2.1.0 | Paragraf Bazlı Çeviri, Toplu Çeviri (Batch Mode) ve Asenkron (Paralel) Çeviri Desteği. |
+| 2.0.0 | MCP Mimarisi, Prompt Generator, Translation Cache, Terminology Memory, Yeni GenAI SDK, CJK Çeviri Hata Kontrolü. |
+| 1.9.9 | `logger.py` ile Otomatik Loglama Sistemi, Donma ve Token Kaybı Düzeltmeleri. |

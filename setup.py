@@ -61,7 +61,7 @@ if sys.stdout and hasattr(sys.stdout, "reconfigure"):
 # --- Bilgilendirme ve Yardım Metni ---
 HELP_BANNER = """
 ======================================================================
-  Novel Çeviri Aracı (v3.0.0) - cx_Freeze Dağıtım Sistemi
+  Novel Çeviri Aracı (v3.1.0) - cx_Freeze Dağıtım Sistemi
 ======================================================================
 Komutlar:
   1. python setup.py build         -> Taşınabilir klasör (Portable)
@@ -102,7 +102,7 @@ from cx_Freeze import setup, Executable
 
 APP_NAME = "NovelCeviriAraci"
 APP_VERSION = "3.0.0"
-APP_TITLE = "Novel Çeviri Aracı v3.0.0"
+APP_TITLE = "Novel Çeviri Aracı v3.1.0"
 AUTHOR = "UtkuCanC"
 AUTHOR_EMAIL = "utkucancanatan@gmail.com"
 MAIN_SCRIPT = "main_window.py"

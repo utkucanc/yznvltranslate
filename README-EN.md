@@ -1,143 +1,108 @@
-# Novel Translation Tool - AI-Powered Novel Translation and Editing Application
+# Novel Translation Tool - AI-Assisted Novel Translation and Editing Desktop App
 [![GitHub Issues](https://img.shields.io/github/issues/utkucanc/yznvltranslate?label=Open%20Issues)](https://github.com/utkucanc/yznvltranslate/issues)
 [![downloads](https://img.shields.io/github/downloads/utkucanc/yznvltranslate/total?label=Total%20Downloads)](https://github.com/utkucanc/yznvltranslate/releases)
 [![downloads-latest](https://img.shields.io/github/downloads/utkucanc/yznvltranslate/latest/total?label=Latest%20release)](https://github.com/utkucanc/yznvltranslate/releases/latest)
 
 Discord : Utkucan#5700
-# NCA
+# NTT (Novel Translation Tool v3.1.0)
 
-This project is a PyQt6-based desktop application designed to download web novels in foreign languages (especially English, Korean, Chinese, etc.), perform bulk translation locally using the Google Gemini API, and then clean and merge these texts into EPUB or similar formats.
+Novel Translation Tool is a modern PyQt6 desktop application designed to organize web novel translation projects locally (especially from Chinese, Korean, English, etc.), perform volume batch translations using AI (Google Gemini, OpenAI/MCP) and classic translation providers (DeepL, Yandex, Google Translate), ensure in-text terminology consistency, and clean and merge output files into EPUB or TXT formats.
 
 ## How to Use?
 - [![Youtube Video Link](https://img.shields.io/badge/Youtube%20Video%20Link-red?style=for-the-badge&logo=youtube)](https://youtu.be/4HQpAn_qiBU)
 - https://youtu.be/4HQpAn_qiBU
 
-## Features
+---
 
-* **Bulk Downloading**: 
-  - Standard Web Scraping (Requests/BS4)
-  - JavaScript-enabled downloading (Selenium Webdriver integration for Novelfire, Booktoki, and 69shuba)
-* **Advanced Translation System**: 
-  - **MCP (Multi-endpoint Connection Provider)** architecture supporting OpenAI-compatible servers and Google Gemini (`google-genai`).
-  - Key Pool support with a rotating, unlimited number of API Keys.
-  - Automatic **Translation Cache** and **Terminology Memory** for cost savings and term consistency.
-  - **Prompt Generator (PromtGen)** that automatically extracts project-specific translation prompts (Literal/Natural/Balanced) using AI.
-  - **Translation Error and Quality Control (v2.5.0):** Integration of **Text Similarity Ratio (>=80%)** (`difflib`) and **`langdetect` Language Detection** along with Chinese/Korean CJK character scanning. Automatically detects files saved without translation.
-  - **Paragraph-Based Translation (v2.1.0):** Every file is automatically split into paragraphs and translated/merged independently, regardless of whether the cache is enabled. This improves token efficiency for large files.
-  - **Asynchronous Translation (v2.1.0):** A parallel translation system where the number of threads can be configured in the project settings. It allows multiple files to be translated simultaneously. (Recommended worker count for Gemini is 3, yielding an RPM of 11-12.)
-  - **Bulk Translation / Batch Mode (v2.1.0 - Beta):** Packages multiple chapters into a single API request using `===CHAPTER_START===` / `===CHAPTER_END===` separators. This allows translating more chapters with the same RPD quota. It automatically falls back to single mode if parsing fails.
-  - **Advanced Terminology System (v2.4.0):** Section range selection dialog added to the terminology extraction process. The last processed information is saved and displayed in the terminology window, making it easier to manage TPM limits and extract terminology for the entire story.
-* **File Manipulation**:
-  - `Bulk Chapter Split`: Automatically splits large `.txt` files into individual chapters based on the "## Chapter - X ##" separator.
-  - In-app text editing via double-clicking to open the built-in Text Editor for quick adjustments.
-  - Merging translated chapters into a single `.txt` or `.epub` file.
-* **Token and Limit Counter**: Smart status bar for cost calculation, speed tracking, and persistent API usage statistics. View API request count history as charts and tables.
+## 🚀 Key Features
 
-## Requirements
+* **Multi-Provider Translation Support (v3.0.0)**:
+  - **Artificial Intelligence (LLM / MCP):** Google Gemini (`google-genai`), OpenAI-compatible MCP (Multi-endpoint Connection Provider) server architecture, and rotating API Key Pool.
+  - **Classic Translation Services:** DeepL, Yandex Translate, and Proxy-supported (HTTP / HTTPS / SOCKS4 / SOCKS5) Google Translate.
+  - **Automatic Key Rotation:** Seamlessly switches to the next available key or endpoint in the pool upon encountering 429 Rate Limit errors.
 
-To run the application from source code, you need to install the following dependencies on your system:
+* **Advanced In-Text Terminology System (v3.0.0 & v3.1.0)**:
+  - **In-Text Injection:** Saved terms are injected directly into the source text before sending the API request. The AI recognizes pre-translated terms and naturally integrates them into the sentence flow while cutting token usage by up to 80%.
+  - **Chapter Range Terminology Extraction:** ML-driven automatic term extractor detects key proper nouns, locations, and techniques within specified chapter ranges and populates the dictionary.
+
+* **Flexible Settings & Prompt Management (v3.1.0)**:
+  - **In-App System Prompt Editor:** Customize system prompts for Prompt Generator and ML Terminology Extractor directly inside App Settings, with one-click reset to default prompt for the active language.
+  - **Customizable Separators:** Chapter merge (`export_separator`) and bulk split (`split_separator`) templates can be dynamically configured in settings.
+
+* **New Project Architecture & Backwards Compatibility (v3.1.0)**:
+  - New projects are organized cleanly under `Project/<ProjectName>/` with standardized subfolder names (`completed`, `config`, `download`, `translate`).
+  - Older projects (`cmplt`, `config`, `dwnld`, `trslt`) remain fully compatible without requiring migration thanks to the `path_resolver` module.
+
+* **Advanced Performance & Workflow Tools**:
+  - **Async Translation:** Translate multiple chapters concurrently with configurable parallel workers.
+  - **Batch Mode:** Combine multiple chapters into a single API payload (`===CHAPTER_START===` / `===CHAPTER_END===`) to maximize output per RPD (Daily Limit) quota.
+  - **Quality & Error Checker:** Detect untranslated files automatically using text similarity matching (%80+) and `langdetect`.
+  - **File Operations & EPUB Compilation:** One-click EPUB generator, built-in Text Editor with live editing, and chapter splitter.
+
+---
+
+## 📋 Requirements
+
+To run the application from source code, install the required dependencies:
 
 ```bash
 pip install -r requirements.txt
 ```
-- Recommended Python version:
-```bash
-Python 3.13 
-```
-  
-Note: To use JavaScript-based Booktoki and 69shuba downloaders (Selenium), Google Chrome must be installed on your computer. `webdriver-manager` will automatically handle ChromeDriver matching.
+- Recommended Python version: **Python 3.13**
 
-## Installation and Execution
+---
 
-### 1- Running with Developer Environment (Python):
-After installing the required dependencies, run the following command in the project directory:
+## 🛠️ Installation & Running
+
+### 1- Running in Developer Environment (Python):
+After installing requirements, launch the UI from the project root:
 ```bash
 python main_window.py
 ```
-to start the user interface.
 
-### 2- Packaging Ready-to-Use .EXE (Build) for Windows:
-You can compile the project using `cx_Freeze` to create an executable file that runs on Windows devices without Python installed.
+### 2- Building Standalone Executable / Installer for Windows:
+You can freeze the project into a standalone Windows executable using `cx_Freeze`:
 
-To create the build directory:
+**Portable Folder Build:**
 ```bash
 python setup.py build
 ```
-The compiled files will appear under the `build/` folder as `CeviriUygulamasi.exe`.
+Output executable will be generated at `build/NovelCeviriAraci-Portable/CeviriUygulamasi.exe`.
 
-If you want to create an MSI Installer:
+**Windows MSI Installer:**
 ```bash
 python setup.py bdist_msi
 ```
-Once the process is complete, you can find the installer in the `dist/` folder.
+Installer package will be created in the `dist/` directory as `NovelCeviriAraci-3.0.0-win64.msi`.
 
-## Project Structure
+---
 
-The application saves configuration and persistent files under the `AppConfigs` directory:
-* `AppConfigs/APIKeys/`: Stores Gemini API Keys in `.txt` format used for new projects or the general application.
-* `AppConfigs/Promts/`: Stores AI prompt templates used for translation and text adjustments.
+## 📁 Project Directory Structure
 
-When you create a "New Project", the application creates project-specific subfolders (`dwnld`, `trslt`, `cmplt`, etc.) in the project directory, so downloads and translations are organized and do not overlap.
+The application stores global configurations and theme assets in `AppConfigs`:
+* `AppConfigs/locales/`: Localization files (`tr.json`, `en.json`).
+* `AppConfigs/themes/`: Theme templates and QSS styles.
+* `AppConfigs/app_settings.json`: Global application settings.
+* `AppConfigs/app.log`: Application logging file.
 
-## Using JS Files Manually in Browser
-By clicking the **JS Save** menu on the top navigation bar, you can easily save Booktoki.js and 69shuba.js script files to your Desktop. If you prefer using a browser instead of the downloader tool, open the chapter reading page of the novel, open Developer Tools (`F12`), paste the copied JS script into the **Console** tab, and press enter. The script will automatically scrape all chapters and download them as a text file.
+New projects are automatically created under `Project/<ProjectName>/`:
+- `download/`: Raw original text files.
+- `translate/`: Translated text files.
+- `completed/`: Merged `.txt` and `.epub` output files.
+- `config/`: Project-specific `config.ini` and `terminology.json`.
 
-## Logging System
-As of version 1.9.9, the application logs all important events, warnings, and errors to `AppConfigs/app.log`. If you encounter any issues, you can review this file to find the root cause. The log file is updated (appended) every time the application starts.
+---
 
-## Directory Tree
-```text
-yznvltranslate-main/
-├── AppConfigs/         # App configuration and logs
-├── cache/             # Translation cache management
-├── core/              # Core business logic
-│   └── workers/       # Async workers for translation tasks
-├── terminology/       # Terminology memory management
-├── ui/                # UI components and dialogs
-├── main_window.py     # Main Entry Point
-├── dialogs.py         # General dialogs
-├── logger.py          # Logger configuration
-├── 69shuba.js         # Scraper script
-├── booktoki.js        # Scraper script
-├── novelfire.js       # Scraper script
-├── requirements.txt   # Dependencies
-├── setup.py           # cx_Freeze setup script
-└── file-tree.md       # Project file tree documentation
-```
+## 📜 Version History (Changelog)
 
-## API Pool and MCP Endpoint Rotation Flowchart
-```text
-429 Rate Limit Exceeded Error Received
-    │
-    ▼
-CAS: Did another thread already rotate?
-    ├─ Yes → continue with current endpoint/key (True)
-    └─ No (first reporter)
-          │
-          ▼
-    Step 1: provider.rotate_key()
-          ├─ True → same endpoint, new key (K0→K1→K2) ✓
-          └─ False (pool exhausted)
-                │
-                ▼
-          Step 2: _all_endpoints[next_idx] → new MCP endpoint ✓
-                └─ All exhausted → is_running=False, stop
-```
-
-## Version History
-
-| Version | Changes |
-|-------|--------------| 
-| 2.6.0 | **Advanced Translation Error Check:** Integrated **Text Similarity Ratio (>=80%)** and **`langdetect` Language Detection** for English and other Latin alphabet source languages. Compares original files with translations to identify and report untranslated chapters. |
-| 2.5.0 | **Localization work started:** English and Turkish language options added. Currently incomplete — some areas may still be missing translations. When the language option is changed, the selected language is treated as the target translation language. |
-| 2.4.0 | **Count Tokens** button switched to local (offline) counting without requiring an API. **Theme files** are now automatically generated during build (`dark.qss`, `light.qss`, etc.). **MCP Dialog** improved: when Gemini is selected, model list is shown and URL field is hidden; added "Import API from API Editor" button. **File List** sorting fixed: merged (cmplt) files are now displayed at the top of the list. Added chapter range selection dialog to **ML Terminology** extraction, and the last processed session is saved and shown. |
-| 2.3.0 | New UI and various improvements for a more stable and faster experience. Added theme customization panel. |
-| 2.1.0 | **SRP** restructuring. **Paragraph-Based Translation** made default (cache-independent). **Bulk Translation (Batch Mode)** added: packages multiple chapters into a single API request to translate more chapters under the same RPD limit. Added **Asynchronous Translation** allowing parallel API requests for faster translation. |
-| 2.0.0 | Major update! MCP Architecture, Prompt Generator, Translation Cache, Terminology Memory, new GenAI SDK, CJK Translation Quality Check, and advanced Text Editor added. |
-| 1.9.9 | Logging system added via `logger.py`. Fixed UI freezing issue after token counting. Fixed token counter reset (data loss) issue on partial counting. |
-| 1.9.8 | General bug fixes (retry_count, statusLabel wordwrap, cx_Freeze base). |
-| 1.9.7 | Added Bulk Chapter Split (`split_worker.py`) feature. |
-| 1.9.6 | Added JS Save menu to save scraper scripts locally. |
-| 1.9.5 | Added saving selected files as EPUB. |
-| 1.9.4 | Added chapter translation limits (`file_limit`). |
-| 1.9.3 | Added chapter title check. |
+| Version | Highlights & Changes |
+|---------|----------------------|
+| 3.1.0 | **New Project Architecture & Backwards Compatibility:** Projects created under `Project/<ProjectName>/` with standardized folders (`completed`, `config`, `download`, `translate`); legacy projects supported seamlessly (`path_resolver`). **In-App Prompt Editing:** Customize system prompts for Prompt Generator and ML Extractor in App Settings. **Dynamic Separators:** Configurable Split & Export separators. **Module Cleanup:** Removed legacy Selenium/Scraper code for a lighter UI. **Full i18n:** Terminology page and new UI elements fully localized (`tr()`). |
+| 3.0.0 | **Redesigned Dark UI:** Dashboard, Project details panel, and embedded Terminology/Text Editor pages. **In-Text Terminology Injection:** Injected terms prior to API calls, saving up to 80% tokens. **New Translation Providers:** DeepL, Yandex, Google Translate (SOCKS/HTTP proxy support). Unstable translation cache removed. |
+| 2.6.0 | **Translation Error Checking:** Text similarity (%80+) and `langdetect` integration for Latin/English source texts to catch untranslated files. |
+| 2.5.0 | **Localization Support:** Initial i18n infrastructure for English and Turkish languages. |
+| 2.4.0 | Offline Token Counting, Automatic Theme File Generation, MCP Dialog Enhancements, ML Terminology Chapter Range Selection. |
+| 2.3.0 | New UI Redesign & Theme Manager Panel. |
+| 2.1.0 | Paragraph-Based Translation, Batch Mode, and Async Parallel Workers. |
+| 2.0.0 | MCP Architecture, Prompt Generator, Translation Cache, Terminology Memory, New GenAI SDK, CJK Quality Checker. |
+| 1.9.9 | Automated Logging with `logger.py`, performance and token calculation bugfixes. |

@@ -141,18 +141,18 @@ def _build_project_header_bar(win) -> QFrame:
     lay.addWidget(_vline())
 
     # İşlem Butonları
-    save_btn = QPushButton("💾  Kaydet (Ctrl+S)")
+    save_btn = QPushButton(tr("text_editor_page_extra.save_btn", "💾  Kaydet (Ctrl+S)"))
     save_btn.setObjectName("primaryBtn")
     save_btn.setStyleSheet(f"background-color: {ACCENT_GREEN}; color: white; font-weight: bold;")
     save_btn.clicked.connect(lambda: save_current_editor_file(win))
 
-    retranslate_btn = QPushButton("🔄  Tekrar Çevir")
+    retranslate_btn = QPushButton(tr("text_editor_page_extra.retranslate_btn", "🔄  Tekrar Çevir"))
     retranslate_btn.setObjectName("smallBtn")
     retranslate_btn.setStyleSheet(f"background-color: {ACCENT_BLUE}; color: white;")
     retranslate_btn.clicked.connect(lambda: _retranslate_current_chapter(win))
     win.editor_retranslate_btn = retranslate_btn
 
-    close_btn = QPushButton("✕  Kapat (ESC)")
+    close_btn = QPushButton(tr("text_editor_page_extra.close_btn", "✕  Kapat (ESC)"))
     close_btn.setObjectName("smallBtn")
     close_btn.setToolTip(tr("text_editor_page_extra.tooltip_close", "Dashboard sayfasına dön (ESC)"))
     close_btn.clicked.connect(lambda: _close_editor_view(win))
@@ -295,8 +295,8 @@ def _build_ai_tools_tab(win) -> QWidget:
     lay.setContentsMargins(4, 8, 4, 4)
     lay.setSpacing(10)
 
-    lay.addWidget(_section_title("Hızlı İşlemler"))
-    retrans_btn = QPushButton("🔄  Bölümü Tekrar Çevir")
+    lay.addWidget(_section_title(tr("text_editor_page_extra.label_quick_actions", "Hızlı İşlemler")))
+    retrans_btn = QPushButton(tr("text_editor_page_extra.label_retranslate_chapter", "🔄  Bölümü Tekrar Çevir"))
     retrans_btn.setObjectName("smallBtnFull")
     retrans_btn.clicked.connect(lambda: _retranslate_current_chapter(win))
     lay.addWidget(retrans_btn)
@@ -315,7 +315,7 @@ def _terminology_hints_card(win) -> QFrame:
     lay.setSpacing(6)
 
     header = QHBoxLayout()
-    header.addWidget(_section_title("Bu Bölümdeki Terimler"))
+    header.addWidget(_section_title(tr("text_editor_page_extra.this_chapter_terms", "Bu Bölümdeki Terimler")))
     header.addStretch()
     lay.addLayout(header)
 
