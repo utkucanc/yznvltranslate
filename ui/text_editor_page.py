@@ -2,7 +2,7 @@
 text_editor_page.py — Text Editor sayfası (QStackedWidget'a eklenen gömülü sayfa).
 
 Görsel layout ve çift panelli tasarım korunarak tam iş mantığı eklenmiştir:
-- Projenin dwnld/ ve trslt/ klasörlerinden canlı bölüm (chapter) listesi yükleme
+- Projenin dwnld/ ve trslt/ klasörlerinden canlı bölüm (chapter) listesi yükleme *path_resolver ile değişti.
 - Orijinal metin (dwnld) ile çevrilmiş metin (trslt, translated_... desteğiyle) doğru eşleştirme
 - Çeviri metninde yapılan değişiklikleri diskteki dosyaya kaydetme (Save)
 - ESC kısayolu ile kolayca Dashboard sayfasına dönme
@@ -30,6 +30,7 @@ from ui.dark_theme import (
 from core.localization import tr
 from terminology.terminology_manager import TerminologyManager
 from ui.text_editor_dialog import RetranslateWorker
+from core.path_resolver import get_subfolder_path
 
 
 def _badge(text: str, color: str) -> QLabel:
@@ -220,7 +221,7 @@ def _build_editor_center_panel(win) -> QFrame:
     panels.setSpacing(10)
 
     # Orijinal Panel
-    panels.addWidget(_build_text_panel(win, "Orijinal Metin (dwnld)", "Kaynak", is_source=True), 1)
+    panels.addWidget(_build_text_panel(win, "Orijinal Metin (completed)", "Kaynak", is_source=True), 1)
 
     swap = QLabel("↔")
     swap.setStyleSheet(f"color:{TEXT_FAINT}; font-size:16px;")
@@ -228,7 +229,7 @@ def _build_editor_center_panel(win) -> QFrame:
     panels.addWidget(swap)
 
     # Çeviri Paneli
-    panels.addWidget(_build_text_panel(win, "Çevrilen Metin (trslt)", "Hedef", is_source=False), 1)
+    panels.addWidget(_build_text_panel(win, "Çevrilen Metin (translate)", "Hedef", is_source=False), 1)
     lay.addLayout(panels, 1)
 
     return frame
@@ -346,8 +347,8 @@ def refresh_text_editor_page(win, target_file_path: str = None):
             win.editor_chapter_stats_lbl.setText("Proje seçilmedi")
         return
 
-    dwnld_dir = os.path.join(project_path, "dwnld")
-    trslt_dir = os.path.join(project_path, "trslt")
+    dwnld_dir = get_subfolder_path(project_path, "download")
+    trslt_dir = get_subfolder_path(project_path, "translate")
 
     files = []
     if os.path.exists(dwnld_dir):

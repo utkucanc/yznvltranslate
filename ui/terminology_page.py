@@ -431,6 +431,9 @@ def refresh_terminology_page(win):
                 win.term_last_end_lbl.setText(str(end))
             except Exception:
                 pass
+        else:
+            win.term_last_start_lbl.setText("0")
+            win.term_last_end_lbl.setText("-")
 
     _populate_table(win, terms)
 

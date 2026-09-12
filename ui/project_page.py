@@ -22,10 +22,13 @@ from ui.dark_theme import (
     ACCENT_RED, ACCENT_CYAN
 )
 from core.localization import tr
+from core.path_resolver import get_subfolder_path, get_project_dir
 
 # ------------------------------------------------------------------
 # Yardımcılar
 # ------------------------------------------------------------------
+def __init__(self):
+    self._basedir = os.getcwd()
 
 def _badge(text: str, color: str) -> QLabel:
     lbl = QLabel(text)
@@ -252,7 +255,8 @@ def _populate_project_details(win, frame: QFrame, project_name: str = None):
     outer.addWidget(sep)
 
     # Proje Boyutu Satırı
-    p_path = os.path.join(os.getcwd(), project_name)
+    base = os.getcwd()
+    p_path = get_project_dir(base,project_name)
     p_size = _format_size(_get_folder_size(p_path)) if os.path.exists(p_path) else "—"
     size_row = QHBoxLayout()
     kl_sz = QLabel(tr("project_page_extra.project_size", "Proje Boyutu"))
@@ -387,8 +391,8 @@ def _count_projects():
             if os.path.isdir(os.path.join(base, name)) and os.path.exists(cfg):
                 total += 1
                 # Tamamlanma kontrolü
-                trslt = os.path.join(base, name, "trslt")
-                dwnld = os.path.join(base, name, "dwnld")
+                trslt = get_subfolder_path(name, "translate")
+                dwnld = get_subfolder_path(name, "download")
                 t = len([f for f in os.listdir(trslt) if f.endswith(".txt")]) if os.path.exists(trslt) else 0
                 d = len([f for f in os.listdir(dwnld) if f.endswith(".txt")]) if os.path.exists(dwnld) else 0
                 if d > 0 and t >= d:
@@ -405,7 +409,7 @@ def _read_project_meta(project_name: str) -> dict:
     result = {}
     try:
         base = os.getcwd()
-        project_path = os.path.join(base, project_name)
+        project_path = get_project_dir(base,project_name)
         result["_path"] = project_path
         cfg_path = os.path.join(project_path, "config", "config.ini")
         if not os.path.exists(cfg_path):
@@ -439,9 +443,9 @@ def _read_global_model() -> str:
 def _count_project_files(project_name: str):
     """(total_dwnld, done_trslt) dosya sayılarını döndürür."""
     try:
-        base = os.path.join(os.getcwd(), project_name)
-        dwnld = os.path.join(base, "dwnld")
-        trslt = os.path.join(base, "trslt")
+        
+        dwnld = get_subfolder_path(project_name, "download")
+        trslt = get_subfolder_path(project_name, "translate")
         total = len([f for f in os.listdir(dwnld) if f.endswith(".txt")]) if os.path.exists(dwnld) else 0
         done  = len([f for f in os.listdir(trslt) if f.endswith(".txt")]) if os.path.exists(trslt) else 0
         return total, done
@@ -454,7 +458,7 @@ def _get_recent_files(project_name: str, n: int = 4):
     import datetime
     result = []
     try:
-        trslt = os.path.join(os.getcwd(), project_name, "trslt")
+        trslt = get_subfolder_path(project_name, "translate")
         if not os.path.exists(trslt):
             return result
         files = [(f, os.path.getmtime(os.path.join(trslt, f)))
@@ -508,7 +512,8 @@ def update_project_list_widgets(win):
         if not item:
             continue
         project_name = item.text()
-        project_path = os.path.join(os.getcwd(), project_name)
+        base = os.getcwd()
+        project_path = get_project_dir(base,project_name)
         size_bytes = _get_folder_size(project_path)
         size_str = _format_size(size_bytes)
 
@@ -612,7 +617,8 @@ def _show_project_context_menu(win, pos):
         return
     win.project_list.setCurrentItem(item)
     project_name = item.text()
-    project_path = os.path.join(os.getcwd(), project_name)
+    base = os.getcwd()
+    project_path = get_project_dir(base,project_name)
 
     from PyQt6.QtWidgets import QMenu
     from PyQt6.QtGui import QAction

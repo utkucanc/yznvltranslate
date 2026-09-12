@@ -73,6 +73,6 @@ def dosya_sil(dosya_list):
     app_logger.info("Silme Tamamlandı")
 
 if __name__ == "__main__":
-    hedef_klasor = "./trslt"
-    kaynak_klasor = "./dwnld" if os.path.exists("./dwnld") else None
+    hedef_klasor = "./translate" if os.path.exists("./translate") else "./trslt"
+    kaynak_klasor = "./download" if os.path.exists("./download") else "./dwnld"
     dosya_sil(klasoru_tara(hedef_klasor, kaynak_klasor, source_lang="zh"))

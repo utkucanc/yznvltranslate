@@ -29,6 +29,7 @@ from ui.dark_theme import (
     ACCENT_RED, ACCENT_CYAN
 )
 from core.localization import tr
+from core.path_resolver import get_subfolder_path
 
 
 # ------------------------------------------------------------------
@@ -608,8 +609,8 @@ def update_project_files_footer(win):
         return
     try:
         if win.current_project_path:
-            dwnld = os.path.join(win.current_project_path, "dwnld")
-            trslt = os.path.join(win.current_project_path, "trslt")
+            dwnld = get_subfolder_path(win.current_project_path, 'download')
+            trslt = get_subfolder_path(win.current_project_path, 'translate')
             total = len([f for f in os.listdir(dwnld) if f.endswith(".txt")]) if os.path.exists(dwnld) else 0
             done  = len([f for f in os.listdir(trslt) if f.endswith(".txt")]) if os.path.exists(trslt) else 0
             project_name = win.project_list.currentItem().text() if win.project_list.currentItem() else "?"

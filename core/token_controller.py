@@ -16,6 +16,7 @@ from PyQt6.QtWidgets import QMessageBox, QTableWidgetItem
 
 from core.workers.token_counter import save_token_data
 from logger import app_logger
+from core.path_resolver import get_subfolder_path
 
 
 class TokenController:
@@ -70,8 +71,8 @@ class TokenController:
         self.win.total_original_tokens_label.setVisible(True)
         self.win.total_translated_tokens_label.setVisible(True)
 
-        download_folder = os.path.join(self.win.current_project_path, 'dwnld')
-        translated_folder = os.path.join(self.win.current_project_path, 'trslt')
+        download_folder = get_subfolder_path(self.win.current_project_path, 'download')
+        translated_folder = get_subfolder_path(self.win.current_project_path, 'translate')
 
         from core.workers.local_token_count_worker import LocalTokenCountWorker
         self.worker = LocalTokenCountWorker(

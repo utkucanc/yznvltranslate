@@ -16,6 +16,7 @@ from PyQt6.QtWidgets import QMenu, QMessageBox, QTableWidget
 from ui.text_editor_dialog import TextEditorDialog
 from ui.file_preview_dialog import FilePreviewDialog
 from core.localization import tr
+from core.path_resolver import get_subfolder_path
 
 
 class FileTableInteractions:
@@ -61,13 +62,13 @@ class FileTableInteractions:
         if file_name in ("Yok", "Orijinali Yok", "N/A", tr("file_table.none", "Yok"), tr("file_table.status_no_original", "Orijinali Yok")):
             return
         if column == 1:
-            file_path = os.path.join(self.win.current_project_path, 'dwnld', file_name)
+            file_path = os.path.join(get_subfolder_path(self.win.current_project_path, 'download'), file_name)
         else:
             status = self.win.file_table.item(row, 5).text() if self.win.file_table.item(row, 5) else ""
             if "Birleştirildi" in status or tr("file_table.status_merged", "Birleştirildi") in status:
-                file_path = os.path.join(self.win.current_project_path, 'cmplt', file_name)
+                file_path = os.path.join(get_subfolder_path(self.win.current_project_path, 'completed'), file_name)
             else:
-                file_path = os.path.join(self.win.current_project_path, 'trslt', file_name)
+                file_path = os.path.join(get_subfolder_path(self.win.current_project_path, 'translate'), file_name)
         if os.path.exists(file_path):
             if hasattr(self.win, 'goto_text_editor_page'):
                 self.win.goto_text_editor_page(file_path=file_path)
@@ -105,11 +106,11 @@ class FileTableInteractions:
         original_item = self.win.file_table.item(row, 1)
         file_to_preview = None
         if translated_item and translated_item.text() not in ("", "Yok", "Orijinali Yok", tr("file_table.none", "Yok"), tr("file_table.status_no_original", "Orijinali Yok")):
-            candidate = os.path.join(project_path, "trslt", translated_item.text())
+            candidate = os.path.join(get_subfolder_path(project_path, 'translate'), translated_item.text())
             if os.path.exists(candidate):
                 file_to_preview = candidate
         if not file_to_preview and original_item and original_item.text() not in ("", "Orijinali Yok", tr("file_table.status_no_original", "Orijinali Yok")):
-            candidate = os.path.join(project_path, "dwnld", original_item.text())
+            candidate = os.path.join(get_subfolder_path(project_path, 'downloaded'), original_item.text())
             if os.path.exists(candidate):
                 file_to_preview = candidate
         if not file_to_preview:
@@ -162,26 +163,26 @@ class FileTableInteractions:
         
         if col == 1 or col == 6:
             if orig and orig != "Orijinali Yok" and orig != "N/A" and orig != tr("file_table.status_no_original", "Orijinali Yok"):
-                return os.path.join(pp, 'dwnld', orig)
+                return os.path.join(get_subfolder_path(pp,"download"),orig)
         elif col == 2 or col == 7:
             if (status == "Birleştirildi" or status == status_merged) and trans and trans != "Yok" and trans != tr("file_table.none", "Yok"):
-                return os.path.join(pp, 'cmplt', trans)
+                return os.path.join(get_subfolder_path(pp,"completed"),trans)
             elif trans and trans != "Yok" and trans != tr("file_table.none", "Yok"):
-                return os.path.join(pp, 'trslt', trans)
+                return os.path.join(get_subfolder_path(pp,"translate"),trans)
         else:
             if (status == "Birleştirildi" or status == status_merged) and trans and trans != "Yok" and trans != tr("file_table.none", "Yok"):
-                return os.path.join(pp, 'cmplt', trans)
+                return os.path.join(get_subfolder_path(pp,"completed"),trans)
             elif trans and trans != "Yok" and trans != tr("file_table.none", "Yok") and (
                 "Çevrildi" in status or tr("file_table.status_translated", "Çevrildi") in status or
                 status.startswith("Hata:") or status.startswith(tr("file_table.status_error_prefix", "Hata:")) or
                 "Temizlenmedi" in status or "Temizlendi" in status
             ):
-                return os.path.join(pp, 'trslt', trans)
+                return os.path.join(get_subfolder_path(pp,"translate"),trans)
             elif orig and orig != "Orijinali Yok" and orig != tr("file_table.status_no_original", "Orijinali Yok") and (
                 "İndirildi" in status or status == status_downloaded or
                 status.startswith("Hata:") or status.startswith(tr("file_table.status_error_prefix", "Hata:"))
             ):
-                return os.path.join(pp, 'dwnld', orig)
+                return os.path.join(get_subfolder_path(pp,"download"),orig)
         return None
 
     def _resolve_folder_path(self, col, orig, trans, status):
@@ -191,25 +192,25 @@ class FileTableInteractions:
         
         if col == 1 or col == 6:
             if orig and orig != "Orijinali Yok" and orig != "N/A" and orig != tr("file_table.status_no_original", "Orijinali Yok"):
-                return os.path.join(pp, 'dwnld')
+                return get_subfolder_path(pp, 'downloaded')
         elif col == 2 or col == 7:
             if (status == "Birleştirildi" or status == status_merged) and trans and trans != "Yok" and trans != tr("file_table.none", "Yok"):
-                return os.path.join(pp, 'cmplt')
+                return get_subfolder_path(pp, 'completed')
             elif trans and trans != "Yok" and trans != tr("file_table.none", "Yok"):
-                return os.path.join(pp, 'trslt')
+                return get_subfolder_path(pp, 'translate')
         else:
             if (status == "Birleştirildi" or status == status_merged) and trans and trans != "Yok" and trans != tr("file_table.none", "Yok"):
-                return os.path.join(pp, 'cmplt')
+                return get_subfolder_path(pp, 'completed')
             elif trans and trans != "Yok" and trans != tr("file_table.none", "Yok") and (
                 "Çevrildi" in status or tr("file_table.status_translated", "Çevrildi") in status or
                 status.startswith("Hata:") or status.startswith(tr("file_table.status_error_prefix", "Hata:"))
             ):
-                return os.path.join(pp, 'trslt')
+                return get_subfolder_path(pp, 'translate')
             elif orig and orig != "Orijinali Yok" and orig != tr("file_table.status_no_original", "Orijinali Yok") and (
                 "İndirildi" in status or status == status_downloaded or
                 status.startswith("Hata:") or status.startswith(tr("file_table.status_error_prefix", "Hata:"))
             ):
-                return os.path.join(pp, 'dwnld')
+                return get_subfolder_path(pp, 'downloaded')
         return None
 
     def _open_path(self, path):

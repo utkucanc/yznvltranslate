@@ -26,6 +26,9 @@ class TranslationController:
         self.thread = None
         self.worker = None
         self._has_error = False
+        self._refresh_timer = QTimer()
+        self._refresh_timer.setSingleShot(True)
+        self._refresh_timer.timeout.connect(self.win.update_file_list_from_selection)
 
     # --- Güvenli QThread Geçerlilik Kontrolü -------------------------------
     def _is_thread_alive(self):
@@ -202,6 +205,9 @@ class TranslationController:
         self.win.progressBar.setValue(current)
         self.win.progressBar.setMaximum(total)
         self.win.statusLabel.setText(f"Durum: Çevriliyor... Dosya {current}/{total}")
+        if not self._refresh_timer.isActive():
+            self._refresh_timer.start(1000)
+        
 
     def _on_request_made(self):
         self.win.request_counter_manager.increment(self.win._current_model, self.win._current_api_name)

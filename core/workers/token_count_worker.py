@@ -1,3 +1,4 @@
+from core.path_resolver import get_subfolder_path
 import os
 import copy
 from PyQt6.QtCore import QObject, pyqtSignal
@@ -28,9 +29,9 @@ class TokenCountWorker(QObject):
 
     def run(self):
         app_logger.info(f"TokenCountWorker başlatıldı. Proje: {self.project_path}")
-        original_folder = os.path.join(self.project_path, 'dwnld')
-        translated_folder = os.path.join(self.project_path, 'trslt')
-        completed_folder = os.path.join(self.project_path, 'cmplt')
+        original_folder = get_subfolder_path(self.project_path, 'download')
+        translated_folder = get_subfolder_path(self.project_path, 'translate')
+        completed_folder = get_subfolder_path(self.project_path, 'completed')
 
         total_original_tokens_sum = 0
         total_translated_tokens_sum = 0

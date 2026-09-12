@@ -521,23 +521,35 @@ class NewProjectDialog(QDialog):
             self.refresh_combos()
 
     def _populate_models(self):
-        """Mevcut model listesini doldurur."""
-        models = [
-            "gemini-2.5-flash", "gemini-2.5-pro",
-            "gemini-2.0-flash", "gemini-1.5-pro", "gemini-1.5-flash",
-        ]
-        # Mevcut modeli en başa al
+        models = []
         try:
-            cfg_path = os.path.join(os.getcwd(), "AppConfigs", "GVersion.ini")
-            cfg = configparser.ConfigParser()
-            if os.path.exists(cfg_path):
-                cfg.read(cfg_path)
-                current = cfg.get("Version", "model_name", fallback="gemini-2.5-flash")
-                if current in models:
-                    models.remove(current)
-                models.insert(0, current)
-        except Exception:
-            pass
+            from google import genai
+            keys_folder = get_config_path("APIKeys/MCP")
+            if os.path.exists(keys_folder):
+                api_keys = [f for f in os.listdir(keys_folder) if f.endswith('.txt')]
+                if api_keys:
+                    key_path = os.path.join(keys_folder, api_keys[0])
+                    with open(key_path, 'r', encoding='utf-8') as f:
+                        api_key = f.read().strip()
+                    if api_key:
+                        client = genai.Client(api_key=api_key)
+                        for m in client.models.list():
+                            if 'generateContent' in m.supported_actions:
+                                name = m.name.replace("models/", "")
+                                models.append(name)
+        except Exception as e:
+            app_logger.debug(f"Gemini model listesi alınamadı (MCP): {e}")
+
+        if not models:
+            models = [
+                "gemini-2.5-flash",
+                "gemini-2.5-pro",
+                "gemini-2.0-flash",
+                "gemini-2.0-flash-lite",
+                "gemini-1.5-flash",
+                "gemini-1.5-pro",
+            ]
+        self.model_combo.clear()
         self.model_combo.addItems(models)
 
     # ------------------------------------------------------------------

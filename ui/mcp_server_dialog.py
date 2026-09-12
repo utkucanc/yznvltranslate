@@ -183,7 +183,7 @@ class MCPServerDialog(QDialog):
         models = []
         try:
             from google import genai
-            keys_folder = get_config_path("APIKeys")
+            keys_folder = get_config_path("APIKeys/MCP")
             if os.path.exists(keys_folder):
                 api_keys = [f for f in os.listdir(keys_folder) if f.endswith('.txt')]
                 if api_keys:
