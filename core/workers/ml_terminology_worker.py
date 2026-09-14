@@ -64,7 +64,11 @@ class MLTerminologyWorker(QThread):
                 app_logger.warning(f"Terminoloji bölüm bilgisi config.ini'ye yazılamadı: {e}")
 
     def _get_chunk_ranges(self) -> list[tuple[int, int]]:
-        dwnld_dir = os.path.join(self.project_path, "dwnld")
+        try:
+            from core.path_resolver import get_subfolder_path
+            dwnld_dir = get_subfolder_path(self.project_path, "download")
+        except Exception:
+            dwnld_dir = os.path.join(self.project_path, "dwnld")
         if not os.path.exists(dwnld_dir):
             return []
         all_files = sorted([f for f in os.listdir(dwnld_dir) if f.endswith(".txt")])

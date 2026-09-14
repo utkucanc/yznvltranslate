@@ -56,6 +56,7 @@ class MainWindow(QMainWindow):
         self.setWindowTitle(tr("main_window.title", "Novel Çeviri Aracı V3.1.0"))
         self.setWindowIcon(QIcon("logo256.ico"))
         self.setGeometry(100, 100, 1440, 860)
+        self.showMaximized()
 
         # İstatistikler (status bar için)
         self.request_counter_manager = RequestCounterManager()

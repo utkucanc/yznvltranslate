@@ -11,6 +11,7 @@ Görsel layout ve çift panelli tasarım korunarak tam iş mantığı eklenmişt
 - Terminology Hints bölümünde o metinde geçen terimleri TerminologyManager'dan çekip listeleme
 """
 
+from logger import app_logger
 import os
 import configparser
 from PyQt6.QtWidgets import (
@@ -551,7 +552,7 @@ def _retranslate_current_chapter(win):
     if file_name.startswith("translated_"):
         file_name = file_name.replace("translated_", "", 1)
 
-    dwnld_path = os.path.join(project_path, "dwnld", file_name)
+    dwnld_path = os.path.join(get_subfolder_path(project_path, "download"), file_name)
     if not os.path.exists(dwnld_path):
         QMessageBox.warning(win, "Hata", f"Orijinal kaynak dosya bulunamadı:\n{dwnld_path}")
         return
@@ -560,7 +561,7 @@ def _retranslate_current_chapter(win):
     if not os.path.exists(config_path):
         QMessageBox.warning(win, "Hata", "Proje config.ini dosyası bulunamadı.")
         return
-
+    app_logger.info(f"Çeviri Başlıyor: {file_name}")
     try:
         cfg = configparser.ConfigParser()
         cfg.read(config_path, encoding="utf-8")
@@ -583,11 +584,13 @@ def _retranslate_current_chapter(win):
             win.editor_target_text.setPlainText(translated_text)
             save_current_editor_file(win)
             QMessageBox.information(win, "Çeviri Tamamlandı", "Bölüm tekrar çevrildi ve kaydedildi.")
+            app_logger.info(f"Çeviri Tamamlandı: {file_name}")
             if hasattr(win, 'editor_retranslate_btn'):
                 win.editor_retranslate_btn.setEnabled(True)
                 win.editor_retranslate_btn.setText("🔄  Tekrar Çevir")
 
         def _error(err_msg):
+            app_logger.info(f"Çeviri Hatası: {err_msg}")
             QMessageBox.critical(win, "Çeviri Hatası", f"Tekrar çeviri başarısız:\n{err_msg}")
             if hasattr(win, 'editor_retranslate_btn'):
                 win.editor_retranslate_btn.setEnabled(True)
@@ -603,6 +606,7 @@ def _retranslate_current_chapter(win):
 
     except Exception as e:
         QMessageBox.critical(win, "Hata", f"İşlem başlatılamadı:\n{e}")
+        app_logger.info(f"Çeviri Hatası: {e}")
 
 
 def _close_editor_view(win):

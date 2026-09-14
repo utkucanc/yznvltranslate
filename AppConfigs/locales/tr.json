@@ -170,6 +170,9 @@
     "language": "🌐 Dil (Language):",
     "lang_tr": "Türkçe (Turkish)",
     "lang_en": "İngilizce (English)",
+    "langdetect_source_lang": "🔍 Langdetect Kaynak Dil:",
+    "langdetect_target_lang": "🎯 Langdetect Hedef Dil:",
+    "min_line_count": "📏 Min. Satır Sayısı (Hata Kontrolü):",
     "token": "token"
   },
   "new_project": {

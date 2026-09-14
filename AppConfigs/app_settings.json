@@ -1,7 +1,7 @@
 {
   "theme": "dark",
   "ml_max_tokens": 50000,
-  "log_level": "DEBUG",
+  "log_level": "INFO",
   "custom_js_sources": [],
   "notifications_enabled": true,
   "promt_generator_max_tokens": 20000,
@@ -36,5 +36,8 @@
   "split_separator": "## Bölüm - {num} ##",
   "export_separator": "\n\n---test---\n\n",
   "prompt_gen_prompt_override": "",
-  "ml_extractor_prompt_override": ""
+  "ml_extractor_prompt_override": "",
+  "langdetect_source_lang": "en",
+  "langdetect_target_lang": "tr",
+  "min_line_count": 15
 }

@@ -1,7 +1,38 @@
 import logging
 import os
 import sys
+import json
 from logging.handlers import RotatingFileHandler
+
+
+def set_app_log_level(level_input):
+    """
+    Uygulamanın log seviyesini dinamik olarak ayarlar.
+    Hiyerarşi: DEBUG (10) < INFO (20) < WARNING (30) < ERROR (40)
+    Seçilen seviyenin altındaki log mesajları süzülür (gösterilmez).
+    """
+    if isinstance(level_input, str):
+        level = getattr(logging, str(level_input).upper(), logging.INFO)
+    else:
+        level = level_input
+
+    logger = logging.getLogger("AppLogger")
+    logger.setLevel(level)
+    for h in logger.handlers:
+        h.setLevel(level)
+
+
+def _load_initial_log_level(log_folder="AppConfigs"):
+    settings_file = os.path.join(log_folder, "app_settings.json")
+    if os.path.exists(settings_file):
+        try:
+            with open(settings_file, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                return data.get("log_level", "INFO")
+        except Exception:
+            pass
+    return "INFO"
+
 
 def setup_logger(log_folder="AppConfigs", log_file="app.log"):
     """
@@ -24,7 +55,10 @@ def setup_logger(log_folder="AppConfigs", log_file="app.log"):
     
     # Hali hazırda handler varsa tekrar ekleme (çoklanmayı önlemek için)
     if not logger.handlers:
-        logger.setLevel(logging.DEBUG)  # En düşük seviyede dinle
+        initial_log_level_str = _load_initial_log_level(log_folder)
+        initial_level = getattr(logging, initial_log_level_str.upper(), logging.INFO)
+
+        logger.setLevel(initial_level)
 
         # Dosyaya yazılacak format (detaylı)
         file_formatter = logging.Formatter('%(asctime)s - %(levelname)s - [%(filename)s:%(lineno)d] - %(message)s')
@@ -40,12 +74,12 @@ def setup_logger(log_folder="AppConfigs", log_file="app.log"):
             maxBytes=5 * 1024 * 1024,  # 5 MB
             backupCount=3
         )
-        file_handler.setLevel(logging.DEBUG)
+        file_handler.setLevel(initial_level)
         file_handler.setFormatter(file_formatter)
 
         # Konsol Handler (Cmd/Terminal ekranına yazar)
         console_handler = logging.StreamHandler()
-        console_handler.setLevel(logging.INFO)
+        console_handler.setLevel(initial_level)
         console_handler.setFormatter(console_formatter)
 
         logger.addHandler(file_handler)

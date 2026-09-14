@@ -328,15 +328,26 @@ class ErrorCheckController:
         self.win.progressBar.setMaximum(0)
         self.win.progressBar.setVisible(True)
 
-        source_lang = "en"
+        # app_settings.json'dan langdetect dil ayarlarını ve min satır eşiğini oku
+        source_lang = "ko"
+        target_lang = "tr"
+        min_line_count = 15
         try:
-            if hasattr(self.win, 'project_config') and self.win.project_config:
-                source_lang = self.win.project_config.get("source_lang", "en")
+            from ui.app_settings_dialog import load_app_settings
+            _settings = load_app_settings()
+            source_lang = _settings.get("langdetect_source_lang", "ko")
+            target_lang = _settings.get("langdetect_target_lang", "tr")
+            min_line_count = int(_settings.get("min_line_count", 15))
         except Exception:
             pass
 
         self.thread = QThread()
-        self.worker = TranslationErrorCheckWorker(trslt_folder, report_folder, source_lang=source_lang)
+        self.worker = TranslationErrorCheckWorker(
+            trslt_folder, report_folder,
+            source_lang=source_lang,
+            target_lang=target_lang,
+            min_line_count=min_line_count
+        )
         self.worker.moveToThread(self.thread)
         self.thread.started.connect(self.worker.run)
         self.worker.finished.connect(self._on_finished)
@@ -359,6 +370,7 @@ class ErrorCheckController:
 
         high = results.get("high", [])
         low = results.get("low", [])
+        low_line = results.get("low_line", [])
         report_path = results.get("report_path", "")
 
         if not high:
@@ -366,6 +378,7 @@ class ErrorCheckController:
                 self.win, "Hata Kontrolü Tamamlandı",
                 f"Çevrilmiş dosyaların kontrolü tamamlandı. Hatalı veya çevrilmemiş dosya bulunamadı.\n"
                 f"Düşük riskli / şüpheli dosya sayısı: {len(low)}\n"
+                f"Düşük satır sayılı dosya sayısı: {len(low_line)}\n"
                 f"Raporlar: {report_path}"
             )
         else:
@@ -391,6 +404,34 @@ class ErrorCheckController:
                     except Exception:
                         pass
                 QMessageBox.information(self.win, "Silindi", f"{deleted_count} dosya silindi.")
+                self.win.sync_database_if_exists()
+                self.win.update_file_list_from_selection()
+
+        # Düşük satır sayılı dosyalar için ayrı kontrol
+        if low_line:
+            low_line_str = "\n".join([
+                f"  - {f['filename']} ({f.get('reason', '')})"
+                for f in low_line[:20]
+            ])
+            extra = f"\n  ... ve {len(low_line) - 20} dosya daha" if len(low_line) > 20 else ""
+            reply_ll = QMessageBox.question(
+                self.win, "📏 Düşük Satır Sayılı Çeviriler",
+                f"{len(low_line)} dosyanın satır sayısı eşiğin altında:\n\n"
+                f"{low_line_str}{extra}\n\n"
+                f"Bu dosyaları silmek istiyor musunuz?\n"
+                f"(Raporlar {report_path} içinde kaydedildi)",
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                QMessageBox.StandardButton.No
+            )
+            if reply_ll == QMessageBox.StandardButton.Yes:
+                deleted_ll = 0
+                for f_info in low_line:
+                    try:
+                        os.remove(f_info['filepath'])
+                        deleted_ll += 1
+                    except Exception:
+                        pass
+                QMessageBox.information(self.win, "Silindi", f"{deleted_ll} düşük satırlı dosya silindi.")
                 self.win.sync_database_if_exists()
                 self.win.update_file_list_from_selection()
 

@@ -5,7 +5,7 @@
       "id": "default_gemini",
       "name": "Standart Gemini",
       "type": "gemini",
-      "model_id": "gemini-3.6-flash",
+      "model_id": "gemini-3.5-flash-lite",
       "base_url": null,
       "use_key_rotation": true,
       "headers": {}

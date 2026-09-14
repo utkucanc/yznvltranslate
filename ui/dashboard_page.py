@@ -565,7 +565,7 @@ def _attach_log_handler(win):
 
         handler = _DashboardLogHandler(win.dashboard_log_box)
         handler.setFormatter(logging.Formatter("%(message)s"))
-        handler.setLevel(logging.DEBUG)
+        handler.setLevel(app_logger.level)
         app_logger.addHandler(handler)
         # Referansı sakla (handler çöp toplanmasın)
         win._dashboard_log_handler = handler

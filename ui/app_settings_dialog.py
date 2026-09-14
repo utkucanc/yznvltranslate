@@ -39,6 +39,11 @@ DEFAULT_SETTINGS = {
     # Prompt override (boş = varsayılan locale prompt kullanılır)
     "prompt_gen_prompt_override": "",
     "ml_extractor_prompt_override": "",
+    # Çeviri kalite kontrolü — langdetect dil ayarları
+    "langdetect_source_lang": "ko",
+    "langdetect_target_lang": "tr",
+    # Hata kontrolü — minimum satır sayısı eşiği
+    "min_line_count": 15,
 }
 
 THEMES = {
@@ -226,6 +231,43 @@ class AppSettingsDialog(QDialog):
         self.lang_combo = QComboBox()
         self._refresh_lang_combo()
         app_layout.addRow(tr("app_settings.language", "🌐 Dil (Language):"), self.lang_combo)
+
+        # langdetect Kaynak Dil (çeviri orijinali — genellikle Korece)
+        _LANG_DETECT_CODES = [
+            ("ko", "Korean (ko)"),
+            ("zh-cn", "Chinese Simplified (zh-cn)"),
+            ("zh-tw", "Chinese Traditional (zh-tw)"),
+            ("ja", "Japanese (ja)"),
+            ("en", "English (en)"),
+            ("tr", "Turkish (tr)"),
+            ("de", "German (de)"),
+            ("fr", "French (fr)"),
+            ("es", "Spanish (es)"),
+        ]
+        self.langdetect_source_combo = QComboBox()
+        for code, label in _LANG_DETECT_CODES:
+            self.langdetect_source_combo.addItem(label, code)
+        src_lang = self.settings.get("langdetect_source_lang", "ko")
+        src_codes = [self.langdetect_source_combo.itemData(i) for i in range(self.langdetect_source_combo.count())]
+        self.langdetect_source_combo.setCurrentIndex(src_codes.index(src_lang) if src_lang in src_codes else 0)
+        app_layout.addRow(tr("app_settings.langdetect_source_lang", "🔍 Langdetect Kaynak Dil:"), self.langdetect_source_combo)
+
+        # langdetect Hedef Dil (çevirinin beklenen dili)
+        self.langdetect_target_combo = QComboBox()
+        for code, label in _LANG_DETECT_CODES:
+            self.langdetect_target_combo.addItem(label, code)
+        tgt_lang = self.settings.get("langdetect_target_lang", "tr")
+        tgt_codes = [self.langdetect_target_combo.itemData(i) for i in range(self.langdetect_target_combo.count())]
+        self.langdetect_target_combo.setCurrentIndex(tgt_codes.index(tgt_lang) if tgt_lang in tgt_codes else 0)
+        app_layout.addRow(tr("app_settings.langdetect_target_lang", "🎯 Langdetect Hedef Dil:"), self.langdetect_target_combo)
+
+        # Hata Kontrolü — Minimum Satır Sayısı
+        self.min_line_count_spin = QSpinBox()
+        self.min_line_count_spin.setMinimum(1)
+        self.min_line_count_spin.setMaximum(500)
+        self.min_line_count_spin.setValue(self.settings.get("min_line_count", 15))
+        self.min_line_count_spin.setSuffix(" satır")
+        app_layout.addRow(tr("app_settings.min_line_count", "📏 Min. Satır Sayısı (Hata Kontrolü):"), self.min_line_count_spin)
 
         tabs.addTab(appearance_tab, tr("app_settings.tab_appearance", "🎨 Görünüm"))
 
@@ -484,6 +526,19 @@ class AppSettingsDialog(QDialog):
             self.prompt_gen_override_edit.setPlainText(self._get_default_prompt_gen(new_lang))
         if not self.settings.get("ml_extractor_prompt_override", "").strip():
             self.ml_extractor_override_edit.setPlainText(self._get_default_ml_extractor(new_lang))
+        # Dil değişince langdetect varsayılanlarını otomatik ayarla
+        _LANG_DEFAULTS = {
+            "tr": ("ko", "tr"),
+            "en": ("ko", "en"),
+        }
+        if new_lang in _LANG_DEFAULTS:
+            default_src, default_tgt = _LANG_DEFAULTS[new_lang]
+            src_codes = [self.langdetect_source_combo.itemData(i) for i in range(self.langdetect_source_combo.count())]
+            tgt_codes = [self.langdetect_target_combo.itemData(i) for i in range(self.langdetect_target_combo.count())]
+            if default_src in src_codes:
+                self.langdetect_source_combo.setCurrentIndex(src_codes.index(default_src))
+            if default_tgt in tgt_codes:
+                self.langdetect_target_combo.setCurrentIndex(tgt_codes.index(default_tgt))
 
     def _open_theme_manager(self):
         """Tema Yöneticisi diyalogunu açar."""
@@ -542,6 +597,9 @@ class AppSettingsDialog(QDialog):
         self.settings["ml_max_tokens"] = self.ml_token_spin.value()
         self.settings["promt_generator_max_tokens"] = self.prompt_gen_token_spin.value()
         self.settings["language"] = self.lang_combo.currentData()
+        self.settings["langdetect_source_lang"] = self.langdetect_source_combo.currentData()
+        self.settings["langdetect_target_lang"] = self.langdetect_target_combo.currentData()
+        self.settings["min_line_count"] = self.min_line_count_spin.value()
         self.settings["export_separator"] = self.export_sep_edit.toPlainText()
         self.settings["split_separator"] = self.split_sep_edit.text()
 
@@ -558,6 +616,8 @@ class AppSettingsDialog(QDialog):
             self.settings["ml_extractor_prompt_override"] = self.ml_extractor_override_edit.toPlainText()
 
         save_app_settings(self.settings)
+        from logger import set_app_log_level
+        set_app_log_level(self.settings["log_level"])
         from core.localization import reload_translations
         reload_translations()
         self.settings_changed.emit(self.settings)

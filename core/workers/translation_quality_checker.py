@@ -49,6 +49,7 @@ class TranslationQualityChecker:
     def __init__(
         self,
         source_lang: str = "kr",
+        target_lang: str = "tr",
         cjk_threshold: float = 0.50,
         similarity_threshold: float = 0.80,
         max_compare_chars: int = 5000,
@@ -56,6 +57,7 @@ class TranslationQualityChecker:
         use_langdetect: bool = True,
     ):
         self.source_lang = source_lang.lower() if source_lang else "en"
+        self.target_lang = target_lang.lower() if target_lang else "tr"
         self.cjk_threshold = cjk_threshold
         self.similarity_threshold = similarity_threshold
         self.max_compare_chars = max_compare_chars

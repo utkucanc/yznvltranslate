@@ -19,16 +19,21 @@ class TranslationErrorCheckWorker(QObject):
     Çıktı klasöründeki tüm txt dosyalarını kontrol eder.
     CJK karakter oranı, metin benzerliği (>= %80) ve langdetect dil tespiti
     kriterlerine uyan şüpheli/hatalı dosyaları raporlar.
+    Ek olarak: satır sayısı min_line_count'tan az olan dosyalar ayrıca işaretlenir.
     """
-    finished = pyqtSignal(dict)  # Sonuç: {"high": [...], "low": [...], "report_path": str}
+    finished = pyqtSignal(dict)  # Sonuç: {"high": [...], "low": [...], "low_line": [...], "report_path": str}
     error = pyqtSignal(str)
     progress = pyqtSignal(int, int)
 
-    def __init__(self, folder_path: str, report_folder: str = None, source_lang: str = "en"):
+    def __init__(self, folder_path: str, report_folder: str = None,
+                 source_lang: str = "en", target_lang: str = "tr",
+                 min_line_count: int = 15):
         super().__init__()
         self.folder_path = folder_path
         self.report_folder = report_folder or folder_path
         self.source_lang = source_lang
+        self.target_lang = target_lang
+        self.min_line_count = min_line_count
         self.is_running = True
         
         # dwnld klasörü (orijinal metinler için)
@@ -45,11 +50,12 @@ class TranslationErrorCheckWorker(QObject):
             total = len(txt_files)
 
             if total == 0:
-                self.finished.emit({"high": [], "low": [], "report_path": ""})
+                self.finished.emit({"high": [], "low": [], "low_line": [], "report_path": ""})
                 return
 
             checker = TranslationQualityChecker(
                 source_lang=self.source_lang,
+                target_lang=self.target_lang,
                 cjk_threshold=0.50,
                 similarity_threshold=0.80,
                 use_langdetect=True
@@ -57,6 +63,7 @@ class TranslationErrorCheckWorker(QObject):
 
             high_ratio_files = []  # Hatalı / Yüksek riskli
             low_ratio_files = []   # Şüpheli / Düşük riskli
+            low_line_files = []    # Düşük satır sayılı
 
             for i, filename in enumerate(txt_files):
                 if not self.is_running:
@@ -147,6 +154,16 @@ class TranslationErrorCheckWorker(QObject):
                     elif is_low_risk:
                         low_ratio_files.append(file_info)
 
+                    # Satır sayısı kontrolü (bağımsız olarak her dosya için yapılır)
+                    line_count = len([ln for ln in content.splitlines() if ln.strip()])
+                    if line_count < self.min_line_count:
+                        low_line_files.append({
+                            "filename": filename,
+                            "filepath": filepath,
+                            "line_count": line_count,
+                            "reason": f"Düşük Satır Sayısı: {line_count} satır (eşik: {self.min_line_count})",
+                        })
+
                 except Exception as e:
                     app_logger.error(f"Dosya kontrol hatası ({filename}): {e}")
 
@@ -183,11 +200,23 @@ class TranslationErrorCheckWorker(QObject):
                         f.write(f"  Asya/CJK Karakter Sayısı: {fi['total_asian_count']}\n")
                         f.write("-" * 40 + "\n")
 
+                # Düşük satır sayılı dosyalar raporu
+                low_line_report = os.path.join(self.report_folder, "hata_kontrol_dusuk_satir.txt")
+                with open(low_line_report, 'w', encoding='utf-8') as f:
+                    f.write(f"=== Düşük Satır Sayılı Dosyalar ===\n")
+                    f.write(f"Toplam: {len(low_line_files)} dosya (Eşik: {self.min_line_count} satır)\n\n")
+                    for fi in low_line_files:
+                        f.write(f"Dosya: {fi['filename']}\n")
+                        f.write(f"  Sebep: {fi['reason']}\n")
+                        f.write(f"  Satır Sayısı: {fi['line_count']}\n")
+                        f.write("-" * 40 + "\n")
+
                 report_path = self.report_folder
 
             self.finished.emit({
                 "high": high_ratio_files,
                 "low": low_ratio_files,
+                "low_line": low_line_files,
                 "report_path": report_path
             })
 

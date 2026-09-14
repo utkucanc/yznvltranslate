@@ -189,9 +189,13 @@ class MCPServerDialog(QDialog):
                 if api_keys:
                     key_path = os.path.join(keys_folder, api_keys[0])
                     with open(key_path, 'r', encoding='utf-8') as f:
-                        api_key = f.read().strip()
+                        content = f.read()
+                    # Dosyada birden fazla anahtar satır satır olabilir; ilk geçerli satırı al
+                    api_key = next((line.strip() for line in content.splitlines() if line.strip()), "")
                     if api_key:
                         client = genai.Client(api_key=api_key)
+                        print(f"Client Cevabı: {client}")
+                        print(f"Client Modelleri: {client.models.list()}")
                         for m in client.models.list():
                             if 'generateContent' in m.supported_actions:
                                 name = m.name.replace("models/", "")
@@ -201,6 +205,7 @@ class MCPServerDialog(QDialog):
 
         if not models:
             models = [
+                "Sorun Var",
                 "gemini-2.5-flash",
                 "gemini-2.5-pro",
                 "gemini-2.0-flash",
