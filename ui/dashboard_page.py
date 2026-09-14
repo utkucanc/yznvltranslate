@@ -301,7 +301,17 @@ def _build_statistics_card(win) -> QFrame:
     stats_row = QHBoxLayout()
     stats_row.setSpacing(8)
 
-    win._stat_requests_lbl = _make_stat_box(tr("dashboard.stat_total_requests", "Toplam İstek"), "0", ACCENT_BLUE)
+    initial_requests = "0"
+    if hasattr(win, "request_counter_manager"):
+        try:
+            total_req = win.request_counter_manager.get_total_today()
+            if hasattr(win.request_counter_manager, "count"):
+                total_req = max(total_req, win.request_counter_manager.count)
+            initial_requests = str(total_req)
+        except Exception:
+            initial_requests = "0"
+
+    win._stat_requests_lbl = _make_stat_box(tr("dashboard.stat_total_requests", "Toplam İstek"), initial_requests, ACCENT_BLUE)
     win._stat_tokens_lbl   = _make_stat_box(tr("dashboard.stat_total_tokens",   "Toplam Token"), "0", ACCENT_PURPLE)
     win._stat_speed_lbl    = _make_stat_box(tr("dashboard.stat_avg_speed",      "Ort. Hız"), "—", ACCENT_GREEN)
 
@@ -579,14 +589,18 @@ def update_dashboard_stats(win):
     TranslationController'daki sinyaller bu fonksiyonu çağırabilir.
     """
     try:
-        if hasattr(win, '_stat_requests_lbl'):
-            count = win.request_counter_manager.get_count(
-                win._current_model, win._current_api_name
-            )
+        if hasattr(win, '_stat_requests_lbl') and hasattr(win, 'request_counter_manager'):
+            mgr = win.request_counter_manager
+            today_total = 0
+            if hasattr(mgr, 'get_total_today'):
+                today_total = mgr.get_total_today()
+            if hasattr(mgr, 'count') and mgr.count > today_total:
+                today_total = mgr.count
+
             # value label'ı bul
             for child in win._stat_requests_lbl.findChildren(QLabel):
                 if "18px" in child.styleSheet():
-                    child.setText(str(count))
+                    child.setText(str(today_total))
                     break
         if hasattr(win, '_stat_tokens_lbl'):
             for child in win._stat_tokens_lbl.findChildren(QLabel):
@@ -599,6 +613,8 @@ def update_dashboard_stats(win):
                     spd = f"{win._translation_speed:.1f} dk/bölüm" if win._translation_speed > 0 else "—"
                     child.setText(spd)
                     break
+        if hasattr(win, '_stats_chart') and win._stats_chart:
+            win._stats_chart.refresh()
     except Exception:
         pass
 

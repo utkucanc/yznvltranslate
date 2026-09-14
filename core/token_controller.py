@@ -144,7 +144,8 @@ class TokenController:
             for row in range(self.win.file_table.rowCount()):
                 original_file_name = self.win.file_table.item(row, 1).text()
                 translated_file_name = self.win.file_table.item(row, 2).text()
-                status_text = self.win.file_table.item(row, 5).text()
+                status_item = self.win.file_table.item(row, 3)
+                status_text = status_item.text() if status_item else ""
 
                 original_token_str = "Yok"
                 translated_token_str = "Yok"

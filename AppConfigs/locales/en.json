@@ -93,7 +93,8 @@
     "msg_json_files_not_selected_title": "File Not Selected",
     "msg_json_files_not_selected_body": "Please select translated files to process.",
     "msg_json_in_progress_title": "Operation In Progress",
-    "msg_json_in_progress_body": "A JSON saving operation is already running."
+    "msg_json_in_progress_body": "A JSON saving operation is already running.",
+    "free_translators": "🌐 Ücretsiz Çeviriciler & Proxy"
   },
   "right_panel": {
     "download_method": "Download Method:",
@@ -188,7 +189,11 @@
     "prompt_gen_override_note": "Customize the system prompt that the Prompt Generator will send to the AI.\n[Warning!!]\n Do not change the content of {context}! \n If {context} is missing, an error will occur!",
     "ml_extractor_override_note": "Customize the system prompt that the ML Terminology Extractor sends to the AI.\n Do not change the content of {source_text}! \n\n [Warning!!]\nIf {source_text} is missing, an error will occur!",
     "tab_ml_extractor": "ML Terminoloji",
-    "tab_prompts": "Edit Prompt"
+    "tab_prompts": "Edit Prompt",
+    "export_separator": "🔗 Export Ayıracı:",
+    "ml_extractor_placeholder": "Prompt metnini doğrudan buradan düzenleyebilirsiniz...",
+    "prompt_gen_placeholder": "Prompt metnini doğrudan buradan düzenleyebilirsiniz...",
+    "tab_prompt_gen": "Prompt Generator"
   },
   "new_project": {
     "window_title": "Create New Project",
@@ -206,7 +211,15 @@
     "checkbox_custom_mcp": "Use custom connection for this project",
     "btn_mcp_manage": "Manage MCP",
     "combo_select": "Select...",
-    "combo_global_endpoint": "Global Active Endpoint"
+    "combo_global_endpoint": "Global Active Endpoint",
+    "btn_cancel": "İptal",
+    "btn_create": "Proje Oluştur",
+    "col1_title": "Temel Bilgiler",
+    "col2_title": "Proje Ayarları",
+    "col3_title": "Bağlantı & Gelişmiş",
+    "label_model": "Varsayılan Model",
+    "label_parallel_workers": "Paralel Worker",
+    "msg_warning_title": "Uyarı"
   },
   "project_settings": {
     "window_title": "'{}' Settings",
@@ -250,7 +263,12 @@
     "msg_db_migrate_error_title": "Error",
     "msg_db_migrate_error_body": "An error occurred during migration to the database.",
     "msg_db_migrate_fail_title": "Error",
-    "msg_db_migrate_fail_body": "An unexpected error occurred:\n{}"
+    "msg_db_migrate_fail_body": "An unexpected error occurred:\n{}",
+    "group_deepl": "DeepL API Key (Ücretli)",
+    "group_yandex": "Yandex API Key (Ücretsiz)",
+    "label_deepl_api_key": "DeepL API Key:",
+    "label_yandex_api_key": "Yandex API Key:",
+    "provider_deepl": "DeepL Translate (Ücretli)"
   },
   "mcp_server": {
     "window_title": "AI Source Management (MCP)",
@@ -564,7 +582,9 @@
     "label_status": "Status",
     "status_approved": "Approved",
     "btn_approve": "✓ Approve",
-    "btn_delete": "🗑️ Delete"
+    "btn_delete": "🗑️ Delete",
+    "btn_save": "💾 Kaydet",
+    "msg_save_success": "Terminoloji değişiklikleri başarıyla kaydedildi."
   },
   "file_preview": {
     "window_title": "📄 Preview — {}",
@@ -687,7 +707,10 @@
   "gemini_version": {
     "window_title": "Gemini Model Version",
     "select_or_enter": "Select or Enter Gemini Model Version to Use:",
-    "manual_entry": "Enter manually..."
+    "manual_entry": "Enter manually...",
+    "msg_save_fail": "Kaydedilemedi: {}",
+    "msg_save_success": "Versiyon kaydedildi.",
+    "msg_version_empty": "Versiyon boş olamaz."
   },
   "promt_editor": {
     "window_title": "Prompt Editor",
@@ -717,7 +740,9 @@
     "msg_missing_tittle": "Missing",
     "msg_fields_required": "Name and Key fields are required.",
     "msg_save_success": "API Key saved.",
-    "msg_delete_confirm": "Are you sure?"
+    "msg_delete_confirm": "Are you sure?",
+    "label_key": "Key:",
+    "label_name": "Ad:"
   },
   "new_project_extra": {
     "placeholder_project_name": "Enter project name...",
@@ -732,7 +757,11 @@
     "placeholder_select_project": "Select a project\nto see details",
     "project_size": "Project Size",
     "progress_overview": "Progress Overview",
-    "recent_activity": "Recent Activity"
+    "recent_activity": "Recent Activity",
+    "btn_migrate_structure": "🔄 Update Project Structure",
+    "msg_migration_success": "Project file structure successfully upgraded to new format without data loss.",
+    "msg_migration_error": "An error occurred during project migration: {}",
+    "warning_old_structure": "⚠️ This project uses an older file structure. Please upgrade to the new format."
   },
   "terminology_page_extra": {
     "tooltip_delete_term": "Delete Term",
@@ -756,5 +785,36 @@
     "save_btn": "💾  Save (Ctrl+S)",
     "retranslate_btn": "🔄  Retranslate",
     "close_btn": "✕  Close (ESC)"
+  },
+  "free_translators": {
+    "btn_close": "Kapat",
+    "btn_save_all": "💾 Tüm Ayarları Kaydet",
+    "dialog_title": "Ücretsiz Çeviriciler ve Proxy Yönetimi",
+    "header_sub": "DeepL, Yandex anahtarlarını, rotasyon havuzlarını ve Google Translate proxy",
+    "header_title": "Ücretsiz Çeviriciler & Proxy Yapılandırması"
+  },
+  "project_setting": {
+    "provider_deepl_api_key_placeholder": "DeepL API Key",
+    "provider_yandex_api_key_placeholder": "Yandex API Key"
+  },
+  "prompt_editor": {
+    "btn_delete": "Sil",
+    "btn_new": "Yeni",
+    "btn_save": "Kaydet",
+    "delete_confirm_body": "prompt_editor.delete_confirm_body",
+    "delete_confirm_title": "Sil",
+    "label_title": "Başlık:",
+    "msg_delete_fail": "Silme başarısız: {}",
+    "msg_invalid_body": "Başlık geçersiz karakterler içeriyor.",
+    "msg_invalid_title": "Geçersiz",
+    "msg_missing_body": "Lütfen bir başlık giriniz.",
+    "msg_missing_title": "Eksik",
+    "msg_read_error": "Dosya okunamadı: {}",
+    "msg_save_fail": "Kaydetme başarısız: {}",
+    "msg_save_success": "Promt kaydedildi.",
+    "placeholder_title": "Promt Başlığı (Dosya Adı)",
+    "prompt_content": "Promt İçeriği:",
+    "saved_prompts": "Kayıtlı Promtlar:",
+    "window_title": "Promt Editörü"
   }
 }

@@ -22,7 +22,10 @@ from ui.dark_theme import (
     ACCENT_RED, ACCENT_CYAN
 )
 from core.localization import tr
-from core.path_resolver import get_subfolder_path, get_project_dir
+from core.path_resolver import (
+    get_subfolder_path, get_project_dir,
+    is_old_project_structure, migrate_project_structure
+)
 
 # ------------------------------------------------------------------
 # Yardımcılar
@@ -248,6 +251,59 @@ def _populate_project_details(win, frame: QFrame, project_name: str = None):
     path_lbl.setStyleSheet(f"color:{TEXT_FAINT}; font-size:10px;")
     path_lbl.setWordWrap(True)
     outer.addWidget(path_lbl)
+
+    # Eski dosya yapısı kontrolü ve aktarma butonu
+    base_dir = os.getcwd()
+    if is_old_project_structure(base_dir, project_name):
+        warn_box = QFrame()
+        warn_box.setStyleSheet(
+            f"background:{ACCENT_ORANGE}15; border:1px solid {ACCENT_ORANGE}66; "
+            f"border-radius:8px; padding:10px;"
+        )
+        warn_layout = QVBoxLayout(warn_box)
+        warn_layout.setContentsMargins(8, 8, 8, 8)
+        warn_layout.setSpacing(6)
+
+        warn_lbl = QLabel(tr("project_page_extra.warning_old_structure", "⚠️ Bu proje eski dosya yapısını kullanıyor. Lütfen yeni formata yükseltin."))
+        warn_lbl.setStyleSheet(f"color:{ACCENT_ORANGE}; font-size:11px; font-weight:600;")
+        warn_lbl.setWordWrap(True)
+        warn_layout.addWidget(warn_lbl)
+
+        migrate_btn = QPushButton(tr("project_page_extra.btn_migrate_structure", "🔄 Proje Yapısını Güncelle"))
+        migrate_btn.setFont(QFont("Segoe UI", 9, QFont.Weight.Bold))
+        migrate_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        migrate_btn.setStyleSheet(
+            f"background:{ACCENT_ORANGE}; color:#FFFFFF; border:none; "
+            f"border-radius:6px; padding:6px 12px; font-weight:bold;"
+        )
+
+        from PyQt6.QtWidgets import QMessageBox
+
+        def _on_migrate(p_name=project_name):
+            ok, msg = migrate_project_structure(os.getcwd(), p_name)
+            if ok:
+                QMessageBox.information(
+                    win,
+                    tr("app_settings.msg_settings_saved_title", "Başarılı"),
+                    tr("project_page_extra.msg_migration_success", "Proje dosya yapısı kayıpsız olarak yeni formata aktarıldı.")
+                )
+                if hasattr(win, "refresh_project_list"):
+                    win.refresh_project_list()
+                if hasattr(win, "update_file_list_from_selection"):
+                    win.update_file_list_from_selection()
+                if hasattr(win, "sync_database_if_exists"):
+                    win.sync_database_if_exists()
+                refresh_project_details(win)
+            else:
+                QMessageBox.critical(
+                    win,
+                    tr("main_window.msg_structure_error_title", "Hata"),
+                    tr("project_page_extra.msg_migration_error", "Proje dönüştürülürken hata oluştu: {}").format(msg)
+                )
+
+        migrate_btn.clicked.connect(lambda: _on_migrate(project_name))
+        warn_layout.addWidget(migrate_btn)
+        outer.addWidget(warn_box)
 
     sep = QFrame()
     sep.setFrameShape(QFrame.Shape.HLine)

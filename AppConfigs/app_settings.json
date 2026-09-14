@@ -5,7 +5,7 @@
   "custom_js_sources": [],
   "notifications_enabled": true,
   "promt_generator_max_tokens": 20000,
-  "language": "tr",
+  "language": "en",
   "translation_providers": [
     "google",
     "yandex"
@@ -37,7 +37,7 @@
   "export_separator": "\n\n---test---\n\n",
   "prompt_gen_prompt_override": "",
   "ml_extractor_prompt_override": "",
-  "langdetect_source_lang": "en",
-  "langdetect_target_lang": "tr",
+  "langdetect_source_lang": "ko",
+  "langdetect_target_lang": "en",
   "min_line_count": 15
 }
