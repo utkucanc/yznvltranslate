@@ -51,15 +51,16 @@ from ui.toast_widget import _ToastWidget
 
 
 class MainWindow(QMainWindow):
-    def __init__(self):
+    def __init__(self, startup_data: dict = None):
         super().__init__()
+        self.startup_data = startup_data or {}
         self.setWindowTitle(tr("main_window.title", "Novel Çeviri Aracı V3.1.0"))
         self.setWindowIcon(QIcon("logo256.ico"))
         self.setGeometry(100, 100, 1440, 860)
         self.showMaximized()
 
         # İstatistikler (status bar için)
-        self.request_counter_manager = RequestCounterManager()
+        self.request_counter_manager = self.startup_data.get("request_counter_mgr") or RequestCounterManager()
         self._api_token_count = 0
         self._translation_speed = 0.0
         self._current_model = self.get_gemini_model_version()
@@ -82,7 +83,7 @@ class MainWindow(QMainWindow):
         self.ml_terminology_ctrl = MLTerminologyController(self)
 
         # Kayıtlı temayı uygula
-        app_settings = load_app_settings()
+        app_settings = self.startup_data.get("app_settings") or load_app_settings()
         apply_theme(QApplication.instance(), app_settings.get("theme", "dark"))
 
         # -- UI oluştur ----------------------------------------------
@@ -491,8 +492,10 @@ class MainWindow(QMainWindow):
 
     def load_existing_projects(self):
         self.project_list.clear()
-        from core.project_manager import ProjectManager
-        projects = ProjectManager(os.getcwd()).list_projects()
+        projects = self.startup_data.get("projects") if hasattr(self, "startup_data") else None
+        if projects is None:
+            from core.project_manager import ProjectManager
+            projects = ProjectManager(os.getcwd()).list_projects()
         for proj in projects:
             self.project_list.addItem(proj)
         try:
@@ -977,6 +980,33 @@ class MainWindow(QMainWindow):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    window = MainWindow()
-    window.show()
+
+    from ui.splash_screen import CustomSplashScreen
+    from core.startup_worker import StartupWorker
+
+    # Splash ekranını anında göster (beyaz ekran/donmayı önler)
+    splash = CustomSplashScreen()
+    splash.show()
+    app.processEvents()
+
+    # Arka planda açılış yüklemelerini çalıştır
+    worker = StartupWorker()
+    window = None
+
+    def _on_startup_progress(msg):
+        splash.set_status(msg)
+
+    def _on_startup_finished(startup_data):
+        time.sleep(1)  # Splash ekranının bir süre görünmesini sağlamak için
+        global window
+        window = MainWindow(startup_data=startup_data)
+        window.show()
+        window.activateWindow()
+        window.raise_()
+        splash.finish(window)
+
+    worker.progress.connect(_on_startup_progress)
+    worker.finished.connect(_on_startup_finished)
+    worker.start()
+
     sys.exit(app.exec())
