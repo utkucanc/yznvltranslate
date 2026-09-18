@@ -41,8 +41,8 @@ class FreeTranslatorsDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle(tr("free_translators.dialog_title", "Ücretsiz Çeviriciler ve Proxy Yönetimi"))
-        self.setMinimumSize(780, 560)
-        self.resize(840, 600)
+        self.setMinimumSize(980, 640)
+        self.resize(1100, 720)
 
         self.config_data = load_free_translators_config()
 
@@ -297,6 +297,9 @@ class FreeTranslatorsDialog(QDialog):
         self.proxy_table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
         self.proxy_table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         self.proxy_table.setStyleSheet(f"background: {BG_PANEL2}; border: 1px solid {BORDER};")
+        self.proxy_table.setMinimumHeight(220)
+        from PyQt6.QtWidgets import QSizePolicy as _QSP
+        self.proxy_table.setSizePolicy(_QSP.Policy.Expanding, _QSP.Policy.Expanding)
         lay.addWidget(self.proxy_table)
 
         # Form Alanları (Düzenleme / Ekleme için)

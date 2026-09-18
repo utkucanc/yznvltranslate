@@ -249,7 +249,24 @@ class EpubController:
         os.makedirs(output_folder, exist_ok=True)
 
         self.thread = QThread()
-        self.worker = EpubWorker(selected_files, output_folder, project_name=project_name)
+        # Seçili dosyalardan ilk ve son bölüm numarasını belirle
+        first_chapter = None
+        last_chapter = None
+        try:
+            basenames = [os.path.splitext(os.path.basename(f))[0].replace("translated_", "") for f in selected_files]
+            import re
+            numbers = []
+            for bn in basenames:
+                match = re.search(r'(\d+)', bn)
+                if match:
+                    numbers.append(int(match.group(1)))
+            if numbers:
+                first_chapter = min(numbers)
+                last_chapter = max(numbers)
+        except Exception:
+            pass
+        self.worker = EpubWorker(selected_files, output_folder, project_name=project_name,
+                                 first_chapter=first_chapter, last_chapter=last_chapter)
         self.worker.moveToThread(self.thread)
         self.thread.started.connect(self.worker.run)
         self.worker.finished.connect(self.thread.quit)

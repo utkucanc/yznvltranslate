@@ -18,7 +18,7 @@ from PyQt6.QtWidgets import (
     QWidget, QScrollArea, QVBoxLayout, QHBoxLayout, QGridLayout,
     QLabel, QPushButton, QLineEdit, QFrame, QProgressBar,
     QTextEdit, QCheckBox, QSpinBox, QRadioButton, QButtonGroup,
-    QSizePolicy
+    QSizePolicy, QMenu, QMessageBox
 )
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont
@@ -162,6 +162,31 @@ def _build_project_files_card(win) -> QFrame:
         search_row.addWidget(win.file_search_input)
         search_row.addWidget(win.file_search_clear_btn)
         outer.addLayout(search_row)
+
+    # "Bölüme Git" satırı
+    goto_row = QHBoxLayout()
+    goto_lbl = QLabel(tr("dashboard.goto_label", "Bölüme Git:"))
+    goto_lbl.setStyleSheet(f"color:{TEXT_FAINT}; font-size:11px;")
+    goto_row.addWidget(goto_lbl)
+    win.goto_chapter_input = QLineEdit()
+    win.goto_chapter_input.setPlaceholderText(tr("dashboard.goto_placeholder", "Bölüm numarası..."))
+    win.goto_chapter_input.setMaximumWidth(140)
+    win.goto_chapter_input.returnPressed.connect(lambda: _goto_chapter(win))
+    goto_row.addWidget(win.goto_chapter_input)
+    go_btn = QPushButton(tr("dashboard.goto_btn", "Git →"))
+    go_btn.setObjectName("smallBtn")
+    go_btn.setMaximumWidth(60)
+    go_btn.clicked.connect(lambda: _goto_chapter(win))
+    goto_row.addWidget(go_btn)
+    goto_row.addStretch()
+
+    rescan_btn = QPushButton(tr("dashboard.btn_rescan_files", "🔄 Tabloyu Yenile"))
+    rescan_btn.setObjectName("smallBtn")
+    rescan_btn.setToolTip(tr("dashboard.btn_rescan_tooltip", "Diskteki dosyaları os ile canlı tarar ve veritabanını günceller."))
+    rescan_btn.clicked.connect(lambda: win.refresh_file_list_with_os_scan() if hasattr(win, "refresh_file_list_with_os_scan") else None)
+    goto_row.addWidget(rescan_btn)
+
+    outer.addLayout(goto_row)
 
     # Mevcut file_table buraya gömülüyor
     if hasattr(win, 'file_table'):
@@ -495,6 +520,40 @@ def _count_terms(win) -> int:
         return len(data) if isinstance(data, (list, dict)) else 0
     except Exception:
         return 0
+
+
+def _goto_chapter(win):
+    """Tabloda filtreleme yapmadan belirtilen bölüm numarasına scroll eder ve satırı seçili yapar."""
+    if not hasattr(win, 'goto_chapter_input') or not hasattr(win, 'file_table'):
+        return
+    text = win.goto_chapter_input.text().strip()
+    if not text:
+        return
+    table = win.file_table
+    import re
+    target = text.lower()
+    for row in range(table.rowCount()):
+        # Kolon 1 (orijinal dosya adı) veya kolon 2'den kontrol et
+        for col in [1, 2]:
+            item = table.item(row, col)
+            if item:
+                cell_text = item.text().lower()
+                # Tam sayı eşleşmesi veya harf+sayı kombinasyonu içeren ad
+                nums = re.findall(r'\d+', cell_text)
+                if target in nums or target in cell_text:
+                    table.scrollToItem(item)
+                    table.setCurrentCell(row, col)
+                    table.selectRow(row)
+                    return
+    # Tam eşleşme bulunamadıysa kısmi eşleşme dene
+    for row in range(table.rowCount()):
+        for col in [1, 2]:
+            item = table.item(row, col)
+            if item and target in item.text().lower():
+                table.scrollToItem(item)
+                table.setCurrentCell(row, col)
+                table.selectRow(row)
+                return
 
 
 def _open_split(win):

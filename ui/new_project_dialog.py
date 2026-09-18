@@ -524,21 +524,41 @@ class NewProjectDialog(QDialog):
         models = []
         try:
             from google import genai
-            keys_folder = get_config_path("APIKeys/MCP")
-            if os.path.exists(keys_folder):
-                api_keys = [f for f in os.listdir(keys_folder) if f.endswith('.txt')]
-                if api_keys:
-                    key_path = os.path.join(keys_folder, api_keys[0])
-                    with open(key_path, 'r', encoding='utf-8') as f:
-                        api_key = f.read().strip()
-                    if api_key:
-                        client = genai.Client(api_key=api_key)
-                        for m in client.models.list():
-                            if 'generateContent' in m.supported_actions:
-                                name = m.name.replace("models/", "")
-                                models.append(name)
+            candidate_folders = [
+                get_config_path("APIKeys"),
+                get_config_path("APIKeys/MCP")
+            ]
+            for folder in candidate_folders:
+                if not os.path.exists(folder):
+                    continue
+                key_files = [f for f in os.listdir(folder) if f.endswith('.txt')]
+                for kf in key_files:
+                    try:
+                        with open(os.path.join(folder, kf), 'r', encoding='utf-8') as f:
+                            lines = [line.strip() for line in f.read().splitlines() if line.strip()]
+                        for k in lines:
+                            try:
+                                client = genai.Client(api_key=k)
+                                fetched = []
+                                for m in client.models.list():
+                                    supported = getattr(m, 'supported_actions', []) or getattr(m, 'supported_generation_methods', [])
+                                    if not supported or 'generateContent' in supported:
+                                        name = m.name.replace("models/", "") if hasattr(m, 'name') and m.name else str(m)
+                                        if name and name not in fetched:
+                                            fetched.append(name)
+                                if fetched:
+                                    models = fetched
+                                    break
+                            except Exception:
+                                pass
+                        if models:
+                            break
+                    except Exception:
+                        pass
+                if models:
+                    break
         except Exception as e:
-            app_logger.debug(f"Gemini model listesi alınamadı (MCP): {e}")
+            app_logger.debug(f"Gemini model listesi alınırken uyarı: {e}")
 
         if not models:
             models = [

@@ -5,6 +5,7 @@ from PyQt6.QtWidgets import QTableWidget, QTableWidgetItem, QHeaderView
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QColor
 from core.localization import tr
+from logger import app_logger
 
 class FileTableManager:
     """QTableWidget üzerinde dosya verilerini göstermek için UI yöneticisi."""
@@ -50,9 +51,18 @@ class FileTableManager:
 
     def populate(self, sorted_entries: list[dict]):
         """FileListManager'dan gelen verilerle tabloyu doldurur."""
-        self.table.setRowCount(len(sorted_entries))
-        for row, entry_data in enumerate(sorted_entries):
-            self._populate_row(row, entry_data)
+        self.table.setUpdatesEnabled(False)
+        try:
+            self.table.setRowCount(len(sorted_entries))
+            for row, entry_data in enumerate(sorted_entries):
+                self._populate_row(row, entry_data)
+        except Exception as e:
+            app_logger.error(f"Satır doldurulurken hata: {e}")
+        finally:
+            self.table.setUpdatesEnabled(True)
+        #self.table.setRowCount(len(sorted_entries))
+        #for row, entry_data in enumerate(sorted_entries):
+        #    self._populate_row(row, entry_data)
 
     def _populate_row(self, row: int, entry_data: dict):
         # Column 0: Checkbox
@@ -109,30 +119,4 @@ class FileTableManager:
         
         self.table.setItem(row, 3, status_item)
 
-        # Column 6: Original Token Count
-        orig_token_val = entry_data["original_token_count"]
-        if orig_token_val == "Hesaplanmadı":
-            orig_token_display = tr("file_table.token_not_calculated", "Hesaplanmadı")
-        elif orig_token_val == "Yok":
-            orig_token_display = tr("file_table.none", "Yok")
-        else:
-            orig_token_display = str(orig_token_val)
-            
-        original_token_item = QTableWidgetItem(orig_token_display)
-        if orig_token_val == "Hesaplanmadı":
-            original_token_item.setForeground(QColor(Qt.GlobalColor.blue))
-        self.table.setItem(row, 6, original_token_item)
         
-        # Column 7: Translated Token Count
-        trsl_token_val = entry_data["translated_token_count"]
-        if trsl_token_val == "Hesaplanmadı":
-            trsl_token_display = tr("file_table.token_not_calculated", "Hesaplanmadı")
-        elif trsl_token_val == "Yok":
-            trsl_token_display = tr("file_table.none", "Yok")
-        else:
-            trsl_token_display = str(trsl_token_val)
-            
-        translated_token_item = QTableWidgetItem(trsl_token_display)
-        if trsl_token_val in ("Hesaplanmadı", "Yok"):
-            translated_token_item.setForeground(QColor(Qt.GlobalColor.blue))
-        self.table.setItem(row, 7, translated_token_item)

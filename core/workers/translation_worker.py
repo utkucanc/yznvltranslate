@@ -102,6 +102,36 @@ class TranslationWorker(QObject):
         self._cache = None
         self._terminology_manager = None
 
+    def _save_translation_to_db(self, file_name: str, translated_file_path: str, status: str = "Çevrildi"):
+        """
+        Çeviri tamamlandığında sonuçları veritabanına anında kaydeder.
+        project_path tanımlanmamışsa sessizce atlar.
+        """
+        if not self.project_path:
+            return
+        try:
+            from core.database_manager import DatabaseManager
+            db_mgr = DatabaseManager(self.project_path)
+            if not db_mgr.db_exists():
+                return
+            original_file_name = file_name
+            original_file_path = os.path.join(self.input_folder, file_name)
+            translated_file_name = os.path.basename(translated_file_path)
+            sort_key = file_name.replace(".txt", "")
+            file_dict = {
+                "sort_key": sort_key,
+                "original_file_name": original_file_name,
+                "original_file_path": original_file_path,
+                "translated_file_name": translated_file_name,
+                "translated_file_path": translated_file_path,
+                "translation_status": status,
+                "is_translated": True,
+                "display_status": status,
+            }
+            db_mgr.upsert_single_file(file_dict)
+        except Exception as e:
+            app_logger.warning(f"DB anlık kayıt hatası ({file_name}): {e}")
+
     @property
     def terminology_manager(self):
         return getattr(self, '_terminology_manager', None)
@@ -611,6 +641,7 @@ class TranslationWorker(QObject):
                     self.translated_count_session += 1
                     if file_name in self.translation_errors:
                         del self.translation_errors[file_name]
+                self._save_translation_to_db(file_name, translated_file_path, "Çevrildi")
                 app_logger.info(f"Paragraf bazlı çeviri tamamlandı: {file_name}")
                 self.progress.emit(i + 1, total_files)
                 return
@@ -640,6 +671,7 @@ class TranslationWorker(QObject):
                     self.translated_count_session += 1
                     if file_name in self.translation_errors:
                         del self.translation_errors[file_name]
+                self._save_translation_to_db(file_name, translated_file_path, "Çevrildi")
                 self.progress.emit(i + 1, total_files)
                 return
 
@@ -734,6 +766,8 @@ class TranslationWorker(QObject):
                     f.write(translated_text)
                 with self.data_lock:
                     self.translated_count_session += 1
+
+                self._save_translation_to_db(file_name, translated_file_path, "Çevrildi")
 
                 if self._cache:
                     try:

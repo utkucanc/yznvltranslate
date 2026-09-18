@@ -52,13 +52,14 @@ from ui.toast_widget import _ToastWidget
 
 class MainWindow(QMainWindow):
     def __init__(self, startup_data: dict = None):
+        t0 = time.perf_counter()
         super().__init__()
         self.startup_data = startup_data or {}
         self.setWindowTitle(tr("main_window.title", "Novel Çeviri Aracı V3.1.0"))
         self.setWindowIcon(QIcon("logo256.ico"))
         self.setGeometry(100, 100, 1440, 860)
         self.showMaximized()
-
+        print(f"[MainWindow Init]: {time.perf_counter()-t0:.2f}s")
         # İstatistikler (status bar için)
         self.request_counter_manager = self.startup_data.get("request_counter_mgr") or RequestCounterManager()
         self._api_token_count = 0
@@ -70,7 +71,7 @@ class MainWindow(QMainWindow):
         self.current_project_path = None
         self.config = configparser.ConfigParser()
         self.project_token_cache = {}
-
+        print(f"[status bar]: {time.perf_counter()-t0:.2f}s")
         # Controller'ları oluştur
         self.translation_ctrl = TranslationController(self)
         self.merge_ctrl = MergeController(self)
@@ -81,40 +82,41 @@ class MainWindow(QMainWindow):
         self.error_check_ctrl = ErrorCheckController(self)
         self.chapter_check_ctrl = ChapterCheckController(self)
         self.ml_terminology_ctrl = MLTerminologyController(self)
-
+        print(f"[controllers]: {time.perf_counter()-t0:.2f}s")
         # Kayıtlı temayı uygula
         app_settings = self.startup_data.get("app_settings") or load_app_settings()
         apply_theme(QApplication.instance(), app_settings.get("theme", "dark"))
-
+        print(f"[theme]: {time.perf_counter()-t0:.2f}s")
         # -- UI oluştur ----------------------------------------------
         self.central_widget = QWidget()
         self.setCentralWidget(self.central_widget)
         self.outer_layout = QVBoxLayout(self.central_widget)
         self.outer_layout.setContentsMargins(0, 0, 0, 0)
         self.outer_layout.setSpacing(0)
-
+        print(f"[UI Skeleton]: {time.perf_counter()-t0:.2f}s")
         # FileTableInteractions erken oluşturulmalı
         self.file_table_interactions = FileTableInteractions(self)
-
+        print(f"[FileTableInteractions]: {time.perf_counter()-t0:.2f}s")
         # 1. Menü çubuğu
         build_menu_bar(self)
-
+        print(f"[Menu Bar]: {time.perf_counter()-t0:.2f}s")
         # 2. Bağlantı çubuğu
         conn_bar = build_connection_bar(self)
         self.outer_layout.addWidget(conn_bar)
-
+        print(f"[Connection Bar]: {time.perf_counter()-t0:.2f}s")
         # 3. Gövde: sidebar + stack
         body_layout = QHBoxLayout()
         body_layout.setContentsMargins(0, 0, 0, 0)
         body_layout.setSpacing(0)
-
+        print(f"[Sidebar+stack Layout]: {time.perf_counter()-t0:.2f}s")
         # --- Mevcut widget'ları ÖNCE oluştur, sonra sayfalara göm ---
         self._init_shared_widgets()
+        print(f"[Shared Widgets]: {time.perf_counter()-t0:.2f}s")
 
         # Sidebar
         sidebar = build_sidebar(self)
         body_layout.addWidget(sidebar)
-
+        print(f"[Sidebar]: {time.perf_counter()-t0:.2f}s")
         # Stack
         self.main_stack = QStackedWidget()
         self.dashboard_page = build_dashboard_page(self)
@@ -130,31 +132,31 @@ class MainWindow(QMainWindow):
         body_widget = QWidget()
         body_widget.setLayout(body_layout)
         self.outer_layout.addWidget(body_widget, 1)
-
+        print(f"[Stack]: {time.perf_counter()-t0:.2f}s")
         # Tablo etkileşimlerini bağla
         self.file_table_interactions.setup()
-
+        print(f"[File Table Interactions]: {time.perf_counter()-t0:.2f}s")
         # 4. Status bar
         self.status_bar_mgr = StatusBarManager(self)
         self.status_bar_mgr.create()
-
+        print(f"[Status Bar]: {time.perf_counter()-t0:.2f}s")
         # Projeleri yükle
         self.load_existing_projects()
-
+        print(f"[Load Projects]: {time.perf_counter()-t0:.2f}s")
         # Başlangıç durumları
         self.total_tokens_label.setVisible(False)
         self.total_original_tokens_label.setVisible(False)
         self.total_translated_tokens_label.setVisible(False)
         self.token_progress_bar.setVisible(False)
         self.token_count_button.setEnabled(False)
-
+        print(f"[Initial States]: {time.perf_counter()-t0:.2f}s")
         # İlk aktif nav
         self.set_active_nav("Dashboard")
-
+        print(f"[Set Active Nav]: {time.perf_counter()-t0:.2f}s")
         # Sistem tray
         self._tray_icon = None
         self._setup_tray_icon()
-
+        print(f"[Tray Icon]: {time.perf_counter()-t0:.2f}s")
     # ------------------------------------------------------------------
     # Paylaşılan widget'lar — dashboard/project sayfaları bunları gömer
     # ------------------------------------------------------------------
@@ -504,7 +506,10 @@ class MainWindow(QMainWindow):
         except Exception:
             pass
         if self.project_list.count() > 0 and self.project_list.currentRow() < 0:
+            self.project_list.blockSignals(True)
             self.project_list.setCurrentRow(0)
+            self.project_list.blockSignals(False)
+            QTimer.singleShot(0, self.update_file_list_from_selection)
 
     def new_project_clicked(self):
         dialog = NewProjectDialog(self)
@@ -514,7 +519,7 @@ class MainWindow(QMainWindow):
                 QMessageBox.warning(self, tr("main_window.msg_project_missing_info_title", "Eksik Bilgi"), tr("main_window.msg_project_missing_info_body", "Proje adı ve linki boş bırakılamaz."))
                 return
             if not api_key and not mcp_endpoint_id and translation_provider == "llm":
-                QMessageBox.warning(self, tr("main_window.msg_project_config_missing_title", "Yapılandırma Eksik"), tr("main_window.msg_project_config_missing_body", "Çeviri ve token sayımı için Gemini API anahtarı veya MCP bağlantısı gereklidir."))
+                QMessageBox.warning(self, tr("main_window.msg_project_config_missing_title", "Yapılandırma Eksik"), tr("main_window.msg_api_mcp_reminder", "API veya MCP seçmeyi unutmayın"))
             if not deepl_api and translation_provider == "deepl":
                 QMessageBox.warning(self, tr("main_window.msg_project_config_missing_title", "Yapılandırma Eksik"), tr("main_window.msg_project_config_missing_body", "Çeviri ve token sayımı için DeepL API anahtarı gereklidir."))
             if not yandex_api and translation_provider == "yandex":
@@ -541,6 +546,11 @@ class MainWindow(QMainWindow):
                 with open(config_path, "w", encoding="utf-8") as configfile:
                     self.config.write(configfile)
                 self.project_list.addItem(project_name)
+                try:
+                    from ui.project_page import update_project_list_widgets
+                    update_project_list_widgets(self)
+                except Exception:
+                    pass
                 QMessageBox.information(self, tr("main_window.msg_project_created_title", "Başarılı"), tr("main_window.msg_project_created_body", "'{}' projesi başarıyla oluşturuldu.").format(project_name))
                 self.project_list.setCurrentItem(self.project_list.findItems(project_name, Qt.MatchFlag.MatchExactly)[0])
             except OSError as e:
@@ -805,7 +815,6 @@ class MainWindow(QMainWindow):
         from ui.file_table_manager import FileTableManager
         manager = FileListManager(self.current_project_path)
         data = manager.get_file_list_data()
-        self.project_token_cache = data["project_token_cache"]
         table_manager = FileTableManager(self.file_table)
         table_manager.populate(data["sorted_entries"])
 
@@ -824,6 +833,27 @@ class MainWindow(QMainWindow):
         update_dashboard_stats(self)
         refresh_terminology_page(self)
         refresh_text_editor_page(self)
+
+    def refresh_file_list_with_os_scan(self):
+        """Kullanıcı yenileme butonuna bastığında çalışır: os.listdir ile canlı tarama yapar, DB'yi günceller ve UI'ı yeniler."""
+        if not self.current_project_path:
+            return
+        from core.file_list_manager import FileListManager
+        from ui.file_table_manager import FileTableManager
+        from ui.dashboard_page import update_project_files_footer, update_dashboard_stats
+        from ui.project_page import refresh_project_details
+
+        manager = FileListManager(self.current_project_path)
+        data = manager.force_rescan_and_sync_db()
+        table_manager = FileTableManager(self.file_table)
+        table_manager.populate(data["sorted_entries"])
+
+        update_project_files_footer(self)
+        refresh_project_details(self)
+        update_dashboard_stats(self)
+
+        self.show_toast(tr("main_window.toast_rescan_success_title", "Tablo Yenilendi"),
+                        tr("main_window.toast_rescan_success_body", "Dosyalar diskten canlı taranarak veritabanı güncellendi."))
 
     # ------------------------------------------------------------------
     # UI Yardımcıları (controller'lar tarafından kullanılır)
@@ -997,7 +1027,6 @@ if __name__ == "__main__":
         splash.set_status(msg)
 
     def _on_startup_finished(startup_data):
-        time.sleep(1)  # Splash ekranının bir süre görünmesini sağlamak için
         global window
         window = MainWindow(startup_data=startup_data)
         window.show()

@@ -497,9 +497,21 @@ def _read_global_model() -> str:
 
 
 def _count_project_files(project_name: str):
-    """(total_dwnld, done_trslt) dosya sayılarını döndürür."""
+    """(total_dwnld, done_trslt) dosya sayılarını veritabanından çeker."""
     try:
-        
+        base = os.getcwd()
+        project_path = get_project_dir(base, project_name)
+        from core.database_manager import DatabaseManager
+        db_mgr = DatabaseManager(project_path)
+        if db_mgr.db_exists():
+            files = db_mgr.get_all_files()
+            total = sum(1 for f in files if f.get("original_file_name") and f.get("original_file_name") not in ("Orijinali Yok", "N/A"))
+            done = sum(1 for f in files if f.get("is_translated") or f.get("translation_status") in ("Çevrildi", "Birleştirildi"))
+            return total, done
+    except Exception:
+        pass
+
+    try:
         dwnld = get_subfolder_path(project_name, "download")
         trslt = get_subfolder_path(project_name, "translate")
         total = len([f for f in os.listdir(dwnld) if f.endswith(".txt")]) if os.path.exists(dwnld) else 0

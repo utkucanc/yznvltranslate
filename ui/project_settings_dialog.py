@@ -1,3 +1,4 @@
+from core.path_resolver import get_project_dir
 import sys
 import os
 import configparser
@@ -473,9 +474,10 @@ class ProjectSettingsDialog(QDialog):
         self.db_migrate_btn.setText(tr("project_settings.btn_db_migrate_running", "Taşınıyor... Lütfen bekleyin"))
         self.db_migrate_btn.setEnabled(False)
         QApplication.processEvents()
+        project_path = get_project_dir(os.getcwd(),self.project_name)
         
         try:
-            legacy_flm = FileListManager(os.path.join(os.getcwd(), self.project_name))
+            legacy_flm = FileListManager(project_path)
             success = self.db_mgr.sync_directory_to_db(legacy_flm)
             if success:
                 QMessageBox.information(

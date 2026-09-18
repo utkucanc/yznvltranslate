@@ -12,11 +12,14 @@ class EpubWorker(QObject):
     error = pyqtSignal(str)     # Hata mesajı döner
     progress = pyqtSignal(int, int) # İlerleme durumu
 
-    def __init__(self, file_paths, output_folder, project_name="Kitap"):
+    def __init__(self, file_paths, output_folder, project_name="Kitap",
+                 first_chapter=None, last_chapter=None):
         super().__init__()
         self.file_paths = file_paths
         self.output_folder = output_folder
         self.project_name = project_name
+        self.first_chapter = first_chapter
+        self.last_chapter = last_chapter
         self.is_running = True
 
     def run(self):
@@ -26,9 +29,13 @@ class EpubWorker(QObject):
             return
 
         try:
-            # Çıktı dosya adı: ProjeAdı_Tarih.epub
+            # Çıktı dosya adı: [ProjeAdı]-[ilk_bölüm]-[son_bölüm].epub
             timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-            epub_filename = f"{self.project_name}_{timestamp}.epub"
+            if self.first_chapter is not None and self.last_chapter is not None:
+                epub_filename = f"{self.project_name}-{self.first_chapter}-{self.last_chapter}.epub"
+            else:
+                
+                epub_filename = f"{self.project_name}_{timestamp}.epub"
             epub_path = os.path.join(self.output_folder, epub_filename)
 
             # Kitap oluştur
