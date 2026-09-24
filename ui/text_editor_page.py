@@ -222,7 +222,7 @@ def _build_editor_center_panel(win) -> QFrame:
     panels.setSpacing(10)
 
     # Orijinal Panel
-    panels.addWidget(_build_text_panel(win, "Orijinal Metin (completed)", "Kaynak", is_source=True), 1)
+    panels.addWidget(_build_text_panel(win, tr("text_editor_page_extra.original_text", "Orijinal Metin (completed)"), tr("text_editor_page_extra.label_source", "Kaynak"), is_source=True), 1)
 
     swap = QLabel("↔")
     swap.setStyleSheet(f"color:{TEXT_FAINT}; font-size:16px;")
@@ -230,7 +230,7 @@ def _build_editor_center_panel(win) -> QFrame:
     panels.addWidget(swap)
 
     # Çeviri Paneli
-    panels.addWidget(_build_text_panel(win, "Çevrilen Metin (translate)", "Hedef", is_source=False), 1)
+    panels.addWidget(_build_text_panel(win, tr("text_editor_page_extra.translated_text", "Çevrilen Metin (translate)"), tr("text_editor_page_extra.label_target", "Hedef"), is_source=False), 1)
     lay.addLayout(panels, 1)
 
     return frame
@@ -386,9 +386,9 @@ def refresh_text_editor_page(win, target_file_path: str = None):
 
             if is_translated:
                 translated_count += 1
-                status = "Çevrildi"
+                status = tr("text_editor_page_extra.status_translated", "Çevrildi")
             else:
-                status = "Çevrilmedi"
+                status = tr("text_editor_page_extra.status_untranslated", "Çevrilmedi")
 
             item = QListWidgetItem()
             item.setSizeHint(QSize(0, 36))
@@ -426,7 +426,10 @@ def refresh_text_editor_page(win, target_file_path: str = None):
             _load_chapter_data_by_item(win, list_widget.item(selected_row))
 
     if hasattr(win, 'editor_chapter_stats_lbl'):
-        win.editor_chapter_stats_lbl.setText(f"Toplam: {total}  •  Çevrilen: {translated_count}  •  Kalan: {total - translated_count}")
+        total_text = tr("text_editor_page_extra.total", "Toplam")
+        translated_text = tr("text_editor_page_extra.translated", "Çevrilen")
+        remaining_text = tr("text_editor_page_extra.remaining", "Kalan")
+        win.editor_chapter_stats_lbl.setText(f"{total_text}: {total}  •  {translated_text}: {translated_count}  •  {remaining_text}: {total - translated_count}")
 
 
 def _filter_chapter_list(win):
@@ -456,8 +459,8 @@ def _load_chapter_data_by_item(win, item):
         return
 
     dwnld_file, trslt_file, filename, is_translated = data
-
-    win.editor_chapter_title.setText(f"Bölüm: {filename}")
+    chapter = tr("text_editor_page_extra.chapter", "Bölüm")
+    win.editor_chapter_title.setText(f"{chapter} {filename}")
 
     # Orijinal metin oku
     src_text = ""
@@ -503,7 +506,10 @@ def _update_counts(text_widget, label_widget):
     chars = len(text)
     words = len(text.split()) if text.strip() else 0
     lines = text.count('\n') + 1 if text else 0
-    label_widget.setText(f"Karakter: {chars:,}  |  Kelime: {words:,}  |  Satır: {lines:,}")
+    karakter = tr("text_editor.karakter", "Karakter")
+    kelime = tr("text_editor.kelime", "Kelime")
+    satır = tr("text_editor.satır", "Satır")
+    label_widget.setText(f"{karakter}: {chars:,}  |  {kelime}: {words:,}  |  {satır}: {lines:,}")
 
 
 def _on_target_text_changed(win):
@@ -512,7 +518,7 @@ def _on_target_text_changed(win):
     win._editor_has_unsaved = (current != getattr(win, '_editor_original_content', ''))
     if win.editor_save_status_lbl:
         if win._editor_has_unsaved:
-            win.editor_save_status_lbl.setText("● Değişiklik var")
+            win.editor_save_status_lbl.setText(tr("text_editor.unsaved_changes", "● Değişiklik var"))
             win.editor_save_status_lbl.setStyleSheet(f"color:{ACCENT_ORANGE}; font-weight:bold;")
         else:
             win.editor_save_status_lbl.setText("")

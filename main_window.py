@@ -481,7 +481,7 @@ class MainWindow(QMainWindow):
         dlg.exec()
 
     def _on_theme_manager_default_changed(self, theme_name: str):
-        apply_theme(QApplication.instance(), theme_name)
+        apply_theme(QApplication.instance(), theme_name, force=True)
         app_logger.info(f"Tema Yöneticisinden tema uygulandı: {theme_name}")
 
     def _on_app_settings_changed(self, settings: dict):
@@ -701,6 +701,8 @@ class MainWindow(QMainWindow):
             app_logger.error(f"UI DB Sync Hatası: {e}")
 
     def refresh_ui_and_theme(self):
+        import time
+        t0 = time.perf_counter()
         self.setWindowTitle(tr("main_window.title", "Novel Çeviri Aracı V3.1.0"))
         if hasattr(self, "project_search_input"):
             self.project_search_input.setPlaceholderText(tr("main_window.search_project_placeholder", "🔍 Proje ara..."))
@@ -723,6 +725,8 @@ class MainWindow(QMainWindow):
         self.update_menu_bar()
         app_settings = load_app_settings()
         apply_theme(QApplication.instance(), app_settings.get("theme", "dark"))
+        t1 = time.perf_counter()
+        app_logger.info(f"refresh_ui_and_theme tamamlandı (Süre: {(t1 - t0)*1000:.1f}ms)")
         self.show_toast(tr("main_window.toast_ui_refreshed_title", "UI Yenilendi"), tr("main_window.toast_ui_refreshed_body", "Dosya listesi ve tema başarıyla yeniden yüklendi."))
 
     def update_rigt_panel(self):

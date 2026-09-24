@@ -101,9 +101,14 @@ class FreeTranslatorsDialog(QDialog):
         self.tab_yandex = self._build_yandex_tab()
         self.tab_proxy = self._build_proxy_tab()
 
-        self.tabs.addTab(self.tab_deepl, "🔵 DeepL")
-        self.tabs.addTab(self.tab_yandex, "🔴 Yandex")
-        self.tabs.addTab(self.tab_proxy, "🛡️ Google Translate (Proxy)")
+        # Sekmeler oluştur
+        self.tab_deepl = self._build_deepl_tab()
+        self.tab_yandex = self._build_yandex_tab()
+        self.tab_proxy = self._build_proxy_tab()
+
+        self.tabs.addTab(self.tab_deepl, tr("free_translators.tab_deepl", "🔵 DeepL"))
+        self.tabs.addTab(self.tab_yandex, tr("free_translators.tab_yandex", "🔴 Yandex"))
+        self.tabs.addTab(self.tab_proxy, tr("free_translators.tab_proxy", "🛡️ Google Translate (Proxy)"))
 
         main_layout.addWidget(self.tabs)
 
@@ -142,25 +147,26 @@ class FreeTranslatorsDialog(QDialog):
 
         # Bilgi kutusu
         info = QLabel(
-            "DeepL Free (:fx) veya DeepL Pro API anahtarlarınızı girin.\n"
-            "Birden fazla anahtar girildiğinde rotasyon etkinleştirilirse round-robin olarak dönüşümlü kullanılır."
+            tr("free_translators.deepl_info",
+               "DeepL Free (:fx) veya DeepL Pro API anahtarlarınızı girin.\n"
+               "Birden fazla anahtar girildiğinde rotasyon etkinleştirilirse round-robin olarak dönüşümlü kullanılır.")
         )
         info.setStyleSheet(f"color: {TEXT_DIM}; font-size: 11px;")
         lay.addWidget(info)
 
         # Anahtar Listesi
-        lay.addWidget(QLabel("Kayıtlı DeepL API Anahtarları:"))
+        lay.addWidget(QLabel(tr("free_translators.deepl_keys_title", "Kayıtlı DeepL API Anahtarları:")))
         self.deepl_list = QListWidget()
         self.deepl_list.setStyleSheet(f"background: {BG_PANEL2}; border: 1px solid {BORDER}; border-radius: 6px;")
         lay.addWidget(self.deepl_list)
 
         # Butonlar (Ekle / Düzenle / Sil)
         btn_row = QHBoxLayout()
-        self.btn_deepl_add = QPushButton("➕ Anahtar Ekle")
+        self.btn_deepl_add = QPushButton(tr("free_translators.btn_add_key", "➕ Anahtar Ekle"))
         self.btn_deepl_add.clicked.connect(self._add_deepl_key)
-        self.btn_deepl_edit = QPushButton("✏️ Düzenle")
+        self.btn_deepl_edit = QPushButton(tr("free_translators.btn_edit_key", "✏️ Düzenle"))
         self.btn_deepl_edit.clicked.connect(self._edit_deepl_key)
-        self.btn_deepl_del = QPushButton("🗑️ Sil")
+        self.btn_deepl_del = QPushButton(tr("free_translators.btn_delete_key", "🗑️ Sil"))
         self.btn_deepl_del.setStyleSheet(f"color: {ACCENT_RED};")
         self.btn_deepl_del.clicked.connect(self._delete_deepl_key)
 
@@ -171,19 +177,19 @@ class FreeTranslatorsDialog(QDialog):
         lay.addLayout(btn_row)
 
         # Rotasyon Switch
-        self.deepl_rot_check = QCheckBox("DeepL Anahtar Rotasyonu (Round-Robin)")
+        self.deepl_rot_check = QCheckBox(tr("free_translators.deepl_rot_check", "DeepL Anahtar Rotasyonu (Round-Robin)"))
         self.deepl_rot_check.setStyleSheet(f"color: {TEXT_MAIN}; font-weight: 600; font-size: 12px;")
         lay.addWidget(self.deepl_rot_check)
 
         # Test Bölümü
-        test_group = QGroupBox("Bağlantı Testi")
+        test_group = QGroupBox(tr("free_translators.test_group", "Bağlantı Testi"))
         test_group.setStyleSheet(f"QGroupBox {{ color: {TEXT_MAIN}; border: 1px solid {BORDER}; border-radius: 6px; margin-top: 6px; padding: 10px; }}")
         t_lay = QVBoxLayout(test_group)
         t_row = QHBoxLayout()
 
         self.deepl_test_input = QLineEdit()
-        self.deepl_test_input.setPlaceholderText("Test edilecek DeepL API Key (veya listeden seçin)")
-        self.btn_deepl_test = QPushButton("🔗 Test Et")
+        self.deepl_test_input.setPlaceholderText(tr("free_translators.deepl_test_placeholder", "Test edilecek DeepL API Key (veya listeden seçin)"))
+        self.btn_deepl_test = QPushButton(tr("free_translators.btn_test", "🔗 Test Et"))
         self.btn_deepl_test.setStyleSheet(f"background-color: {ACCENT_ORANGE}; color: white; font-weight: bold; padding: 6px 14px;")
         self.btn_deepl_test.clicked.connect(self._test_deepl)
 
@@ -213,25 +219,26 @@ class FreeTranslatorsDialog(QDialog):
 
         # Bilgi kutusu
         info = QLabel(
-            "Yandex Sözlük ('dict.1.1...') veya Yandex Çeviri API anahtarlarınızı girin.\n"
-            "Anahtar girilmezse veya geçersizse sistem otomatik olarak MyMemory Translator fallback kullanır."
+            tr("free_translators.yandex_info",
+               "Yandex Sözlük ('dict.1.1...') veya Yandex Çeviri API anahtarlarınızı girin.\n"
+               "Anahtar girilmezse veya geçersizse sistem otomatik olarak MyMemory Translator fallback kullanır.")
         )
         info.setStyleSheet(f"color: {TEXT_DIM}; font-size: 11px;")
         lay.addWidget(info)
 
         # Anahtar Listesi
-        lay.addWidget(QLabel("Kayıtlı Yandex API Anahtarları:"))
+        lay.addWidget(QLabel(tr("free_translators.yandex_keys_title", "Kayıtlı Yandex API Anahtarları:")))
         self.yandex_list = QListWidget()
         self.yandex_list.setStyleSheet(f"background: {BG_PANEL2}; border: 1px solid {BORDER}; border-radius: 6px;")
         lay.addWidget(self.yandex_list)
 
         # Butonlar
         btn_row = QHBoxLayout()
-        self.btn_yandex_add = QPushButton("➕ Anahtar Ekle")
+        self.btn_yandex_add = QPushButton(tr("free_translators.btn_add_key", "➕ Anahtar Ekle"))
         self.btn_yandex_add.clicked.connect(self._add_yandex_key)
-        self.btn_yandex_edit = QPushButton("✏️ Düzenle")
+        self.btn_yandex_edit = QPushButton(tr("free_translators.btn_edit_key", "✏️ Düzenle"))
         self.btn_yandex_edit.clicked.connect(self._edit_yandex_key)
-        self.btn_yandex_del = QPushButton("🗑️ Sil")
+        self.btn_yandex_del = QPushButton(tr("free_translators.btn_delete_key", "🗑️ Sil"))
         self.btn_yandex_del.setStyleSheet(f"color: {ACCENT_RED};")
         self.btn_yandex_del.clicked.connect(self._delete_yandex_key)
 
@@ -242,19 +249,19 @@ class FreeTranslatorsDialog(QDialog):
         lay.addLayout(btn_row)
 
         # Rotasyon Switch
-        self.yandex_rot_check = QCheckBox("Yandex Anahtar Rotasyonu (Round-Robin)")
+        self.yandex_rot_check = QCheckBox(tr("free_translators.yandex_rot_check", "Yandex Anahtar Rotasyonu (Round-Robin)"))
         self.yandex_rot_check.setStyleSheet(f"color: {TEXT_MAIN}; font-weight: 600; font-size: 12px;")
         lay.addWidget(self.yandex_rot_check)
 
         # Test Bölümü
-        test_group = QGroupBox("Bağlantı Testi")
+        test_group = QGroupBox(tr("free_translators.test_group", "Bağlantı Testi"))
         test_group.setStyleSheet(f"QGroupBox {{ color: {TEXT_MAIN}; border: 1px solid {BORDER}; border-radius: 6px; margin-top: 6px; padding: 10px; }}")
         t_lay = QVBoxLayout(test_group)
         t_row = QHBoxLayout()
 
         self.yandex_test_input = QLineEdit()
-        self.yandex_test_input.setPlaceholderText("Test edilecek Yandex API Key (veya listeden seçin)")
-        self.btn_yandex_test = QPushButton("🔗 Test Et")
+        self.yandex_test_input.setPlaceholderText(tr("free_translators.yandex_test_placeholder", "Test edilecek Yandex API Key (veya listeden seçin)"))
+        self.btn_yandex_test = QPushButton(tr("free_translators.btn_test", "🔗 Test Et"))
         self.btn_yandex_test.setStyleSheet(f"background-color: {ACCENT_ORANGE}; color: white; font-weight: bold; padding: 6px 14px;")
         self.btn_yandex_test.clicked.connect(self._test_yandex)
 
@@ -283,8 +290,9 @@ class FreeTranslatorsDialog(QDialog):
         lay.setSpacing(10)
 
         info = QLabel(
-            "Google Translate isteklerinin IP engeline takılmaması için proxy ekleyin.\n"
-            "Desteklenen türler: HTTP, HTTPS, SOCKS4, SOCKS5 (kullanıcı adı ve şifre opsiyoneldir)."
+            tr("free_translators.proxy_info",
+               "Google Translate isteklerinin IP engeline takılmaması için proxy ekleyin.\n"
+               "Desteklenen türler: HTTP, HTTPS, SOCKS4, SOCKS5 (kullanıcı adı ve şifre opsiyoneldir).")
         )
         info.setStyleSheet(f"color: {TEXT_DIM}; font-size: 11px;")
         lay.addWidget(info)
@@ -292,7 +300,13 @@ class FreeTranslatorsDialog(QDialog):
         # Proxy Tablosu
         self.proxy_table = QTableWidget()
         self.proxy_table.setColumnCount(5)
-        self.proxy_table.setHorizontalHeaderLabels(["Aktif", "Tür", "Host", "Port", "Kullanıcı Adı"])
+        self.proxy_table.setHorizontalHeaderLabels([
+            tr("free_translators.col_active", "Aktif"),
+            tr("free_translators.col_type", "Tür"),
+            tr("free_translators.col_host", "Host"),
+            tr("free_translators.col_port", "Port"),
+            tr("free_translators.col_username", "Kullanıcı Adı")
+        ])
         self.proxy_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         self.proxy_table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
         self.proxy_table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
@@ -303,48 +317,46 @@ class FreeTranslatorsDialog(QDialog):
         lay.addWidget(self.proxy_table)
 
         # Form Alanları (Düzenleme / Ekleme için)
-        form_box = QGroupBox("Proxy Bilgileri (Ekle / Düzenle)")
+        form_box = QGroupBox(tr("free_translators.proxy_form_title", "Proxy Bilgileri (Ekle / Düzenle)"))
         form_box.setStyleSheet(f"QGroupBox {{ color: {TEXT_MAIN}; border: 1px solid {BORDER}; border-radius: 6px; padding: 10px; }}")
         f_lay = QFormLayout(form_box)
 
         self.p_type_combo = QComboBox()
         self.p_type_combo.addItems(["http", "https", "socks4", "socks5"])
         self.p_host_input = QLineEdit()
-        self.p_host_input.setPlaceholderText("örn: 185.147.69.48")
+        self.p_host_input.setPlaceholderText(tr("free_translators.placeholder_host", "örn: 185.147.69.48"))
         self.p_port_input = QSpinBox()
         self.p_port_input.setRange(1, 65535)
         self.p_port_input.setValue(1080)
         self.p_user_input = QLineEdit()
-        self.p_user_input.setPlaceholderText("Opsiyonel")
+        self.p_user_input.setPlaceholderText(tr("free_translators.placeholder_optional", "Opsiyonel"))
         self.p_pass_input = QLineEdit()
-        self.p_pass_input.setPlaceholderText("Opsiyonel")
+        self.p_pass_input.setPlaceholderText(tr("free_translators.placeholder_optional", "Opsiyonel"))
         self.p_pass_input.setEchoMode(QLineEdit.EchoMode.Password)
 
-        f_lay.addRow("Proxy Türü:", self.p_type_combo)
-        f_lay.addRow("Sunucu (Host):", self.p_host_input)
-        f_lay.addRow("Port:", self.p_port_input)
-        f_lay.addRow("Kullanıcı Adı:", self.p_user_input)
-        f_lay.addRow("Şifre:", self.p_pass_input)
+        f_lay.addRow(tr("free_translators.lbl_proxy_type", "Proxy Türü:"), self.p_type_combo)
+        f_lay.addRow(tr("free_translators.lbl_proxy_host", "Sunucu (Host):"), self.p_host_input)
+        f_lay.addRow(tr("free_translators.lbl_proxy_port", "Port:"), self.p_port_input)
+        f_lay.addRow(tr("free_translators.lbl_proxy_user", "Kullanıcı Adı:"), self.p_user_input)
+        f_lay.addRow(tr("free_translators.lbl_proxy_pass", "Şifre:"), self.p_pass_input)
 
         lay.addWidget(form_box)
 
         # Tablo Alt Butonları
         btn_bar = QHBoxLayout()
-        self.btn_proxy_add = QPushButton("➕ Yeni Proxy Ekle")
+        self.btn_proxy_add = QPushButton(tr("free_translators.btn_proxy_add", "➕ Yeni Proxy Ekle"))
         self.btn_proxy_add.clicked.connect(self._add_proxy)
-        self.btn_proxy_update = QPushButton("💾 Seçiliyi Güncelle")
+        self.btn_proxy_update = QPushButton(tr("free_translators.btn_proxy_update", "💾 Seçiliyi Güncelle"))
         self.btn_proxy_update.clicked.connect(self._update_selected_proxy)
-        self.btn_proxy_del = QPushButton("🗑️ Sil")
+        self.btn_proxy_del = QPushButton(tr("free_translators.btn_proxy_delete", "🗑️ Sil"))
         self.btn_proxy_del.setStyleSheet(f"color: {ACCENT_RED};")
         self.btn_proxy_del.clicked.connect(self._delete_selected_proxy)
-        self.btn_proxy_set_active = QPushButton("⭐ Aktif Yap")
+        self.btn_proxy_set_active = QPushButton(tr("free_translators.btn_proxy_set_active", "⭐ Aktif Yap"))
         self.btn_proxy_set_active.setStyleSheet(f"background-color: {ACCENT_GREEN}; color: white; font-weight: bold;")
         self.btn_proxy_set_active.clicked.connect(self._set_active_proxy)
 
-        self.btn_proxy_test = QPushButton("🔗 Bu Proxy'yi Test Et")
+        self.btn_proxy_test = QPushButton(tr("free_translators.btn_proxy_test", "🔗 Bu Proxy'yi Test Et"))
         self.btn_proxy_test.setStyleSheet(f"background-color: {ACCENT_ORANGE}; color: white; font-weight: bold;")
-        self.btn_proxy_test.clicked.connect(self._test_current_proxy)
-
         btn_bar.addWidget(self.btn_proxy_add)
         btn_bar.addWidget(self.btn_proxy_update)
         btn_bar.addWidget(self.btn_proxy_del)
@@ -398,8 +410,11 @@ class FreeTranslatorsDialog(QDialog):
     # -------------------------------------------------------------------------
     # DeepL Eylemleri
     # -------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
+    # DeepL Eylemleri
+    # -------------------------------------------------------------------------
     def _add_deepl_key(self):
-        text, ok = QInputDialog.getText(self, "DeepL Anahtarı Ekle", "Yeni DeepL API Anahtarı:")
+        text, ok = QInputDialog.getText(self, tr("free_translators.add_deepl_key_title", "DeepL Anahtarı Ekle"), tr("free_translators.label_api_key_prompt", "Yeni DeepL API Anahtarı:"))
         if ok and text.strip():
             key = text.strip()
             self.deepl_list.addItem(key)
@@ -408,9 +423,9 @@ class FreeTranslatorsDialog(QDialog):
     def _edit_deepl_key(self):
         cur = self.deepl_list.currentItem()
         if not cur:
-            QMessageBox.information(self, "Bilgi", "Lütfen düzenlenecek anahtarı seçin.")
+            QMessageBox.information(self, tr("free_translators.msg_info", "Bilgi"), tr("free_translators.msg_select_key_to_edit", "Lütfen düzenlenecek anahtarı seçin."))
             return
-        text, ok = QInputDialog.getText(self, "DeepL Anahtarını Düzenle", "API Anahtarı:", text=cur.text())
+        text, ok = QInputDialog.getText(self, tr("free_translators.edit_deepl_key_title", "DeepL Anahtarını Düzenle"), tr("free_translators.label_api_key_prompt", "API Anahtarı:"), text=cur.text())
         if ok and text.strip():
             cur.setText(text.strip())
             self.deepl_test_input.setText(text.strip())
@@ -418,19 +433,19 @@ class FreeTranslatorsDialog(QDialog):
     def _delete_deepl_key(self):
         cur_row = self.deepl_list.currentRow()
         if cur_row < 0:
-            QMessageBox.information(self, "Bilgi", "Lütfen silinecek anahtarı seçin.")
+            QMessageBox.information(self, tr("free_translators.msg_info", "Bilgi"), tr("free_translators.msg_select_key_to_delete", "Lütfen silinecek anahtarı seçin."))
             return
-        if QMessageBox.question(self, "Onay", "Bu anahtarı silmek istediğinize emin misiniz?") == QMessageBox.StandardButton.Yes:
+        if QMessageBox.question(self, tr("free_translators.msg_confirm", "Onay"), tr("free_translators.msg_confirm_delete_key", "Bu anahtarı silmek istediğinize emin misiniz?")) == QMessageBox.StandardButton.Yes:
             self.deepl_list.takeItem(cur_row)
             self.deepl_test_input.clear()
 
     def _test_deepl(self):
         key = self.deepl_test_input.text().strip()
         if not key:
-            QMessageBox.warning(self, "Uyarı", "Lütfen test edilecek bir DeepL API anahtarı girin.")
+            QMessageBox.warning(self, tr("free_translators.msg_warning", "Uyarı"), tr("free_translators.msg_enter_deepl_key", "Lütfen test edilecek bir DeepL API anahtarı girin."))
             return
 
-        self.deepl_test_result.setText("⏳ DeepL bağlantısı test ediliyor...")
+        self.deepl_test_result.setText(tr("free_translators.testing_deepl", "⏳ DeepL bağlantısı test ediliyor..."))
         self.deepl_test_result.setStyleSheet(f"color: {ACCENT_ORANGE}; font-weight: 600;")
         QApplication.processEvents()
 
@@ -446,7 +461,7 @@ class FreeTranslatorsDialog(QDialog):
     # Yandex Eylemleri
     # -------------------------------------------------------------------------
     def _add_yandex_key(self):
-        text, ok = QInputDialog.getText(self, "Yandex Anahtarı Ekle", "Yeni Yandex API Anahtarı:")
+        text, ok = QInputDialog.getText(self, tr("free_translators.add_yandex_key_title", "Yandex Anahtarı Ekle"), tr("free_translators.label_api_key_prompt", "Yeni Yandex API Anahtarı:"))
         if ok and text.strip():
             key = text.strip()
             self.yandex_list.addItem(key)
@@ -455,9 +470,9 @@ class FreeTranslatorsDialog(QDialog):
     def _edit_yandex_key(self):
         cur = self.yandex_list.currentItem()
         if not cur:
-            QMessageBox.information(self, "Bilgi", "Lütfen düzenlenecek anahtarı seçin.")
+            QMessageBox.information(self, tr("free_translators.msg_info", "Bilgi"), tr("free_translators.msg_select_key_to_edit", "Lütfen düzenlenecek anahtarı seçin."))
             return
-        text, ok = QInputDialog.getText(self, "Yandex Anahtarını Düzenle", "API Anahtarı:", text=cur.text())
+        text, ok = QInputDialog.getText(self, tr("free_translators.edit_yandex_key_title", "Yandex Anahtarını Düzenle"), tr("free_translators.label_api_key_prompt", "API Anahtarı:"), text=cur.text())
         if ok and text.strip():
             cur.setText(text.strip())
             self.yandex_test_input.setText(text.strip())
@@ -465,19 +480,19 @@ class FreeTranslatorsDialog(QDialog):
     def _delete_yandex_key(self):
         cur_row = self.yandex_list.currentRow()
         if cur_row < 0:
-            QMessageBox.information(self, "Bilgi", "Lütfen silinecek anahtarı seçin.")
+            QMessageBox.information(self, tr("free_translators.msg_info", "Bilgi"), tr("free_translators.msg_select_key_to_delete", "Lütfen silinecek anahtarı seçin."))
             return
-        if QMessageBox.question(self, "Onay", "Bu anahtarı silmek istediğinize emin misiniz?") == QMessageBox.StandardButton.Yes:
+        if QMessageBox.question(self, tr("free_translators.msg_confirm", "Onay"), tr("free_translators.msg_confirm_delete_key", "Bu anahtarı silmek istediğinize emin misiniz?")) == QMessageBox.StandardButton.Yes:
             self.yandex_list.takeItem(cur_row)
             self.yandex_test_input.clear()
 
     def _test_yandex(self):
         key = self.yandex_test_input.text().strip()
         if not key:
-            QMessageBox.warning(self, "Uyarı", "Lütfen test edilecek bir Yandex API anahtarı girin.")
+            QMessageBox.warning(self, tr("free_translators.msg_warning", "Uyarı"), tr("free_translators.msg_enter_yandex_key", "Lütfen test edilecek bir Yandex API anahtarı girin."))
             return
 
-        self.yandex_test_result.setText("⏳ Yandex bağlantısı test ediliyor...")
+        self.yandex_test_result.setText(tr("free_translators.testing_yandex", "⏳ Yandex bağlantısı test ediliyor..."))
         self.yandex_test_result.setStyleSheet(f"color: {ACCENT_ORANGE}; font-weight: 600;")
         QApplication.processEvents()
 
@@ -506,7 +521,7 @@ class FreeTranslatorsDialog(QDialog):
     def _get_form_proxy_dict(self) -> dict | None:
         host = self.p_host_input.text().strip()
         if not host:
-            QMessageBox.warning(self, "Eksik Bilgi", "Lütfen proxy sunucu (host) adresini girin.")
+            QMessageBox.warning(self, tr("free_translators.msg_warning", "Eksik Bilgi"), tr("free_translators.msg_enter_proxy_host", "Lütfen proxy sunucu (host) adresini girin."))
             return None
         return {
             "id": str(uuid.uuid4())[:8],
@@ -543,20 +558,20 @@ class FreeTranslatorsDialog(QDialog):
             self._refresh_proxy_table()
             self.proxy_table.selectRow(row)
         else:
-            QMessageBox.information(self, "Bilgi", "Lütfen güncellenecek bir proxy seçin.")
+            QMessageBox.information(self, tr("free_translators.msg_info", "Bilgi"), tr("free_translators.msg_select_proxy_to_update", "Lütfen güncellenecek bir proxy seçin."))
 
     def _delete_selected_proxy(self):
         row = self.proxy_table.currentRow()
         proxies = self.config_data.get("proxies", [])
         if 0 <= row < len(proxies):
-            if QMessageBox.question(self, "Onay", "Seçili proxy'yi silmek istediğinize emin misiniz?") == QMessageBox.StandardButton.Yes:
+            if QMessageBox.question(self, tr("free_translators.msg_confirm", "Onay"), tr("free_translators.msg_confirm_delete_proxy", "Seçili proxy'yi silmek istediğinize emin misiniz?")) == QMessageBox.StandardButton.Yes:
                 removed = proxies.pop(row)
                 if removed.get("active") and proxies:
                     proxies[0]["active"] = True
                 self._refresh_proxy_table()
                 self._clear_proxy_form()
         else:
-            QMessageBox.information(self, "Bilgi", "Lütfen silinecek bir proxy seçin.")
+            QMessageBox.information(self, tr("free_translators.msg_info", "Bilgi"), tr("free_translators.msg_select_proxy_to_delete", "Lütfen silinecek bir proxy seçin."))
 
     def _set_active_proxy(self):
         row = self.proxy_table.currentRow()
@@ -567,7 +582,7 @@ class FreeTranslatorsDialog(QDialog):
             self._refresh_proxy_table()
             self.proxy_table.selectRow(row)
         else:
-            QMessageBox.information(self, "Bilgi", "Lütfen aktif yapılacak bir proxy seçin.")
+            QMessageBox.information(self, tr("free_translators.msg_info", "Bilgi"), tr("free_translators.msg_select_proxy_to_activate", "Lütfen aktif yapılacak bir proxy seçin."))
 
     def _clear_proxy_form(self):
         self.p_host_input.clear()
@@ -580,7 +595,7 @@ class FreeTranslatorsDialog(QDialog):
         if not p:
             return
 
-        self.proxy_test_result.setText("⏳ Proxy üzerinden bağlantı test ediliyor...")
+        self.proxy_test_result.setText(tr("free_translators.testing_proxy", "⏳ Proxy üzerinden bağlantı test ediliyor..."))
         self.proxy_test_result.setStyleSheet(f"color: {ACCENT_ORANGE}; font-weight: 600;")
         QApplication.processEvents()
 
@@ -631,7 +646,7 @@ class FreeTranslatorsDialog(QDialog):
 
         success = save_free_translators_config(to_save)
         if success:
-            QMessageBox.information(self, "Başarılı", "Çevirici ve proxy ayarları başarıyla kaydedildi.")
+            QMessageBox.information(self, tr("free_translators.msg_info", "Başarılı"), tr("free_translators.msg_save_success", "Çevirici ve proxy ayarları başarıyla kaydedildi."))
             self.accept()
         else:
-            QMessageBox.critical(self, "Hata", "Ayarlar kaydedilirken bir hata oluştu.")
+            QMessageBox.critical(self, tr("free_translators.msg_error", "Hata"), tr("free_translators.msg_save_error", "Ayarlar kaydedilirken bir hata oluştu."))

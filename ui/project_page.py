@@ -130,17 +130,17 @@ def _build_project_list_side(win) -> QWidget:
 
     toolbar.addStretch()
 
-    refresh_btn = QPushButton("⟳  Yenile")
+    refresh_btn = QPushButton(tr("project_page_extra.btn_refresh", "⟳  Yenile"))
     refresh_btn.setObjectName("smallBtn")
     refresh_btn.clicked.connect(win.load_existing_projects)
     toolbar.addWidget(refresh_btn)
 
-    new_btn = QPushButton("+  Yeni Proje")
+    new_btn = QPushButton(tr("project_page_extra.btn_new_project", "+  Yeni Proje"))
     new_btn.setObjectName("primaryBtn")
     new_btn.clicked.connect(win.new_project_clicked)
     toolbar.addWidget(new_btn)
 
-    del_btn = QPushButton("🗑  Sil")
+    del_btn = QPushButton(tr("project_page_extra.btn_delete", "🗑  Sil"))
     del_btn.setObjectName("dangerBtn")
     del_btn.clicked.connect(win.delete_project_clicked)
     toolbar.addWidget(del_btn)
@@ -152,9 +152,9 @@ def _build_project_list_side(win) -> QWidget:
     stats_row.setSpacing(10)
     total_count, active_count, done_count = _count_projects()
 
-    win.proj_page_total_card  = _stat_card("Toplam Proje", str(total_count))
-    win.proj_page_active_card = _stat_card("Aktif", str(active_count), ACCENT_GREEN)
-    win.proj_page_done_card   = _stat_card("Tamamlanan", str(done_count), ACCENT_BLUE)
+    win.proj_page_total_card  = _stat_card(tr("project_page_extra.stat_total_projects", "Toplam Proje"), str(total_count))
+    win.proj_page_active_card = _stat_card(tr("project_page_extra.stat_active_projects", "Aktif"), str(active_count), ACCENT_GREEN)
+    win.proj_page_done_card   = _stat_card(tr("project_page_extra.stat_completed_projects", "Tamamlanan"), str(done_count), ACCENT_BLUE)
     stats_row.addWidget(win.proj_page_total_card)
     stats_row.addWidget(win.proj_page_active_card)
     stats_row.addWidget(win.proj_page_done_card)

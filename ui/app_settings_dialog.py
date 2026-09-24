@@ -89,7 +89,10 @@ def save_app_settings(settings: dict):
         app_logger.error(f"app_settings.json kaydedilemedi: {e}")
 
 
-def apply_theme(app, theme_name: str):
+_CURRENT_APPLIED_THEME = None
+
+
+def apply_theme(app, theme_name: str, force: bool = False):
     """
     Üç aşamalı tema motoru:
       0. Özel JSON tema: ThemeEngine ile token → QSS dönüşümü (öncelikli)
@@ -99,9 +102,18 @@ def apply_theme(app, theme_name: str):
 
     qt-material yüklü değilse graceful fallback: sadece özel QSS kullanılır.
     """
+    global _CURRENT_APPLIED_THEME
+    import time
+    t0 = time.perf_counter()
+
+    if not force and _CURRENT_APPLIED_THEME == theme_name:
+        app_logger.debug(f"Tema zaten aktif ({theme_name}), yeniden uygulama atlandı.")
+        return
+
     if theme_name == "system":
         app.setStyleSheet("")
-        app_logger.info("Tema: Sistem varsayılanı uygulandı.")
+        _CURRENT_APPLIED_THEME = "system"
+        app_logger.info(f"Tema: Sistem varsayılanı uygulandı. (Süre: {(time.perf_counter() - t0)*1000:.1f}ms)")
         return
 
     # -- Aşama 0: Özel JSON tema kontrolü --
@@ -112,7 +124,8 @@ def apply_theme(app, theme_name: str):
             tokens = load_theme_tokens(theme_name)
             custom_qss = tokens_to_qss(tokens)
             app.setStyleSheet(custom_qss)
-            app_logger.info(f"Özel JSON teması uygulandı: {theme_name}")
+            _CURRENT_APPLIED_THEME = theme_name
+            app_logger.info(f"Özel JSON teması uygulandı: {theme_name} (Süre: {(time.perf_counter() - t0)*1000:.1f}ms)")
             return
         except Exception as e:
             app_logger.error(f"Özel JSON teması uygulanamadı ({theme_name}): {e}")
@@ -162,6 +175,9 @@ def apply_theme(app, theme_name: str):
     else:
         if not material_applied:
             app_logger.warning(f"Tema dosyası bulunamadı ve qt-material yüklü değil: {theme_file}")
+
+    _CURRENT_APPLIED_THEME = theme_name
+    app_logger.info(f"Tema başarıyla uygulandı: {theme_name} (Toplam Süre: {(time.perf_counter() - t0)*1000:.1f}ms)")
 
 
 
@@ -591,6 +607,10 @@ class AppSettingsDialog(QDialog):
     # Kaydet 
 
     def _apply_settings(self):
+        import time
+        t_start = time.perf_counter()
+        app_logger.info("Ayarları kaydetme işlemi başladı...")
+
         self.settings["theme"] = self.theme_combo.currentData()
         self.settings["notifications_enabled"] = self.notif_combo.currentIndex() == 0
         self.settings["log_level"] = self.log_combo.currentText()
@@ -615,21 +635,34 @@ class AppSettingsDialog(QDialog):
         else:
             self.settings["ml_extractor_prompt_override"] = self.ml_extractor_override_edit.toPlainText()
 
+        t_collect = time.perf_counter()
+        app_logger.debug(f"[Ayar Kayıt] Form verileri toplandı: {(t_collect - t_start)*1000:.1f}ms")
+
         save_app_settings(self.settings)
+        t_save = time.perf_counter()
+        app_logger.debug(f"[Ayar Kayıt] app_settings.json kaydedildi: {(t_save - t_collect)*1000:.1f}ms")
+
         from logger import set_app_log_level
         set_app_log_level(self.settings["log_level"])
         from core.localization import reload_translations
         reload_translations()
+        t_loc = time.perf_counter()
+        app_logger.debug(f"[Ayar Kayıt] Log seviyesi & çeviriler güncellendi: {(t_loc - t_save)*1000:.1f}ms")
+
         self.settings_changed.emit(self.settings)
-        app_logger.info(
-            f"Uygulama ayarları kaydedildi: tema={self.settings['theme']}, "
-            f"ml_max_tokens={self.settings['ml_max_tokens']}, "
-            f"promt_generator_max_tokens={self.settings['promt_generator_max_tokens']}, "
-            f"language={self.settings['language']}"
-        )
-        QMessageBox.information(self, tr("app_settings.msg_settings_saved_title", "Kaydedildi"), tr("app_settings.msg_settings_saved_body", "Ayarlar başarıyla kaydedildi ve uygulandı."))
+        t_emit = time.perf_counter()
+        app_logger.debug(f"[Ayar Kayıt] settings_changed sinyali yayımlandı: {(t_emit - t_loc)*1000:.1f}ms")
+
         if self.win and hasattr(self.win, "refresh_ui_and_theme"):
             self.win.refresh_ui_and_theme()
+        t_refresh = time.perf_counter()
+        app_logger.debug(f"[Ayar Kayıt] Ana pencere UI yenilendi: {(t_refresh - t_emit)*1000:.1f}ms")
+
+        app_logger.info(
+            f"Uygulama ayarları başarıyla kaydedildi ve uygulandı (Toplam Süre: {(t_refresh - t_start)*1000:.1f}ms): "
+            f"tema={self.settings['theme']}, language={self.settings['language']}, log_level={self.settings['log_level']}"
+        )
+        QMessageBox.information(self, tr("app_settings.msg_settings_saved_title", "Kaydedildi"), tr("app_settings.msg_settings_saved_body", "Ayarlar başarıyla kaydedildi ve uygulandı."))
 
     def get_settings(self) -> dict:
         return self.settings

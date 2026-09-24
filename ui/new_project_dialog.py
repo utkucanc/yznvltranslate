@@ -246,7 +246,7 @@ class NewProjectDialog(QDialog):
         self.model_combo = QComboBox()
         self._populate_models()
         col.addWidget(self.model_combo)
-        col.addWidget(self._hint_label("Proje ayarlarından daha sonra değiştirilebilir."))
+        col.addWidget(self._hint_label(tr("new_project.model_exp", "Proje ayarlarından daha sonra değiştirilebilir.")))
 
         # Parallel Workers slider
         workers_hdr = QHBoxLayout()
