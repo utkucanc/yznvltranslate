@@ -115,3 +115,5 @@ Yeni projeler `Project/<ProjeAdı>/` dizini altında otomatik oluşturulur:
 | 2.1.0 | Paragraf Bazlı Çeviri, Toplu Çeviri (Batch Mode) ve Asenkron (Paralel) Çeviri Desteği. |
 | 2.0.0 | MCP Mimarisi, Prompt Generator, Translation Cache, Terminology Memory, Yeni GenAI SDK, CJK Çeviri Hata Kontrolü. |
 | 1.9.9 | `logger.py` ile Otomatik Loglama Sistemi, Donma ve Token Kaybı Düzeltmeleri. |
+
+![alt](https://github.com/utkucanc/yznvltranslate/blob/main/diagram.png?raw=true)

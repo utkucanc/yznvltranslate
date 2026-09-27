@@ -61,7 +61,7 @@ if sys.stdout and hasattr(sys.stdout, "reconfigure"):
 # --- Bilgilendirme ve Yardım Metni ---
 HELP_BANNER = """
 ======================================================================
-  Novel Çeviri Aracı (v3.1.0) - cx_Freeze Dağıtım Sistemi
+  Novel Çeviri Aracı (v3.1.1) - cx_Freeze Dağıtım Sistemi
 ======================================================================
 Komutlar:
   1. python setup.py build         -> Taşınabilir klasör (Portable)
@@ -101,8 +101,8 @@ elif "zip" in sys.argv:
 from cx_Freeze import setup, Executable
 
 APP_NAME = "NovelCeviriAraci"
-APP_VERSION = "3.0.0"
-APP_TITLE = "Novel Çeviri Aracı v3.1.0"
+APP_VERSION = "3.1.1"
+APP_TITLE = "Novel Çeviri Aracı v3.1.1"
 AUTHOR = "UtkuCanC"
 AUTHOR_EMAIL = "utkucancanatan@gmail.com"
 MAIN_SCRIPT = "main_window.py"
@@ -128,15 +128,16 @@ try:
         "core",
         "core.chapter_check_worker",
         "core.database_manager",
-        "core.download_controller",
         "core.file_list_manager",
         "core.free_translators",
-        "core.js_create",
         "core.llm_provider",
         "core.localization",
         "core.merge_controller",
+        "core.path_resolver",
         "core.process_controller",
         "core.project_manager",
+        "core.startup_worker",
+        "core.temizlik",
         "core.theme_defaultCreate",
         "core.theme_engine",
         "core.token_controller",
@@ -147,7 +148,6 @@ try:
         # Core Workers
         "core.workers",
         "core.workers.cleaning_worker",
-        "core.workers.download_worker",
         "core.workers.epub_worker",
         "core.workers.jsonoutput",
         "core.workers.local_token_count_worker",
@@ -161,14 +161,12 @@ try:
         "core.workers.token_counter",
         "core.workers.translation_error_check_worker",
         "core.workers.translation_quality_checker",
-        "core.workers.translation_worker",
 
         # UI Modülleri
         "ui",
         "ui.api_key_editor_dialog",
         "ui.api_stats_dialog",
         "ui.app_settings_dialog",
-        "ui.automation_setup_dialog",
         "ui.connection_bar_builder",
         "ui.dark_theme",
         "ui.dashboard_page",
@@ -181,14 +179,13 @@ try:
         "ui.menu_bar_builder",
         "ui.ml_terminology_range_dialog",
         "ui.new_project_dialog",
-        "ui.post_download_dialog",
         "ui.project_page",
         "ui.project_settings_dialog",
         "ui.prompt_editor_dialog",
         "ui.request_counter_manager",
         "ui.right_panel_builder",
-        "ui.selenium_menu_dialog",
         "ui.sidebar_builder",
+        "ui.splash_screen",
         "ui.split_dialogs",
         "ui.stats_chart_widget",
         "ui.status_bar_manager",
@@ -209,8 +206,6 @@ try:
     packages = [
         "PyQt6",
         "requests",
-        "selenium",
-        "webdriver_manager",
         "google.genai",
         "transformers",
         "matplotlib",
@@ -245,12 +240,8 @@ try:
     add_file_if_exists("logo64.ico", "logo64.ico")
     add_file_if_exists("logo256.ico", "logo256.ico")
 
-    # Scraper (Kazıyıcı) JavaScript Dosyaları
-    add_file_if_exists("69shuba.js", "69shuba.js")
-    add_file_if_exists("booktoki.js", "booktoki.js")
-    add_file_if_exists("novelfire.js", "novelfire.js")
-
-    # Yapılandırma, Dil ve Tema Klasörleri
+    # Yapılandırma, Terminoloji, Dil ve Tema Klasörleri
+    add_file_if_exists("config", "config")
     add_file_if_exists("AppConfigs/themes", "AppConfigs/themes")
     add_file_if_exists("AppConfigs/locales", "AppConfigs/locales")
     add_file_if_exists("AppConfigs/Promts", "AppConfigs/Promts")

@@ -114,3 +114,5 @@ New projects are automatically created under `Project/<ProjectName>/`:
 | 2.1.0 | Paragraph-Based Translation, Batch Mode, and Async Parallel Workers. |
 | 2.0.0 | MCP Architecture, Prompt Generator, Translation Cache, Terminology Memory, New GenAI SDK, CJK Quality Checker. |
 | 1.9.9 | Automated Logging with `logger.py`, performance and token calculation bugfixes. |
+
+![alt](https://github.com/utkucanc/yznvltranslate/blob/main/diagram.png?raw=true)
