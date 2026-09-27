@@ -21,6 +21,7 @@ hiddenimports = [
     # Proje modülleri - Kök & Core
     "dialogs",
     "logger",
+    "sqlite3",
     "core",
     "core.chapter_check_worker",
     "core.database_manager",

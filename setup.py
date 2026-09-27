@@ -123,6 +123,7 @@ try:
         # Kök Seviye Modüller
         "dialogs",
         "logger",
+        "sqlite3",
 
         # Core Modülleri
         "core",
@@ -205,6 +206,7 @@ try:
     # --------------------------------------------------------------------------
     packages = [
         "PyQt6",
+        "sqlite3",
         "requests",
         "google.genai",
         "transformers",
