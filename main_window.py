@@ -55,7 +55,7 @@ class MainWindow(QMainWindow):
         t0 = time.perf_counter()
         super().__init__()
         self.startup_data = startup_data or {}
-        self.setWindowTitle(tr("main_window.title", "Novel Çeviri Aracı V3.1.0"))
+        self.setWindowTitle(tr("main_window.title", "Novel Çeviri Aracı V3.1.1"))
         self.setWindowIcon(QIcon("logo256.ico"))
         self.setGeometry(100, 100, 1440, 860)
         self.showMaximized()
@@ -703,7 +703,7 @@ class MainWindow(QMainWindow):
     def refresh_ui_and_theme(self):
         import time
         t0 = time.perf_counter()
-        self.setWindowTitle(tr("main_window.title", "Novel Çeviri Aracı V3.1.0"))
+        self.setWindowTitle(tr("main_window.title", "Novel Çeviri Aracı V3.1.1"))
         if hasattr(self, "project_search_input"):
             self.project_search_input.setPlaceholderText(tr("main_window.search_project_placeholder", "🔍 Proje ara..."))
         if hasattr(self, "file_search_input"):

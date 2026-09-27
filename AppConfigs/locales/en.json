@@ -7,7 +7,7 @@
     "promt_part2": "\nANSWER FORMAT:\nsource_term → target_translation"
   },
   "main_window": {
-    "title": "Novel Translation Tool V3.1.0",
+    "title": "Novel Translation Tool V3.1.1",
     "projects": "Projects:",
     "search_project_placeholder": "🔍 Search project...",
     "tooltip_clear_search": "Clear search",
