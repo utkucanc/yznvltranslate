@@ -114,5 +114,13 @@ New projects are automatically created under `Project/<ProjectName>/`:
 | 2.1.0 | Paragraph-Based Translation, Batch Mode, and Async Parallel Workers. |
 | 2.0.0 | MCP Architecture, Prompt Generator, Translation Cache, Terminology Memory, New GenAI SDK, CJK Quality Checker. |
 | 1.9.9 | Automated Logging with `logger.py`, performance and token calculation bugfixes. |
+| 1.9.8 | Fixed general bugs affecting performance (retry_count, statusLabel wordwrap, cx_Freeze base). |
+| 1.9.7 | Added the ability to add sections in bulk (`split_worker.py`). |
+| 1.9.6 | Added the ability to save JS files (JS Save menu). |
+| 1.9.5 | Added the ability to save selected files as an EPUB file. |
+| 1.9.4 | Added a limit on the number of files to be translated (`file_limit`). |
+| 1.9.3 | Added chapter title validation. |
+## License
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Futkucanc%2Fyznvltranslate.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Futkucanc%2Fyznvltranslate?ref=badge_large)
 
 ![alt](https://github.com/utkucanc/yznvltranslate/blob/main/diagram.png?raw=true)

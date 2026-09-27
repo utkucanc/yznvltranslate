@@ -115,5 +115,13 @@ Yeni projeler `Project/<ProjeAdı>/` dizini altında otomatik oluşturulur:
 | 2.1.0 | Paragraf Bazlı Çeviri, Toplu Çeviri (Batch Mode) ve Asenkron (Paralel) Çeviri Desteği. |
 | 2.0.0 | MCP Mimarisi, Prompt Generator, Translation Cache, Terminology Memory, Yeni GenAI SDK, CJK Çeviri Hata Kontrolü. |
 | 1.9.9 | `logger.py` ile Otomatik Loglama Sistemi, Donma ve Token Kaybı Düzeltmeleri. |
+| 1.9.8 | Çalışmayı etkileyen genel hatalar giderildi (retry_count, statusLabel wordwrap, cx_Freeze base). |
+| 1.9.7 | Toplu bölüm ekleme (`split_worker.py`) özelliği eklendi. |
+| 1.9.6 | JS dosyalarını kaydetme özelliği (JS Save menüsü) eklendi. |
+| 1.9.5 | Seçili dosyaların EPUB dosyası olarak kaydı sağlandı. |
+| 1.9.4 | Çevirilecek dosya sayısının sınırlandırılması (`file_limit`) getirildi. |
+| 1.9.3 | Bölüm başlığı kontrolü getirildi. |
+## License
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Futkucanc%2Fyznvltranslate.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Futkucanc%2Fyznvltranslate?ref=badge_large)
 
 ![alt](https://github.com/utkucanc/yznvltranslate/blob/main/diagram.png?raw=true)
