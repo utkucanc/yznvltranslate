@@ -12,7 +12,7 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtGui import QFont, QIcon, QDesktopServices
 from PyQt6.QtCore import Qt, QUrl, QTimer, QPropertyAnimation, QEasingCurve
 from PyQt6.QtWidgets import QGraphicsOpacityEffect
-from core.localization import tr
+from core.localization import tr, tr_log
 
 # Kendi oluşturduğumuz modülleri içe aktarıyoruz
 from dialogs import (
@@ -406,7 +406,7 @@ class MainWindow(QMainWindow):
             from core.theme_defaultCreate import ensure_default_themes
             ensure_default_themes(base_path)
         except Exception as e:
-            app_logger.warning(f"Tema dosyaları oluşturulamadı: {e}")
+            app_logger.warning(tr_log('main_window', 409, f"Tema dosyaları oluşturulamadı: {e}"))
         mcp_file = os.path.join(base_path, "AppConfigs", "MCP_Endpoints.json")
         if not os.path.exists(mcp_file):
             try:
@@ -482,11 +482,11 @@ class MainWindow(QMainWindow):
 
     def _on_theme_manager_default_changed(self, theme_name: str):
         apply_theme(QApplication.instance(), theme_name, force=True)
-        app_logger.info(f"Tema Yöneticisinden tema uygulandı: {theme_name}")
+        app_logger.info(tr_log('main_window', 485, f"Tema Yöneticisinden tema uygulandı: {theme_name}"))
 
     def _on_app_settings_changed(self, settings: dict):
         apply_theme(QApplication.instance(), settings.get("theme", "dark"))
-        app_logger.info("Uygulama ayarları güncellendi.")
+        app_logger.info(tr_log('main_window', 489, "Uygulama ayarları güncellendi."))
 
     # ------------------------------------------------------------------
     # Proje Yönetimi
@@ -698,7 +698,7 @@ class MainWindow(QMainWindow):
                 legacy_flm = FileListManager(self.current_project_path)
                 db_mgr.sync_directory_to_db(legacy_flm)
         except Exception as e:
-            app_logger.error(f"UI DB Sync Hatası: {e}")
+            app_logger.error(tr_log('main_window', 701, f"UI DB Sync Hatası: {e}"))
 
     def refresh_ui_and_theme(self):
         import time
@@ -726,7 +726,7 @@ class MainWindow(QMainWindow):
         app_settings = load_app_settings()
         apply_theme(QApplication.instance(), app_settings.get("theme", "dark"))
         t1 = time.perf_counter()
-        app_logger.info(f"refresh_ui_and_theme tamamlandı (Süre: {(t1 - t0)*1000:.1f}ms)")
+        app_logger.info(tr_log('main_window', 729, f"refresh_ui_and_theme tamamlandı (Süre: {(t1 - t0)*1000:.1f}ms)"))
         self.show_toast(tr("main_window.toast_ui_refreshed_title", "UI Yenilendi"), tr("main_window.toast_ui_refreshed_body", "Dosya listesi ve tema başarıyla yeniden yüklendi."))
 
     def update_rigt_panel(self):
@@ -953,7 +953,7 @@ class MainWindow(QMainWindow):
                 self._tray_icon.activated.connect(self._on_tray_activated)
                 self._tray_icon.show()
         except Exception as e:
-            app_logger.warning(f"Tray ikon kurulamadı: {e}")
+            app_logger.warning(tr_log('main_window', 956, f"Tray ikon kurulamadı: {e}"))
 
     def _on_tray_activated(self, reason):
         from PyQt6.QtWidgets import QSystemTrayIcon
@@ -969,9 +969,9 @@ class MainWindow(QMainWindow):
                 return
             toast = _ToastWidget(title, message, parent=None)
             toast.show_toast()
-            app_logger.info(f"Toast bildirimi gösterildi: {title} — {message}")
+            app_logger.info(tr_log('main_window', 972, f"Toast bildirimi gösterildi: {title} — {message}"))
         except Exception as e:
-            app_logger.debug(f"Toast gösterilemedi: {e}")
+            app_logger.debug(tr_log('main_window', 974, f"Toast gösterilemedi: {e}"))
 
     def _notify_translation_complete(self, total_files: int):
         self.show_toast(

@@ -1,7 +1,7 @@
 {
   "theme": "dark",
   "ml_max_tokens": 50000,
-  "log_level": "INFO",
+  "log_level": "DEBUG",
   "custom_js_sources": [],
   "notifications_enabled": true,
   "promt_generator_max_tokens": 20000,

@@ -1,0 +1,1748 @@
+{
+  "ui": {
+    "app_settings_dialog": [
+      {
+        "line": 78,
+        "level": "warning",
+        "message": "app_settings.json could not be read: {e}"
+      },
+      {
+        "line": 89,
+        "level": "error",
+        "message": "app_settings.json could not be saved: {e}"
+      },
+      {
+        "line": 110,
+        "level": "debug",
+        "message": "Theme already active ({theme_name}), skipping re-application."
+      },
+      {
+        "line": 116,
+        "level": "info",
+        "message": "Theme: System default applied. (Duration: {(time.perf_counter() - t0) * 1000}ms)"
+      },
+      {
+        "line": 128,
+        "level": "info",
+        "message": "Custom JSON theme applied: {theme_name} (Duration: {(time.perf_counter() - t0) * 1000}ms)"
+      },
+      {
+        "line": 131,
+        "level": "error",
+        "message": "Could not apply custom JSON theme ({theme_name}): {e}"
+      },
+      {
+        "line": 149,
+        "level": "info",
+        "message": "qt-material theme applied: {material_theme}"
+      },
+      {
+        "line": 151,
+        "level": "warning",
+        "message": "qt-material is not installed. Falling back to custom QSS. To install: pip install qt-material"
+      },
+      {
+        "line": 156,
+        "level": "error",
+        "message": "Could not apply qt-material: {e}"
+      },
+      {
+        "line": 172,
+        "level": "info",
+        "message": "QSS override layer applied: {override_name}.qss"
+      },
+      {
+        "line": 174,
+        "level": "error",
+        "message": "Could not read theme override file ({override_name}): {e}"
+      },
+      {
+        "line": 177,
+        "level": "warning",
+        "message": "Theme file not found and qt-material is not installed: {theme_file}"
+      },
+      {
+        "line": 180,
+        "level": "info",
+        "message": "Theme successfully applied: {theme_name} (Total Time: {(time.perf_counter() - t0) * 1000}ms)"
+      },
+      {
+        "line": 612,
+        "level": "info",
+        "message": "Settings save process started..."
+      },
+      {
+        "line": 639,
+        "level": "debug",
+        "message": "[Settings Save] Form data collected: {(t_collect - t_start) * 1000}ms"
+      },
+      {
+        "line": 643,
+        "level": "debug",
+        "message": "[Settings Save] app_settings.json saved: {(t_save - t_collect) * 1000}ms"
+      },
+      {
+        "line": 650,
+        "level": "debug",
+        "message": "[Settings Save] Log level & translations updated: {(t_loc - t_save) * 1000}ms"
+      },
+      {
+        "line": 654,
+        "level": "debug",
+        "message": "[Settings Save] settings_changed signal emitted: {(t_emit - t_loc) * 1000}ms"
+      },
+      {
+        "line": 659,
+        "level": "debug",
+        "message": "[Settings Save] Main window UI refreshed: {(t_refresh - t_emit) * 1000}ms"
+      },
+      {
+        "line": 661,
+        "level": "info",
+        "message": "Application settings successfully saved and applied (Total Time: {(t_refresh - t_start) * 1000}ms): theme={self.settings['theme']}, language={self.settings['language']}, log_level={self.settings['log_level']}"
+      }
+    ],
+    "connection_bar_builder": [
+      {
+        "line": 275,
+        "level": "warning",
+        "message": "Could not refresh connection bar: {e}"
+      }
+    ],
+    "dashboard_page": [
+      {
+        "line": 586,
+        "level": "warning",
+        "message": "Could not open Terminology dialog: {e}"
+      }
+    ],
+    "file_table_manager": [
+      {
+        "line": 60,
+        "level": "error",
+        "message": "Error filling table row: {e}"
+      }
+    ],
+    "mcp_server_dialog": [
+      {
+        "line": 204,
+        "level": "debug",
+        "message": "Could not fetch Gemini model list (MCP): {e}"
+      },
+      {
+        "line": 273,
+        "level": "warning",
+        "message": "Could not read key ({name}): {e}"
+      }
+    ],
+    "new_project_dialog": [
+      {
+        "line": 561,
+        "level": "debug",
+        "message": "Warning fetching Gemini model list: {e}"
+      }
+    ],
+    "request_counter_manager": [
+      {
+        "line": 56,
+        "level": "error",
+        "message": "request_stats.json could not be loaded: {e}"
+      },
+      {
+        "line": 65,
+        "level": "error",
+        "message": "request_stats.json could not be saved: {e}"
+      },
+      {
+        "line": 84,
+        "level": "debug",
+        "message": "API request recorded: {today}/{key} = {self._stats[today][key]}"
+      },
+      {
+        "line": 122,
+        "level": "error",
+        "message": "request_count.json could not be loaded: {e}"
+      },
+      {
+        "line": 136,
+        "level": "error",
+        "message": "request_count.json could not be saved: {e}"
+      }
+    ],
+    "sidebar_builder": [
+      {
+        "line": 202,
+        "level": "warning",
+        "message": "Could not open Terminology dialog: {e}"
+      },
+      {
+        "line": 211,
+        "level": "warning",
+        "message": "Could not open prompt editor: {e}"
+      },
+      {
+        "line": 222,
+        "level": "warning",
+        "message": "Could not open text editor: {e}"
+      }
+    ],
+    "text_editor_dialog": [
+      {
+        "line": 41,
+        "level": "info",
+        "message": "Terminology section added for re-translation."
+      },
+      {
+        "line": 43,
+        "level": "warning",
+        "message": "Could not load terminology: {te}"
+      }
+    ],
+    "text_editor_page": [
+      {
+        "line": 570,
+        "level": "info",
+        "message": "Translation Starting: {file_name}"
+      },
+      {
+        "line": 593,
+        "level": "info",
+        "message": "Translation Completed: {file_name}"
+      },
+      {
+        "line": 599,
+        "level": "info",
+        "message": "Translation Error: {err_msg}"
+      },
+      {
+        "line": 615,
+        "level": "info",
+        "message": "Translation Error: {e}"
+      }
+    ],
+    "theme_manager_dialog": [
+      {
+        "line": 646,
+        "level": "debug",
+        "message": "Theme token updated: {self._active_cat} -> {self._active_key} = {value} (Old: {old_val})"
+      },
+      {
+        "line": 662,
+        "level": "error",
+        "message": "Error applying live preview: {e}"
+      },
+      {
+        "line": 720,
+        "level": "info",
+        "message": "Theme save request: {self._selected_theme}"
+      },
+      {
+        "line": 724,
+        "level": "warning",
+        "message": "Attempted to save built-in theme: {self._selected_theme}"
+      },
+      {
+        "line": 733,
+        "level": "info",
+        "message": "Theme successfully saved: {self._selected_theme} ({label})"
+      },
+      {
+        "line": 737,
+        "level": "info",
+        "message": "Active theme updated, emitting signal for live preview/apply: {self._selected_theme}"
+      },
+      {
+        "line": 742,
+        "level": "error",
+        "message": "Error saving theme: {self._selected_theme}"
+      },
+      {
+        "line": 771,
+        "level": "info",
+        "message": "Save as request: '{self._selected_theme}' -> '{name}'"
+      },
+      {
+        "line": 776,
+        "level": "info",
+        "message": "Theme successfully saved as: {name}"
+      },
+      {
+        "line": 786,
+        "level": "error",
+        "message": "Save as failed: {name}"
+      }
+    ]
+  },
+  "terminology": {
+    "terminology_manager": [
+      {
+        "line": 80,
+        "level": "warning",
+        "message": "Could not load terminology file: {e}"
+      },
+      {
+        "line": 89,
+        "level": "error",
+        "message": "Could not save terminology file: {e}"
+      },
+      {
+        "line": 133,
+        "level": "warning",
+        "message": "Automatic terminology extraction: Text or provider missing."
+      },
+      {
+        "line": 138,
+        "level": "info",
+        "message": "Automatic terminology extraction started..."
+      },
+      {
+        "line": 145,
+        "level": "info",
+        "message": "Automatic terminology extraction completed: {count} terms added."
+      },
+      {
+        "line": 147,
+        "level": "warning",
+        "message": "Automatic terminology extraction: Could not parse terms from LLM response."
+      },
+      {
+        "line": 152,
+        "level": "error",
+        "message": "Automatic terminology extraction error: {e}"
+      },
+      {
+        "line": 234,
+        "level": "info",
+        "message": "Token limit ({token_limit}) will be exceeded, '{f}' not added."
+      },
+      {
+        "line": 238,
+        "level": "info",
+        "message": "'{f}' added for sampling. Total tokens: {total_tokens}"
+      }
+    ]
+  },
+  "core": {
+    "ch-kontrol": [
+      {
+        "line": 15,
+        "level": "error",
+        "message": "Error: '{klasor_yolu}' path not found."
+      },
+      {
+        "line": 18,
+        "level": "info",
+        "message": "--- Scanning '{klasor_yolu}' folder --- Translation/Chinese Check ---"
+      },
+      {
+        "line": 49,
+        "level": "info",
+        "message": "File: {dosya_adi} -> Incorrect/Untranslated Detected"
+      },
+      {
+        "line": 55,
+        "level": "error",
+        "message": "Error: {dosya_adi} could not be read. Reason: {e}"
+      },
+      {
+        "line": 58,
+        "level": "info",
+        "message": "No .txt files found in directory."
+      },
+      {
+        "line": 60,
+        "level": "info",
+        "message": "Problematic File Count: {sorunlu_dosya}"
+      },
+      {
+        "line": 61,
+        "level": "info",
+        "message": "Problem-free File Count: {sorunsuz_dosya}"
+      },
+      {
+        "line": 62,
+        "level": "info",
+        "message": "Total File Count: {toplam_dosya}"
+      },
+      {
+        "line": 72,
+        "level": "error",
+        "message": "Deletion error ({dosya_yol}): {e}"
+      },
+      {
+        "line": 73,
+        "level": "info",
+        "message": "Deletion Completed"
+      }
+    ],
+    "chapter_check_worker": [
+      {
+        "line": 76,
+        "level": "error",
+        "message": "Error ({filename}): {e}"
+      }
+    ],
+    "database_manager": [
+      {
+        "line": 56,
+        "level": "warning",
+        "message": "db schema incompatible"
+      },
+      {
+        "line": 136,
+        "level": "info",
+        "message": "DB Upsert: {len(files_data)} file operations successful."
+      },
+      {
+        "line": 138,
+        "level": "error",
+        "message": "Database record error (upsert_files): {e}"
+      },
+      {
+        "line": 158,
+        "level": "info",
+        "message": "DB Delete: sort_key='{sort_key}' deleted."
+      },
+      {
+        "line": 161,
+        "level": "error",
+        "message": "Database delete error (delete_file): {e}"
+      },
+      {
+        "line": 176,
+        "level": "error",
+        "message": "Migration error (sync_directory_to_db): {e}"
+      }
+    ],
+    "file_list_manager": [
+      {
+        "line": 62,
+        "level": "debug",
+        "message": "download folder not found: {self.download_folder}"
+      },
+      {
+        "line": 98,
+        "level": "debug",
+        "message": "translated folder not found: {self.translated_folder}"
+      },
+      {
+        "line": 118,
+        "level": "debug",
+        "message": "completed folder not found: {self.completed_folder}"
+      },
+      {
+        "line": 144,
+        "level": "info",
+        "message": "FileListManager: {len(sorted_entries)} files found and processed (Legacy Method)."
+      }
+    ],
+    "free_translators": [
+      {
+        "line": 53,
+        "level": "warning",
+        "message": "app_settings.json could not be read: {e}"
+      },
+      {
+        "line": 70,
+        "level": "error",
+        "message": "Could not save setting ({key}): {e}"
+      },
+      {
+        "line": 125,
+        "level": "error",
+        "message": "Could not save free translators settings: {e}"
+      },
+      {
+        "line": 247,
+        "level": "warning",
+        "message": "Translation with DeepL key failed ({key[:8]}...): {e}"
+      },
+      {
+        "line": 377,
+        "level": "warning",
+        "message": "Translation with Yandex key failed ({key[:8]}...): {e}"
+      },
+      {
+        "line": 380,
+        "level": "debug",
+        "message": "No Yandex key or no results returned, MyMemory fallback active."
+      },
+      {
+        "line": 521,
+        "level": "debug",
+        "message": "Google Translate initialized with proxy: {proxies}"
+      },
+      {
+        "line": 527,
+        "level": "debug",
+        "message": "Google Translate initialized without proxy."
+      },
+      {
+        "line": 529,
+        "level": "error",
+        "message": "Google Translate initialization error: {e}"
+      },
+      {
+        "line": 567,
+        "level": "error",
+        "message": "{self.provider_name.capitalize()} translation engine returned None"
+      },
+      {
+        "line": 571,
+        "level": "error",
+        "message": "{self.provider_name.capitalize()} translation error: {e}"
+      }
+    ],
+    "kr-kontrol": [
+      {
+        "line": 15,
+        "level": "error",
+        "message": "Error: '{klasor_yolu}' path not found."
+      },
+      {
+        "line": 18,
+        "level": "info",
+        "message": "--- Scanning '{klasor_yolu}' folder --- Translation/Korean Check ---"
+      },
+      {
+        "line": 49,
+        "level": "info",
+        "message": "File: {dosya_adi} -> Incorrect/Untranslated Detected"
+      },
+      {
+        "line": 55,
+        "level": "error",
+        "message": "Error: {dosya_adi} could not be read. Reason: {e}"
+      },
+      {
+        "line": 58,
+        "level": "info",
+        "message": "No .txt files found in directory."
+      },
+      {
+        "line": 60,
+        "level": "info",
+        "message": "Problematic File Count: {sorunlu_dosya}"
+      },
+      {
+        "line": 61,
+        "level": "info",
+        "message": "Problem-free File Count: {sorunsuz_dosya}"
+      },
+      {
+        "line": 62,
+        "level": "info",
+        "message": "Total File Count: {toplam_dosya}"
+      },
+      {
+        "line": 72,
+        "level": "error",
+        "message": "Deletion error ({dosya_yol}): {e}"
+      },
+      {
+        "line": 73,
+        "level": "info",
+        "message": "Deletion Completed"
+      }
+    ],
+    "llm_provider": [
+      {
+        "line": 46,
+        "level": "error",
+        "message": "Could not read MCP_Endpoints.json: {e}"
+      },
+      {
+        "line": 88,
+        "level": "error",
+        "message": "Could not read API keys ({endpoint_id}): {e}"
+      },
+      {
+        "line": 262,
+        "level": "info",
+        "message": "Pool exhausted: '{self.ep_name}' — tried {self._tried_key_count}/{len(self._key_pool.keys)} keys."
+      },
+      {
+        "line": 276,
+        "level": "info",
+        "message": "Pool key rotation: '{self.ep_name}' (using key {self._tried_key_count}/{len(self._key_pool.keys)})"
+      },
+      {
+        "line": 374,
+        "level": "warning",
+        "message": "Could not load project endpoint ({project_endpoint_id}): {e}"
+      },
+      {
+        "line": 385,
+        "level": "warning",
+        "message": "Could not load global endpoint: {e}"
+      }
+    ],
+    "process_controller": [
+      {
+        "line": 620,
+        "level": "warning",
+        "message": "Could not write terminology section info to config.ini: {e}"
+      }
+    ],
+    "project_manager": [
+      {
+        "line": 53,
+        "level": "error",
+        "message": "Error scanning project list ({scan_dir}): {e}"
+      },
+      {
+        "line": 104,
+        "level": "info",
+        "message": "Project created: {project_name}"
+      },
+      {
+        "line": 108,
+        "level": "error",
+        "message": "Project creation error ({project_name}): {e}"
+      },
+      {
+        "line": 111,
+        "level": "error",
+        "message": "Project creation error ({project_name}): {e}"
+      },
+      {
+        "line": 127,
+        "level": "info",
+        "message": "Project deleted: {project_name}"
+      },
+      {
+        "line": 130,
+        "level": "error",
+        "message": "Project deletion error ({project_name}): {e}"
+      },
+      {
+        "line": 133,
+        "level": "error",
+        "message": "Project deletion error ({project_name}): {e}"
+      },
+      {
+        "line": 152,
+        "level": "error",
+        "message": "Config read error ({project_name}): {e}"
+      },
+      {
+        "line": 163,
+        "level": "info",
+        "message": "Config saved: {project_name}"
+      },
+      {
+        "line": 166,
+        "level": "error",
+        "message": "Config save error ({project_name}): {e}"
+      }
+    ],
+    "startup_worker": [
+      {
+        "line": 85,
+        "level": "debug",
+        "message": "Presync: Project not found, skipping."
+      },
+      {
+        "line": 99,
+        "level": "info",
+        "message": "Presync: Project '{project_name}' successfully migrated to database."
+      },
+      {
+        "line": 101,
+        "level": "warning",
+        "message": "Presync: Failed to migrate '{project_name}' to database."
+      },
+      {
+        "line": 103,
+        "level": "warning",
+        "message": "Presync: Error for '{project_name}': {proj_err}"
+      },
+      {
+        "line": 106,
+        "level": "info",
+        "message": "Presync: Total {migrated} projects migrated to database."
+      },
+      {
+        "line": 109,
+        "level": "error",
+        "message": "Database synchronization error: {str(e)}"
+      }
+    ],
+    "temizlik": [
+      {
+        "line": 57,
+        "level": "info",
+        "message": "Cleaning '{test_file_name}'..."
+      },
+      {
+        "line": 60,
+        "level": "info",
+        "message": "✓ '{test_file_name}': Success. Chapter title: {mesaj}"
+      },
+      {
+        "line": 62,
+        "level": "info",
+        "message": "\nCleaned content:"
+      },
+      {
+        "line": 63,
+        "level": "info",
+        "message": "f.read()"
+      },
+      {
+        "line": 65,
+        "level": "error",
+        "message": "✗ '{test_file_name}': Error/Warning: {mesaj}"
+      },
+      {
+        "line": 68,
+        "level": "info",
+        "message": "\nTesting a non-existent file:"
+      },
+      {
+        "line": 70,
+        "level": "error",
+        "message": "✗ non_existent_file.txt: {mesaj}"
+      },
+      {
+        "line": 73,
+        "level": "info",
+        "message": "\nTesting a file without a chapter title:"
+      },
+      {
+        "line": 80,
+        "level": "info",
+        "message": "✓ '{test_file_no_chapter}': Success. Chapter title: {mesaj}"
+      },
+      {
+        "line": 82,
+        "level": "error",
+        "message": "✗ '{test_file_no_chapter}': Error/Warning: {mesaj}"
+      }
+    ],
+    "theme_defaultCreate": [
+      {
+        "line": 527,
+        "level": "error",
+        "message": "Could not create theme folder: {e}"
+      },
+      {
+        "line": 542,
+        "level": "info",
+        "message": "Theme metadata file created: themes_meta.json"
+      },
+      {
+        "line": 544,
+        "level": "error",
+        "message": "Could not create themes_meta.json: {e}"
+      },
+      {
+        "line": 552,
+        "level": "info",
+        "message": "System theme JSON file created: system.json"
+      },
+      {
+        "line": 554,
+        "level": "error",
+        "message": "Could not create system.json: {e}"
+      },
+      {
+        "line": 564,
+        "level": "info",
+        "message": "Default theme file created: {filename}"
+      },
+      {
+        "line": 566,
+        "level": "error",
+        "message": "Could not create {filename}: {e}"
+      }
+    ],
+    "theme_engine": [
+      {
+        "line": 247,
+        "level": "warning",
+        "message": "Could not read themes_meta.json: {e}"
+      },
+      {
+        "line": 258,
+        "level": "error",
+        "message": "Could not save themes_meta.json: {e}"
+      },
+      {
+        "line": 317,
+        "level": "error",
+        "message": "Could not load theme ({name}): {e}"
+      },
+      {
+        "line": 327,
+        "level": "warning",
+        "message": "Built-in theme cannot be saved: {name}"
+      },
+      {
+        "line": 341,
+        "level": "error",
+        "message": "Could not save theme ({name}): {e}"
+      },
+      {
+        "line": 354,
+        "level": "info",
+        "message": "Custom theme saved: {name} ({label})"
+      },
+      {
+        "line": 364,
+        "level": "warning",
+        "message": "Built-in theme cannot be deleted: {name}"
+      },
+      {
+        "line": 371,
+        "level": "error",
+        "message": "Could not delete theme file ({name}): {e}"
+      },
+      {
+        "line": 377,
+        "level": "info",
+        "message": "Custom theme deleted: {name}"
+      },
+      {
+        "line": 403,
+        "level": "info",
+        "message": "Theme exported: {name} → {export_path}"
+      },
+      {
+        "line": 406,
+        "level": "error",
+        "message": "Could not export theme ({name}): {e}"
+      },
+      {
+        "line": 420,
+        "level": "error",
+        "message": "Theme import error: {e}"
+      }
+    ],
+    "token_controller": [
+      {
+        "line": 86,
+        "level": "info",
+        "message": "Local token count worker started."
+      },
+      {
+        "line": 96,
+        "level": "info",
+        "message": "Token count completed. Updating UI..."
+      },
+      {
+        "line": 187,
+        "level": "info",
+        "message": "[PERF] Local token count UI update completed: {_time.time() - _t0}s"
+      },
+      {
+        "line": 190,
+        "level": "error",
+        "message": "Token count error: {message}"
+      }
+    ],
+    "translation_controller": [
+      {
+        "line": 231,
+        "level": "info",
+        "message": "TranslationController: QThread closed, clearing references."
+      },
+      {
+        "line": 275,
+        "level": "error",
+        "message": "TranslationController: Translation error signal received — {message}"
+      }
+    ],
+    "workers": {
+      "cleaning_worker": [
+        {
+          "line": 32,
+          "level": "info",
+          "message": "Cleaning errors saved to '{error_log_path}'."
+        },
+        {
+          "line": 34,
+          "level": "error",
+          "message": "Problem saving cleaning errors to file: {e}"
+        },
+        {
+          "line": 47,
+          "level": "warning",
+          "message": "Problem loading existing cleaning error file: {e}. A new file will be created."
+        },
+        {
+          "line": 50,
+          "level": "warning",
+          "message": "General error loading existing cleaning error file: {e}. A new file will be created."
+        },
+        {
+          "line": 56,
+          "level": "info",
+          "message": "Cleaning worker received stop request, exiting loop."
+        },
+        {
+          "line": 64,
+          "level": "info",
+          "message": "Cleaning '{file_name}'..."
+        },
+        {
+          "line": 70,
+          "level": "info",
+          "message": "'{file_name}' successfully cleaned: {message}"
+        },
+        {
+          "line": 73,
+          "level": "error",
+          "message": "Problem cleaning '{file_name}': {message}"
+        },
+        {
+          "line": 75,
+          "level": "info",
+          "message": "'{file_name}' already in error history. Retrying..."
+        },
+        {
+          "line": 80,
+          "level": "info",
+          "message": "'{file_name}' successfully cleaned: {message}"
+        },
+        {
+          "line": 83,
+          "level": "error",
+          "message": "Problem cleaning '{file_name}': {message}"
+        },
+        {
+          "line": 91,
+          "level": "error",
+          "message": "Unexpected error running cleaning: {e}",
+          "kwargs": {
+            "exc_info": "True"
+          }
+        },
+        {
+          "line": 96,
+          "level": "info",
+          "message": "Cleaning worker completed/stopped."
+        },
+        {
+          "line": 101,
+          "level": "info",
+          "message": "Cleaning worker received stop request."
+        }
+      ],
+      "epub_worker": [
+        {
+          "line": 81,
+          "level": "warning",
+          "message": "Warning: Error processing {file_name}: {e}"
+        }
+      ],
+      "jsonoutput": [
+        {
+          "line": 24,
+          "level": "error",
+          "message": "No file selected for processing."
+        },
+        {
+          "line": 27,
+          "level": "info",
+          "message": "JSON creation process started. Project: {self.project_name}"
+        },
+        {
+          "line": 39,
+          "level": "error",
+          "message": "Operation stopped by user."
+        },
+        {
+          "line": 81,
+          "level": "error",
+          "message": "Error reading '{os.path.basename(file_path)}': {str(e)}"
+        },
+        {
+          "line": 89,
+          "level": "info",
+          "message": "JSON file successfully saved: {output_filepath}"
+        },
+        {
+          "line": 93,
+          "level": "error",
+          "message": "General error during JSON creation process: {str(e)}"
+        },
+        {
+          "line": 96,
+          "level": "info",
+          "message": "JSON creation process completed."
+        }
+      ],
+      "local_token_count_worker": [
+        {
+          "line": 67,
+          "level": "warning",
+          "message": "LocalTokenCountWorker: File not found: {file_name}"
+        },
+        {
+          "line": 75,
+          "level": "debug",
+          "message": "Local token count: {file_name} → {token_count}"
+        },
+        {
+          "line": 77,
+          "level": "warning",
+          "message": "LocalTokenCountWorker file read error ({file_name}): {e}"
+        },
+        {
+          "line": 101,
+          "level": "error",
+          "message": "LocalTokenCountWorker general error: {e}"
+        }
+      ],
+      "ml_terminology_extractor": [
+        {
+          "line": 27,
+          "level": "error",
+          "message": "llm_provider.py not found. Please make sure the tool is in the yznvltranslate-main folder."
+        },
+        {
+          "line": 68,
+          "level": "info",
+          "message": "LLM Provider successfully loaded: {self.llm_provider.ep_name}"
+        },
+        {
+          "line": 70,
+          "level": "error",
+          "message": "Could not initialize LLM Provider: {e}"
+        },
+        {
+          "line": 96,
+          "level": "info",
+          "message": "ml_max_tokens read from app_settings.json: {value}"
+        },
+        {
+          "line": 99,
+          "level": "warning",
+          "message": "app_settings.json could not be read, using default: {e}"
+        },
+        {
+          "line": 120,
+          "level": "error",
+          "message": "Missing folder. '{self.dwnld_dir}' not found."
+        },
+        {
+          "line": 130,
+          "level": "info",
+          "message": "Chapter range filter applied: {start_chapter}-{end_chapter} → {len(dwnld_files)} files selected."
+        },
+        {
+          "line": 151,
+          "level": "info",
+          "message": "Token limit ({upper_limit}) exceeded with '{file}' including 5% variance. This chapter removed and stopping addition."
+        },
+        {
+          "line": 158,
+          "level": "info",
+          "message": "Added file '{file}'. Total token count: {acc_tokens}"
+        },
+        {
+          "line": 160,
+          "level": "info",
+          "message": "Target token count ({target_token_count}) reached or approached. (Current: {acc_tokens})"
+        },
+        {
+          "line": 164,
+          "level": "info",
+          "message": "Estimated token count for collected text: {acc_tokens} | Actual final chapter: {actual_end_chapter}"
+        },
+        {
+          "line": 181,
+          "level": "error",
+          "message": "Cannot proceed because LLM Provider is not available."
+        },
+        {
+          "line": 184,
+          "level": "info",
+          "message": "Operation starting... Collecting files."
+        },
+        {
+          "line": 194,
+          "level": "info",
+          "message": "Loaded {len(existing_terms)} terms from existing terminology."
+        },
+        {
+          "line": 196,
+          "level": "warning",
+          "message": "Could not read existing terminology: {e}"
+        },
+        {
+          "line": 205,
+          "level": "warning",
+          "message": "No suitable text found for terminology extraction."
+        },
+        {
+          "line": 217,
+          "level": "info",
+          "message": "Sending terminology extraction request to AI. This may take 1-5 minutes depending on the model context window..."
+        },
+        {
+          "line": 233,
+          "level": "info",
+          "message": "Extracted total {len(final_terms)} unique terms."
+        },
+        {
+          "line": 238,
+          "level": "error",
+          "message": "Error during AI operation: {e}"
+        },
+        {
+          "line": 253,
+          "level": "warning",
+          "message": "Could not read existing terminology: {e}"
+        },
+        {
+          "line": 267,
+          "level": "info",
+          "message": "Added {added_count} new terms to current list."
+        },
+        {
+          "line": 279,
+          "level": "info",
+          "message": "Operation Completed: {terms_file} [{action}]"
+        },
+        {
+          "line": 281,
+          "level": "error",
+          "message": "Could not save terminology file: {e}"
+        }
+      ],
+      "ml_terminology_worker": [
+        {
+          "line": 64,
+          "level": "warning",
+          "message": "Could not write terminology section info to config.ini: {e}"
+        },
+        {
+          "line": 202,
+          "level": "error",
+          "message": "Parallel terminology extraction error: {e}"
+        }
+      ],
+      "prompt_generator": [
+        {
+          "line": 71,
+          "level": "info",
+          "message": "Prompt Gen token limit read from settings: {token_limit}"
+        },
+        {
+          "line": 112,
+          "level": "info",
+          "message": "Prompt sampling token limit ({token_limit}) will be exceeded, skipping '{f}'."
+        },
+        {
+          "line": 183,
+          "level": "info",
+          "message": "Initializing LLM provider..."
+        },
+        {
+          "line": 210,
+          "level": "warning",
+          "message": "Debug - Model: {info['name']} ({info['model_id']}) "
+        },
+        {
+          "line": 211,
+          "level": "info",
+          "message": "Generating prompt ({info['name']} — {info['model_id']})... This may take 30-60 seconds"
+        },
+        {
+          "line": 243,
+          "level": "error",
+          "message": "Prompt parsing error: {e}"
+        },
+        {
+          "line": 244,
+          "level": "error",
+          "message": "Parse error: {str(e)}"
+        },
+        {
+          "line": 250,
+          "level": "error",
+          "message": "Parsing failed, raw text saved to Prompt A."
+        },
+        {
+          "line": 381,
+          "level": "info",
+          "message": "Compiling context..."
+        },
+        {
+          "line": 390,
+          "level": "error",
+          "message": "Could not create context. Please enter wiki information or check project files."
+        },
+        {
+          "line": 398,
+          "level": "info",
+          "message": "📊 Sample prepared: ~{total_tokens} tokens. Connecting to LLM..."
+        },
+        {
+          "line": 446,
+          "level": "info",
+          "message": "Prompt generation completed!"
+        },
+        {
+          "line": 463,
+          "level": "error",
+          "message": "Prompt Generation Error: {str(msg)}"
+        }
+      ],
+      "token_count_worker": [
+        {
+          "line": 31,
+          "level": "info",
+          "message": "TokenCountWorker started. Project: {self.project_path}"
+        },
+        {
+          "line": 57,
+          "level": "info",
+          "message": "Number of files for token count: {total_files_to_check}"
+        },
+        {
+          "line": 62,
+          "level": "info",
+          "message": "TokenCountWorker stopped, exiting loop."
+        },
+        {
+          "line": 68,
+          "level": "debug",
+          "message": "[{processed_count + 1}/{total_files_to_check}] Processing: {file_name} ({file_type})"
+        },
+        {
+          "line": 91,
+          "level": "debug",
+          "message": "Using cached value for '{file_name}': {token_count}"
+        },
+        {
+          "line": 94,
+          "level": "debug",
+          "message": "Making API call for '{file_name}'..."
+        },
+        {
+          "line": 98,
+          "level": "debug",
+          "message": "Token count completed for '{file_name}': {tokens}"
+        },
+        {
+          "line": 100,
+          "level": "error",
+          "message": "Token count error ({file_name}): {err}"
+        },
+        {
+          "line": 127,
+          "level": "info",
+          "message": "All files processed. Emitting finished signal..."
+        },
+        {
+          "line": 146,
+          "level": "info",
+          "message": "finished signal emitted."
+        }
+      ],
+      "token_counter": [
+        {
+          "line": 106,
+          "level": "debug",
+          "message": "Token count request (Attempt {attempt + 1}/{max_retries})..."
+        },
+        {
+          "line": 109,
+          "level": "debug",
+          "message": "Token count successful: {token_count}"
+        },
+        {
+          "line": 112,
+          "level": "warning",
+          "message": "Token count error (Attempt {attempt + 1}/{max_retries}): {inner_e}"
+        },
+        {
+          "line": 115,
+          "level": "info",
+          "message": "Quota exceeded, waiting 3 seconds..."
+        },
+        {
+          "line": 124,
+          "level": "warning",
+          "message": "Could not load llm_provider, falling back to legacy Gemini method."
+        },
+        {
+          "line": 127,
+          "level": "error",
+          "message": "Token count general error: {str(e)}"
+        },
+        {
+          "line": 184,
+          "level": "error",
+          "message": "Error: Token save failed: {e}"
+        }
+      ],
+      "translation_error_check_worker": [
+        {
+          "line": 84,
+          "level": "warning",
+          "message": "Could not read original file ({orig_filename}): {oe}"
+        },
+        {
+          "line": 168,
+          "level": "error",
+          "message": "File check error ({filename}): {e}"
+        }
+      ],
+      "translation_quality_checker": [
+        {
+          "line": 73,
+          "level": "warning",
+          "message": "langdetect library not found. Language detection will be disabled."
+        },
+        {
+          "line": 113,
+          "level": "warning",
+          "message": "Similarity check FAILED: ratio={ratio} >= {self.similarity_threshold} (untranslated)"
+        },
+        {
+          "line": 131,
+          "level": "debug",
+          "message": "langdetect detection: '{detected}' (source: '{self.source_lang}')"
+        },
+        {
+          "line": 133,
+          "level": "warning",
+          "message": "langdetect FAILED: detected language '{detected}' is identical to source language."
+        },
+        {
+          "line": 138,
+          "level": "debug",
+          "message": "Could not run langdetect detection: {e}"
+        },
+        {
+          "line": 156,
+          "level": "warning",
+          "message": "{prefix}QualityCheck: Translation text empty or excessively short."
+        },
+        {
+          "line": 161,
+          "level": "warning",
+          "message": "{prefix}QualityCheck: High CJK/Korean character ratio."
+        },
+        {
+          "line": 166,
+          "level": "warning",
+          "message": "{prefix}QualityCheck: Text similarity ratio >= 80% (untranslated)."
+        },
+        {
+          "line": 171,
+          "level": "warning",
+          "message": "{prefix}QualityCheck: Language detection matches source language ({self.source_lang})."
+        }
+      ],
+      "translation_worker": [
+        {
+          "line": 133,
+          "level": "warning",
+          "message": "DB real-time save error ({file_name}): {e}"
+        },
+        {
+          "line": 164,
+          "level": "error",
+          "message": "Could not initialize LLMProvider: {e}"
+        },
+        {
+          "line": 177,
+          "level": "info",
+          "message": "Free translation engine initialized: {self.translation_provider}"
+        },
+        {
+          "line": 179,
+          "level": "error",
+          "message": "Could not initialize free translation engine: {e}"
+        },
+        {
+          "line": 188,
+          "level": "error",
+          "message": "Free translation engine not initialized."
+        },
+        {
+          "line": 280,
+          "level": "warning",
+          "message": "Free translation error (attempt {attempt + 1}/{self.max_retries}): {err}"
+        },
+        {
+          "line": 294,
+          "level": "error",
+          "message": "Free translation exceeded max retries; skipping package."
+        },
+        {
+          "line": 347,
+          "level": "info",
+          "message": "Endpoint failover list: {len(valid)} endpoints. Order: {[e[1].get('name', e[1].get('id')) for e in valid]}"
+        },
+        {
+          "line": 352,
+          "level": "warning",
+          "message": "Could not load endpoint list: {e}"
+        },
+        {
+          "line": 382,
+          "level": "info",
+          "message": "429 recovery: caller idx={failed_at_idx}, current idx={self._current_endpoint_idx} (another thread already passed). Continuing with current resource."
+        },
+        {
+          "line": 396,
+          "level": "warning",
+          "message": "All endpoints and pools exhausted ({failed_at_idx + 1}/{len(self._all_endpoints)}). Stopping translation."
+        },
+        {
+          "line": 413,
+          "level": "info",
+          "message": "Endpoint transition successful → {ep.get('name', ep.get('id', '?'))} (idx={next_idx}/{len(self._all_endpoints)})"
+        },
+        {
+          "line": 419,
+          "level": "error",
+          "message": "Endpoint transition failed [{ep.get('id')}]: {e}"
+        },
+        {
+          "line": 437,
+          "level": "info",
+          "message": "Terminology list is empty — starting automatic terminology extraction..."
+        },
+        {
+          "line": 442,
+          "level": "info",
+          "message": "Automatic terminology extraction: {count} terms added."
+        },
+        {
+          "line": 444,
+          "level": "info",
+          "message": "Automatic terminology extraction: No terms found."
+        },
+        {
+          "line": 446,
+          "level": "info",
+          "message": "Automatic terminology extraction: No sample text found in dwnld folder."
+        },
+        {
+          "line": 452,
+          "level": "info",
+          "message": "Terminology Memory enabled. {len(self._terminology_manager.terms)} terms loaded."
+        },
+        {
+          "line": 454,
+          "level": "info",
+          "message": "Terminology Memory: no terms, prompt section not added."
+        },
+        {
+          "line": 456,
+          "level": "warning",
+          "message": "Could not initialize Terminology Manager: {e}"
+        },
+        {
+          "line": 520,
+          "level": "warning",
+          "message": "429 / ResourceExhausted (EP idx={my_ep_idx}) — moving to next endpoint..."
+        },
+        {
+          "line": 530,
+          "level": "warning",
+          "message": "API call failed: {last_error}"
+        },
+        {
+          "line": 574,
+          "level": "warning",
+          "message": "Paragraph-based translation CJK ratio high."
+        },
+        {
+          "line": 584,
+          "level": "warning",
+          "message": "Paragraph count mismatch: expected {len(paragraphs)}, got {len(translated_parts)}. Processing as single piece."
+        },
+        {
+          "line": 610,
+          "level": "info",
+          "message": "Target limit of ({self.file_limit}) reached."
+        },
+        {
+          "line": 645,
+          "level": "info",
+          "message": "Paragraph-based translation completed: {file_name}"
+        },
+        {
+          "line": 649,
+          "level": "warning",
+          "message": "Paragraph-based translation quality check failed: {file_name}"
+        },
+        {
+          "line": 658,
+          "level": "warning",
+          "message": "Cache hit but quality check failed, skipping cache: {file_name}"
+        },
+        {
+          "line": 667,
+          "level": "info",
+          "message": "Cache hit: {file_name}"
+        },
+        {
+          "line": 729,
+          "level": "warning",
+          "message": "429 / ResourceExhausted [{file_name}] (EP idx={my_ep_idx}) — moving to next endpoint..."
+        },
+        {
+          "line": 761,
+          "level": "warning",
+          "message": "Translation result failed quality check: {file_name}"
+        },
+        {
+          "line": 777,
+          "level": "warning",
+          "message": "Cache write error: {e}"
+        },
+        {
+          "line": 856,
+          "level": "warning",
+          "message": "Batch parse: CJK ratio high, skipping — {file_name}"
+        },
+        {
+          "line": 862,
+          "level": "info",
+          "message": "Batch parse: {len(result)}/{len(batch)} chapters parsed."
+        },
+        {
+          "line": 884,
+          "level": "info",
+          "message": "Batch {batch_idx + 1}/{total_batches}: Processing {len(batch)} files — {batch}"
+        },
+        {
+          "line": 895,
+          "level": "error",
+          "message": "Batch read error [{file_name}]: {e}"
+        },
+        {
+          "line": 923,
+          "level": "warning",
+          "message": "Batch {batch_idx + 1}: No API response received."
+        },
+        {
+          "line": 932,
+          "level": "warning",
+          "message": "Batch {batch_idx + 1}: Parse failed. Splitting batch..."
+        },
+        {
+          "line": 945,
+          "level": "info",
+          "message": "Batch translation saved: {file_name}"
+        },
+        {
+          "line": 947,
+          "level": "error",
+          "message": "Batch save error [{file_name}]: {e}"
+        },
+        {
+          "line": 970,
+          "level": "info",
+          "message": "Splitting batch: {first_half} | {second_half}"
+        },
+        {
+          "line": 988,
+          "level": "info",
+          "message": "Starting Batch Translation. Total: {total_files} files, maxBatchChars={self.max_batch_chars}, maxChaptersPerBatch={self.max_chapters_per_batch}"
+        },
+        {
+          "line": 1005,
+          "level": "info",
+          "message": "Batch Translation: {len(pending)} files, {len(batches)} batches created."
+        },
+        {
+          "line": 1023,
+          "level": "info",
+          "message": "Batch fallback → single translation: {file_name}"
+        },
+        {
+          "line": 1030,
+          "level": "info",
+          "message": "Batch Async Mode: Processing {len(batches)} batches in parallel with {self.async_threads} threads."
+        },
+        {
+          "line": 1045,
+          "level": "error",
+          "message": "Batch async error [batch {b_idx}]: {be}"
+        },
+        {
+          "line": 1051,
+          "level": "info",
+          "message": "Batch Async Mode: Only 1 batch available, processing sequentially."
+        },
+        {
+          "line": 1057,
+          "level": "info",
+          "message": "Batch translation completed."
+        },
+        {
+          "line": 1080,
+          "level": "info",
+          "message": "Starting Free Translation ({self.translation_provider}). Total: {total_files} files."
+        },
+        {
+          "line": 1089,
+          "level": "info",
+          "message": "Free translation stopped: {i}/{total_files}"
+        },
+        {
+          "line": 1093,
+          "level": "info",
+          "message": "Target limit of ({self.file_limit}) reached."
+        },
+        {
+          "line": 1130,
+          "level": "info",
+          "message": "Free translation saved: {file_name}"
+        },
+        {
+          "line": 1142,
+          "level": "critical",
+          "message": "Free Translation Critical Error: {type(e).__name__}: {e}\n{traceback.format_exc()}"
+        },
+        {
+          "line": 1156,
+          "level": "info",
+          "message": "Free Translation: Emitting finished signal..."
+        },
+        {
+          "line": 1160,
+          "level": "error",
+          "message": "Free Translation: RuntimeError after finished.emit: {e}"
+        },
+        {
+          "line": 1208,
+          "level": "info",
+          "message": "Async Translation: Starting with {self.async_threads} threads. Total files: {total_files}"
+        },
+        {
+          "line": 1216,
+          "level": "warning",
+          "message": "Async: is_running=False — task submission stopped ({i}/{total_files})"
+        },
+        {
+          "line": 1221,
+          "level": "info",
+          "message": "Async: {len(futures)} tasks submitted, waiting for completion..."
+        },
+        {
+          "line": 1227,
+          "level": "debug",
+          "message": "Async: Task completed — {fname}"
+        },
+        {
+          "line": 1229,
+          "level": "error",
+          "message": "Async Thread Exception [{fname}]: {type(thread_e).__name__}: {thread_e}"
+        },
+        {
+          "line": 1232,
+          "level": "warning",
+          "message": "Async: is_running=False — waiting for remaining tasks, no new tasks submitted"
+        },
+        {
+          "line": 1237,
+          "level": "info",
+          "message": "Async: Executor shutting down (waiting for all threads)..."
+        },
+        {
+          "line": 1239,
+          "level": "info",
+          "message": "Async: Executor fully shut down."
+        },
+        {
+          "line": 1242,
+          "level": "info",
+          "message": "Starting Classic (Sequential) Translation."
+        },
+        {
+          "line": 1245,
+          "level": "info",
+          "message": "Sequential translation stopped: {i}/{total_files}"
+        },
+        {
+          "line": 1251,
+          "level": "critical",
+          "message": "TranslationWorker Critical Error: {type(e).__name__}: {e}\n{traceback.format_exc()}"
+        },
+        {
+          "line": 1257,
+          "level": "info",
+          "message": "TranslationWorker: finally block — global_error={'present' if self.global_error else 'none'}, is_running={self.is_running}"
+        },
+        {
+          "line": 1261,
+          "level": "error",
+          "message": "TranslationWorker: Emitting global error signal — {self.global_error}"
+        },
+        {
+          "line": 1264,
+          "level": "error",
+          "message": "TranslationWorker: RuntimeError after error.emit (expected): {e}"
+        },
+        {
+          "line": 1269,
+          "level": "info",
+          "message": "Cache stats — File Hit: {self.cache_hit_count}, File Miss: {self.cache_miss_count}, Paragraph Hit: {self.paragraph_cache_hit_count}, Paragraph Miss: {self.paragraph_cache_miss_count}, API calls: {self.api_request_count}, Duration: {elapsed}s"
+        },
+        {
+          "line": 1284,
+          "level": "info",
+          "message": "TranslationWorker: Emitting finished signal..."
+        },
+        {
+          "line": 1288,
+          "level": "error",
+          "message": "TranslationWorker: RuntimeError after finished.emit: {e}"
+        }
+      ]
+    }
+  },
+  "main_window": [
+    {
+      "line": 409,
+      "level": "warning",
+      "message": "Could not create theme files: {e}"
+    },
+    {
+      "line": 485,
+      "level": "info",
+      "message": "Theme applied from Theme Manager: {theme_name}"
+    },
+    {
+      "line": 489,
+      "level": "info",
+      "message": "Application settings updated."
+    },
+    {
+      "line": 701,
+      "level": "error",
+      "message": "UI DB Sync Error: {e}"
+    },
+    {
+      "line": 729,
+      "level": "info",
+      "message": "refresh_ui_and_theme completed (Duration: {duration}ms)"
+    },
+    {
+      "line": 956,
+      "level": "warning",
+      "message": "Could not set up system tray icon: {e}"
+    },
+    {
+      "line": 972,
+      "level": "info",
+      "message": "Toast notification displayed: {title} — {message}"
+    },
+    {
+      "line": 974,
+      "level": "debug",
+      "message": "Could not display toast: {e}"
+    }
+  ]
+}
