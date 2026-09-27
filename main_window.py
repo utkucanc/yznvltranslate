@@ -12,18 +12,19 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtGui import QFont, QIcon, QDesktopServices
 from PyQt6.QtCore import Qt, QUrl, QTimer, QPropertyAnimation, QEasingCurve
 from PyQt6.QtWidgets import QGraphicsOpacityEffect
-from core.localization import tr
+from core.localization import tr, tr_log
 
 # Kendi oluşturduğumuz modülleri içe aktarıyoruz
 from dialogs import (
     NewProjectDialog, ProjectSettingsDialog, PromptEditorDialog,
     ApiKeyEditorDialog, GeminiVersionDialog, MCPServerDialog,
-    TerminologyDialog, SeleniumMenuDialog
+    TerminologyDialog
 )
 from core.workers.token_counter import load_token_data, save_token_data
 from logger import app_logger
 from ui.request_counter_manager import RequestCounterManager
 from ui.app_settings_dialog import AppSettingsDialog, load_app_settings, apply_theme
+from core.path_resolver import get_project_dir, get_subfolder_path
 from ui.menu_bar_builder import build_menu_bar
 from ui.status_bar_manager import StatusBarManager
 from ui.file_table_interactions import FileTableInteractions
@@ -38,7 +39,7 @@ from ui.dashboard_page import (
 from ui.project_page import build_project_page, refresh_project_details
 from ui.terminology_page import build_terminology_page, refresh_terminology_page
 from ui.text_editor_page import build_text_editor_page, refresh_text_editor_page
-from core.download_controller import DownloadController
+
 from core.translation_controller import TranslationController
 from core.merge_controller import MergeController
 from core.token_controller import TokenController
@@ -50,14 +51,17 @@ from ui.toast_widget import _ToastWidget
 
 
 class MainWindow(QMainWindow):
-    def __init__(self):
+    def __init__(self, startup_data: dict = None):
+        t0 = time.perf_counter()
         super().__init__()
-        self.setWindowTitle(tr("main_window.title", "Novel Çeviri Aracı V3.0.0"))
+        self.startup_data = startup_data or {}
+        self.setWindowTitle(tr("main_window.title", "Novel Çeviri Aracı V3.1.1"))
         self.setWindowIcon(QIcon("logo256.ico"))
         self.setGeometry(100, 100, 1440, 860)
-
+        self.showMaximized()
+        print(f"[MainWindow Init]: {time.perf_counter()-t0:.2f}s")
         # İstatistikler (status bar için)
-        self.request_counter_manager = RequestCounterManager()
+        self.request_counter_manager = self.startup_data.get("request_counter_mgr") or RequestCounterManager()
         self._api_token_count = 0
         self._translation_speed = 0.0
         self._current_model = self.get_gemini_model_version()
@@ -67,9 +71,8 @@ class MainWindow(QMainWindow):
         self.current_project_path = None
         self.config = configparser.ConfigParser()
         self.project_token_cache = {}
-
+        print(f"[status bar]: {time.perf_counter()-t0:.2f}s")
         # Controller'ları oluştur
-        self.download_ctrl = DownloadController(self)
         self.translation_ctrl = TranslationController(self)
         self.merge_ctrl = MergeController(self)
         self.token_ctrl = TokenController(self)
@@ -79,40 +82,41 @@ class MainWindow(QMainWindow):
         self.error_check_ctrl = ErrorCheckController(self)
         self.chapter_check_ctrl = ChapterCheckController(self)
         self.ml_terminology_ctrl = MLTerminologyController(self)
-
+        print(f"[controllers]: {time.perf_counter()-t0:.2f}s")
         # Kayıtlı temayı uygula
-        app_settings = load_app_settings()
+        app_settings = self.startup_data.get("app_settings") or load_app_settings()
         apply_theme(QApplication.instance(), app_settings.get("theme", "dark"))
-
+        print(f"[theme]: {time.perf_counter()-t0:.2f}s")
         # -- UI oluştur ----------------------------------------------
         self.central_widget = QWidget()
         self.setCentralWidget(self.central_widget)
         self.outer_layout = QVBoxLayout(self.central_widget)
         self.outer_layout.setContentsMargins(0, 0, 0, 0)
         self.outer_layout.setSpacing(0)
-
+        print(f"[UI Skeleton]: {time.perf_counter()-t0:.2f}s")
         # FileTableInteractions erken oluşturulmalı
         self.file_table_interactions = FileTableInteractions(self)
-
+        print(f"[FileTableInteractions]: {time.perf_counter()-t0:.2f}s")
         # 1. Menü çubuğu
         build_menu_bar(self)
-
+        print(f"[Menu Bar]: {time.perf_counter()-t0:.2f}s")
         # 2. Bağlantı çubuğu
         conn_bar = build_connection_bar(self)
         self.outer_layout.addWidget(conn_bar)
-
+        print(f"[Connection Bar]: {time.perf_counter()-t0:.2f}s")
         # 3. Gövde: sidebar + stack
         body_layout = QHBoxLayout()
         body_layout.setContentsMargins(0, 0, 0, 0)
         body_layout.setSpacing(0)
-
+        print(f"[Sidebar+stack Layout]: {time.perf_counter()-t0:.2f}s")
         # --- Mevcut widget'ları ÖNCE oluştur, sonra sayfalara göm ---
         self._init_shared_widgets()
+        print(f"[Shared Widgets]: {time.perf_counter()-t0:.2f}s")
 
         # Sidebar
         sidebar = build_sidebar(self)
         body_layout.addWidget(sidebar)
-
+        print(f"[Sidebar]: {time.perf_counter()-t0:.2f}s")
         # Stack
         self.main_stack = QStackedWidget()
         self.dashboard_page = build_dashboard_page(self)
@@ -128,31 +132,31 @@ class MainWindow(QMainWindow):
         body_widget = QWidget()
         body_widget.setLayout(body_layout)
         self.outer_layout.addWidget(body_widget, 1)
-
+        print(f"[Stack]: {time.perf_counter()-t0:.2f}s")
         # Tablo etkileşimlerini bağla
         self.file_table_interactions.setup()
-
+        print(f"[File Table Interactions]: {time.perf_counter()-t0:.2f}s")
         # 4. Status bar
         self.status_bar_mgr = StatusBarManager(self)
         self.status_bar_mgr.create()
-
+        print(f"[Status Bar]: {time.perf_counter()-t0:.2f}s")
         # Projeleri yükle
         self.load_existing_projects()
-
+        print(f"[Load Projects]: {time.perf_counter()-t0:.2f}s")
         # Başlangıç durumları
         self.total_tokens_label.setVisible(False)
         self.total_original_tokens_label.setVisible(False)
         self.total_translated_tokens_label.setVisible(False)
         self.token_progress_bar.setVisible(False)
         self.token_count_button.setEnabled(False)
-
+        print(f"[Initial States]: {time.perf_counter()-t0:.2f}s")
         # İlk aktif nav
         self.set_active_nav("Dashboard")
-
+        print(f"[Set Active Nav]: {time.perf_counter()-t0:.2f}s")
         # Sistem tray
         self._tray_icon = None
         self._setup_tray_icon()
-
+        print(f"[Tray Icon]: {time.perf_counter()-t0:.2f}s")
     # ------------------------------------------------------------------
     # Paylaşılan widget'lar — dashboard/project sayfaları bunları gömer
     # ------------------------------------------------------------------
@@ -223,16 +227,7 @@ class MainWindow(QMainWindow):
         self.file_table.verticalHeader().setDefaultSectionSize(26)
         self.file_table.verticalHeader().setVisible(True)
 
-        # -- İndirme Yöntemi --
-        self.downloadMethodCombo = QComboBox()
-        self.downloadMethodCombo.addItems([
-            tr("right_panel.download_method_booktoki", "Booktoki JS İle İndir (Selenium)"),
-            tr("right_panel.download_method_69shuba", "69shuba JS İle İndir (Selenium)"),
-            tr("right_panel.download_method_novelfire", "Novelfire JS İle İndir (Selenium)"),
-            tr("right_panel.download_method_requests", "Normal Web Kazıma (Requests) (Tavsiye Edilmez)"),
-        ])
-        self.downloadMethodLabel = QLabel(tr("right_panel.download_method", "İndirme Yöntemi:"))
-        self.downloadMethodLabel.setFont(QFont("Segoe UI", 8))
+
 
         # -- Butonlar --
         from PyQt6.QtGui import QFont as _QFont, QColor as _QColor
@@ -246,11 +241,7 @@ class MainWindow(QMainWindow):
             s.setColor(QColor(color))
             return s
 
-        self.startButton = QPushButton(tr("right_panel.btn_start_download", "⬇  İndirmeyi Başlat"))
-        self.startButton.setFont(QFont("Segoe UI", 9, QFont.Weight.Bold))
-        self.startButton.setObjectName("primaryBtn")
-        self.startButton.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.startButton.clicked.connect(self.start_download_process)
+
 
         self.splitButton = QPushButton(tr("right_panel.btn_split", "✂  Toplu Bölüm Ekle"))
         self.splitButton.setFont(QFont("Segoe UI", 9, QFont.Weight.Bold))
@@ -415,7 +406,7 @@ class MainWindow(QMainWindow):
             from core.theme_defaultCreate import ensure_default_themes
             ensure_default_themes(base_path)
         except Exception as e:
-            app_logger.warning(f"Tema dosyaları oluşturulamadı: {e}")
+            app_logger.warning(tr_log('main_window', 409, f"Tema dosyaları oluşturulamadı: {e}"))
         mcp_file = os.path.join(base_path, "AppConfigs", "MCP_Endpoints.json")
         if not os.path.exists(mcp_file):
             try:
@@ -437,7 +428,7 @@ class MainWindow(QMainWindow):
     # Controller'lara yönlendirme
     # ------------------------------------------------------------------
 
-    def start_download_process(self):       self.download_ctrl.start()
+
     def start_split_process(self):          self.split_ctrl.start()
     def start_translation_process(self):    self.translation_ctrl.start()
     def stop_translation_process(self):     self.translation_ctrl.stop_translation()
@@ -490,12 +481,12 @@ class MainWindow(QMainWindow):
         dlg.exec()
 
     def _on_theme_manager_default_changed(self, theme_name: str):
-        apply_theme(QApplication.instance(), theme_name)
-        app_logger.info(f"Tema Yöneticisinden tema uygulandı: {theme_name}")
+        apply_theme(QApplication.instance(), theme_name, force=True)
+        app_logger.info(tr_log('main_window', 485, f"Tema Yöneticisinden tema uygulandı: {theme_name}"))
 
     def _on_app_settings_changed(self, settings: dict):
         apply_theme(QApplication.instance(), settings.get("theme", "dark"))
-        app_logger.info("Uygulama ayarları güncellendi.")
+        app_logger.info(tr_log('main_window', 489, "Uygulama ayarları güncellendi."))
 
     # ------------------------------------------------------------------
     # Proje Yönetimi
@@ -503,20 +494,22 @@ class MainWindow(QMainWindow):
 
     def load_existing_projects(self):
         self.project_list.clear()
-        current_dir = os.getcwd()
-        for item in os.listdir(current_dir):
-            full_path = os.path.join(current_dir, item)
-            if os.path.isdir(full_path):
-                config_file_path = os.path.join(full_path, "config", "config.ini")
-                if os.path.exists(config_file_path):
-                    self.project_list.addItem(item)
+        projects = self.startup_data.get("projects") if hasattr(self, "startup_data") else None
+        if projects is None:
+            from core.project_manager import ProjectManager
+            projects = ProjectManager(os.getcwd()).list_projects()
+        for proj in projects:
+            self.project_list.addItem(proj)
         try:
             from ui.project_page import update_project_list_widgets
             update_project_list_widgets(self)
         except Exception:
             pass
         if self.project_list.count() > 0 and self.project_list.currentRow() < 0:
+            self.project_list.blockSignals(True)
             self.project_list.setCurrentRow(0)
+            self.project_list.blockSignals(False)
+            QTimer.singleShot(0, self.update_file_list_from_selection)
 
     def new_project_clicked(self):
         dialog = NewProjectDialog(self)
@@ -526,18 +519,18 @@ class MainWindow(QMainWindow):
                 QMessageBox.warning(self, tr("main_window.msg_project_missing_info_title", "Eksik Bilgi"), tr("main_window.msg_project_missing_info_body", "Proje adı ve linki boş bırakılamaz."))
                 return
             if not api_key and not mcp_endpoint_id and translation_provider == "llm":
-                QMessageBox.warning(self, tr("main_window.msg_project_config_missing_title", "Yapılandırma Eksik"), tr("main_window.msg_project_config_missing_body", "Çeviri ve token sayımı için Gemini API anahtarı veya MCP bağlantısı gereklidir."))
+                QMessageBox.warning(self, tr("main_window.msg_project_config_missing_title", "Yapılandırma Eksik"), tr("main_window.msg_api_mcp_reminder", "API veya MCP seçmeyi unutmayın"))
             if not deepl_api and translation_provider == "deepl":
                 QMessageBox.warning(self, tr("main_window.msg_project_config_missing_title", "Yapılandırma Eksik"), tr("main_window.msg_project_config_missing_body", "Çeviri ve token sayımı için DeepL API anahtarı gereklidir."))
             if not yandex_api and translation_provider == "yandex":
                 QMessageBox.warning(self, tr("main_window.msg_project_config_missing_title", "Yapılandırma Eksik"), tr("main_window.msg_project_config_missing_body", "Çeviri ve token sayımı için Yandex API anahtarı gereklidir."))
             try:
-                base_path = os.path.join(os.getcwd(), project_name)
+                base_path = get_project_dir(os.getcwd(), project_name, create_if_new=True)
                 if os.path.exists(base_path):
                     QMessageBox.warning(self, tr("main_window.msg_project_exists_title", "Hata"), tr("main_window.msg_project_exists_body", "'{}' adında bir proje zaten mevcut.").format(project_name))
                     return
-                for folder in ["dwnld", "trslt", "cmplt", "config"]:
-                    os.makedirs(os.path.join(base_path, folder))
+                for folder in ["download", "translate", "completed", "config"]:
+                    os.makedirs(os.path.join(base_path, folder), exist_ok=True)
                 self.config["ProjectInfo"] = {"link": project_link}
                 if max_pages is not None:
                     self.config["ProjectInfo"]["max_pages"] = str(max_pages)
@@ -548,10 +541,16 @@ class MainWindow(QMainWindow):
                     self.config["MCP"] = {"endpoint_id": mcp_endpoint_id}
                 elif "MCP" in self.config:
                     del self.config["MCP"]
-                config_path = os.path.join(base_path, "config", "config.ini")
+                config_dir = get_subfolder_path(base_path, "config", create=True)
+                config_path = os.path.join(config_dir, "config.ini")
                 with open(config_path, "w", encoding="utf-8") as configfile:
                     self.config.write(configfile)
                 self.project_list.addItem(project_name)
+                try:
+                    from ui.project_page import update_project_list_widgets
+                    update_project_list_widgets(self)
+                except Exception:
+                    pass
                 QMessageBox.information(self, tr("main_window.msg_project_created_title", "Başarılı"), tr("main_window.msg_project_created_body", "'{}' projesi başarıyla oluşturuldu.").format(project_name))
                 self.project_list.setCurrentItem(self.project_list.findItems(project_name, Qt.MatchFlag.MatchExactly)[0])
             except OSError as e:
@@ -571,7 +570,7 @@ class MainWindow(QMainWindow):
                                      QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
                                      QMessageBox.StandardButton.No)
         if reply == QMessageBox.StandardButton.Yes:
-            project_path = os.path.join(os.getcwd(), project_name)
+            project_path = get_project_dir(os.getcwd(), project_name)
             try:
                 shutil.rmtree(project_path)
                 self.project_list.takeItem(self.project_list.row(current_item))
@@ -586,8 +585,9 @@ class MainWindow(QMainWindow):
             QMessageBox.warning(self, "Proje Seçilmedi", "Lütfen ayarlarını düzenlemek istediğiniz bir proje seçin.")
             return
         project_name = current_item.text()
-        project_path = os.path.join(os.getcwd(), project_name)
-        config_path = os.path.join(project_path, "config", "config.ini")
+        project_path = get_project_dir(os.getcwd(), project_name)
+        config_dir = get_subfolder_path(project_path, "config")
+        config_path = os.path.join(config_dir, "config.ini")
         project_link = ""
         max_pages = None
         max_retries = 3
@@ -698,10 +698,12 @@ class MainWindow(QMainWindow):
                 legacy_flm = FileListManager(self.current_project_path)
                 db_mgr.sync_directory_to_db(legacy_flm)
         except Exception as e:
-            app_logger.error(f"UI DB Sync Hatası: {e}")
+            app_logger.error(tr_log('main_window', 701, f"UI DB Sync Hatası: {e}"))
 
     def refresh_ui_and_theme(self):
-        self.setWindowTitle(tr("main_window.title", "Novel Çeviri Aracı V3.0.0"))
+        import time
+        t0 = time.perf_counter()
+        self.setWindowTitle(tr("main_window.title", "Novel Çeviri Aracı V3.1.1"))
         if hasattr(self, "project_search_input"):
             self.project_search_input.setPlaceholderText(tr("main_window.search_project_placeholder", "🔍 Proje ara..."))
         if hasattr(self, "file_search_input"):
@@ -723,19 +725,13 @@ class MainWindow(QMainWindow):
         self.update_menu_bar()
         app_settings = load_app_settings()
         apply_theme(QApplication.instance(), app_settings.get("theme", "dark"))
+        t1 = time.perf_counter()
+        app_logger.info(tr_log('main_window', 729, f"refresh_ui_and_theme tamamlandı (Süre: {(t1 - t0)*1000:.1f}ms)"))
         self.show_toast(tr("main_window.toast_ui_refreshed_title", "UI Yenilendi"), tr("main_window.toast_ui_refreshed_body", "Dosya listesi ve tema başarıyla yeniden yüklendi."))
 
     def update_rigt_panel(self):
         """Sağ panel widget metinlerini lokalizasyon ile günceller."""
-        if hasattr(self, "downloadMethodLabel"):
-            self.downloadMethodLabel.setText(tr("right_panel.download_method", "İndirme Yöntemi:"))
-        if hasattr(self, "downloadMethodCombo"):
-            self.downloadMethodCombo.setItemText(0, tr("right_panel.download_method_booktoki", "Booktoki JS İle İndir (Selenium)"))
-            self.downloadMethodCombo.setItemText(1, tr("right_panel.download_method_69shuba", "69shuba JS İle İndir (Selenium)"))
-            self.downloadMethodCombo.setItemText(2, tr("right_panel.download_method_novelfire", "Novelfire JS İle İndir (Selenium)"))
-            self.downloadMethodCombo.setItemText(3, tr("right_panel.download_method_requests", "Normal Web Kazıma (Requests) (Tavsiye Edilmez)"))
-        if hasattr(self, "startButton"):
-            self.startButton.setText(tr("right_panel.btn_start_download", "⬇  İndirmeyi Başlat"))
+
         if hasattr(self, "translateButton"):
             self.translateButton.setText(tr("right_panel.btn_translate", "🌐  Seçilenleri Çevir"))
         if hasattr(self, "limit_checkbox"):
@@ -782,7 +778,6 @@ class MainWindow(QMainWindow):
 
         if not current_item:
             self.current_project_path = None
-            self.downloadMethodCombo.setEnabled(False)
             self.translateButton.setEnabled(False)
             self.splitButton.setEnabled(False)
             self.mergeButton.setEnabled(False)
@@ -806,8 +801,7 @@ class MainWindow(QMainWindow):
             return
 
         project_name = current_item.text()
-        self.current_project_path = os.path.join(os.getcwd(), project_name)
-        self.downloadMethodCombo.setEnabled(True)
+        self.current_project_path = get_project_dir(os.getcwd(), project_name)
         self.translateButton.setEnabled(True)
         self.splitButton.setEnabled(True)
         self.mergeButton.setEnabled(True)
@@ -825,7 +819,6 @@ class MainWindow(QMainWindow):
         from ui.file_table_manager import FileTableManager
         manager = FileListManager(self.current_project_path)
         data = manager.get_file_list_data()
-        self.project_token_cache = data["project_token_cache"]
         table_manager = FileTableManager(self.file_table)
         table_manager.populate(data["sorted_entries"])
 
@@ -845,14 +838,33 @@ class MainWindow(QMainWindow):
         refresh_terminology_page(self)
         refresh_text_editor_page(self)
 
+    def refresh_file_list_with_os_scan(self):
+        """Kullanıcı yenileme butonuna bastığında çalışır: os.listdir ile canlı tarama yapar, DB'yi günceller ve UI'ı yeniler."""
+        if not self.current_project_path:
+            return
+        from core.file_list_manager import FileListManager
+        from ui.file_table_manager import FileTableManager
+        from ui.dashboard_page import update_project_files_footer, update_dashboard_stats
+        from ui.project_page import refresh_project_details
+
+        manager = FileListManager(self.current_project_path)
+        data = manager.force_rescan_and_sync_db()
+        table_manager = FileTableManager(self.file_table)
+        table_manager.populate(data["sorted_entries"])
+
+        update_project_files_footer(self)
+        refresh_project_details(self)
+        update_dashboard_stats(self)
+
+        self.show_toast(tr("main_window.toast_rescan_success_title", "Tablo Yenilendi"),
+                        tr("main_window.toast_rescan_success_body", "Dosyalar diskten canlı taranarak veritabanı güncellendi."))
+
     # ------------------------------------------------------------------
     # UI Yardımcıları (controller'lar tarafından kullanılır)
     # ------------------------------------------------------------------
 
     def _set_ui_state_on_process_start(self, button, text, bg_color, text_color, max_progress, status_text):
-        self.startButton.setEnabled(False)
         self.splitButton.setEnabled(False)
-        self.downloadMethodCombo.setEnabled(False)
         self.translateButton.setEnabled(False)
         self.mergeButton.setEnabled(False)
         self.projectSettingsButton.setEnabled(False)
@@ -873,9 +885,7 @@ class MainWindow(QMainWindow):
         self.token_progress_bar.setVisible(False)
 
     def _set_ui_state_on_process_end(self, button, text, bg_color, text_color, status_text):
-        self.startButton.setEnabled(True)
         self.splitButton.setEnabled(True)
-        self.downloadMethodCombo.setEnabled(True)
         self.translateButton.setEnabled(True)
         self.mergeButton.setEnabled(True)
         self.epubButton.setEnabled(True)
@@ -891,7 +901,6 @@ class MainWindow(QMainWindow):
         self.statusLabel.setText(status_text)
 
     def _set_all_buttons_enabled_state(self, enabled: bool):
-        self.startButton.setEnabled(enabled)
         self.translateButton.setEnabled(enabled)
         self.mergeButton.setEnabled(enabled)
         self.errorCheckButton.setEnabled(enabled)
@@ -944,7 +953,7 @@ class MainWindow(QMainWindow):
                 self._tray_icon.activated.connect(self._on_tray_activated)
                 self._tray_icon.show()
         except Exception as e:
-            app_logger.warning(f"Tray ikon kurulamadı: {e}")
+            app_logger.warning(tr_log('main_window', 956, f"Tray ikon kurulamadı: {e}"))
 
     def _on_tray_activated(self, reason):
         from PyQt6.QtWidgets import QSystemTrayIcon
@@ -960,9 +969,9 @@ class MainWindow(QMainWindow):
                 return
             toast = _ToastWidget(title, message, parent=None)
             toast.show_toast()
-            app_logger.info(f"Toast bildirimi gösterildi: {title} — {message}")
+            app_logger.info(tr_log('main_window', 972, f"Toast bildirimi gösterildi: {title} — {message}"))
         except Exception as e:
-            app_logger.debug(f"Toast gösterilemedi: {e}")
+            app_logger.debug(tr_log('main_window', 974, f"Toast gösterilemedi: {e}"))
 
     def _notify_translation_complete(self, total_files: int):
         self.show_toast(
@@ -976,7 +985,7 @@ class MainWindow(QMainWindow):
 
     def closeEvent(self, event):
         controllers = [
-            self.download_ctrl, self.translation_ctrl, self.cleaning_ctrl,
+            self.translation_ctrl, self.cleaning_ctrl,
             self.merge_ctrl, self.token_ctrl, self.chapter_check_ctrl,
             self.epub_ctrl, self.error_check_ctrl, self.split_ctrl,
         ]
@@ -1005,6 +1014,32 @@ class MainWindow(QMainWindow):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    window = MainWindow()
-    window.show()
+
+    from ui.splash_screen import CustomSplashScreen
+    from core.startup_worker import StartupWorker
+
+    # Splash ekranını anında göster (beyaz ekran/donmayı önler)
+    splash = CustomSplashScreen()
+    splash.show()
+    app.processEvents()
+
+    # Arka planda açılış yüklemelerini çalıştır
+    worker = StartupWorker()
+    window = None
+
+    def _on_startup_progress(msg):
+        splash.set_status(msg)
+
+    def _on_startup_finished(startup_data):
+        global window
+        window = MainWindow(startup_data=startup_data)
+        window.show()
+        window.activateWindow()
+        window.raise_()
+        splash.finish(window)
+
+    worker.progress.connect(_on_startup_progress)
+    worker.finished.connect(_on_startup_finished)
+    worker.start()
+
     sys.exit(app.exec())

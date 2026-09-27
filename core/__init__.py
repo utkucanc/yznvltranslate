@@ -6,7 +6,6 @@ from core.ui_state_manager import UIStateManager
 from core.file_list_manager import FileListManager
 
 # Controller sınıfları
-from core.download_controller import DownloadController
 from core.translation_controller import TranslationController
 from core.merge_controller import MergeController
 from core.token_controller import TokenController

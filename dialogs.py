@@ -59,5 +59,3 @@ from ui.project_settings_dialog import ProjectSettingsDialog
 from ui.prompt_editor_dialog import PromptEditorDialog
 from ui.mcp_server_dialog import MCPServerDialog
 from ui.terminology_dialog import TerminologyDialog
-from ui.post_download_dialog import PostDownloadDialog
-from ui.selenium_menu_dialog import SeleniumMenuDialog

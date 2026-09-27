@@ -18,11 +18,11 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont
 from core.localization import tr
-
+from core.path_resolver import get_subfolder_path
 
 def _get_chapter_count(project_path: str) -> int:
     """Projenin dwnld klasöründeki txt dosyası sayısını (bölüm sayısı) döndürür."""
-    dwnld_dir = os.path.join(project_path, "dwnld")
+    dwnld_dir = get_subfolder_path(project_path, "download")
     if not os.path.exists(dwnld_dir):
         return 1
     files = sorted([f for f in os.listdir(dwnld_dir) if f.endswith(".txt")])
@@ -34,7 +34,8 @@ def _get_last_operation(project_path: str) -> tuple[int, int]:
     Projenin config.ini dosyasından son terminoloji işleminin bölüm bilgisini okur.
     Returns: (last_start, last_end) — bulunamazsa (0, 0) döndürür.
     """
-    config_path = os.path.join(project_path, "config", "config.ini")
+    config_dir = get_subfolder_path(project_path, "config")
+    config_path = os.path.join(config_dir,"config.ini")
     if not os.path.exists(config_path):
         return 0, 0
     cfg = configparser.ConfigParser()

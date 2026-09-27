@@ -12,6 +12,7 @@ from PyQt6.QtWidgets import QMessageBox
 
 from core.workers.merging_worker import MergingWorker
 from core.utils import natural_sort_key
+from core.path_resolver import get_project_dir, get_subfolder_path
 
 
 class MergeController:
@@ -30,15 +31,16 @@ class MergeController:
             return
 
         project_name = current_item.text()
-        project_path = os.path.join(os.getcwd(), project_name)
+        project_path = get_project_dir(os.getcwd(), project_name)
 
+        trslt_dir = get_subfolder_path(project_path, 'translate')
         selected_translated_file_paths = []
         for row in range(self.win.file_table.rowCount()):
             checkbox_item = self.win.file_table.item(row, 0)
             if checkbox_item and checkbox_item.checkState() == Qt.CheckState.Checked:
                 translated_file_name = self.win.file_table.item(row, 2).text()
                 if translated_file_name and translated_file_name != "Yok":
-                    file_path = os.path.join(project_path, 'trslt', translated_file_name)
+                    file_path = os.path.join(trslt_dir, translated_file_name)
                     if os.path.exists(file_path):
                         selected_translated_file_paths.append(file_path)
 
@@ -49,8 +51,7 @@ class MergeController:
         selected_translated_file_paths.sort(key=lambda x: natural_sort_key(os.path.basename(x)))
         self._stop_existing()
 
-        output_merged_folder = os.path.join(project_path, 'cmplt')
-        os.makedirs(output_merged_folder, exist_ok=True)
+        output_merged_folder = get_subfolder_path(project_path, 'completed', create=True)
 
         self.thread = QThread()
         self.worker = MergingWorker(selected_translated_file_paths, output_merged_folder)
@@ -67,7 +68,6 @@ class MergeController:
 
         self.thread.start()
 
-        self.win.startButton.setEnabled(False)
         self.win.translateButton.setEnabled(False)
         self.win.mergeButton.setEnabled(False)
         self.win.projectSettingsButton.setEnabled(False)
@@ -86,7 +86,6 @@ class MergeController:
 
     def _on_finished(self):
         QMessageBox.information(self.win, "Tamamlandı", "Seçili çevirileri birleştirme işlemi bitti.")
-        self.win.startButton.setEnabled(True)
         self.win.translateButton.setEnabled(True)
         self.win.mergeButton.setEnabled(True)
         self.win.epubButton.setEnabled(True)
@@ -104,7 +103,6 @@ class MergeController:
 
     def _on_error(self, message):
         QMessageBox.critical(self.win, "Birleştirme Hatası", f"Bir hata oluştu:\n{message}")
-        self.win.startButton.setEnabled(True)
         self.win.translateButton.setEnabled(True)
         self.win.mergeButton.setEnabled(True)
         self.win.epubButton.setEnabled(True)
@@ -113,6 +111,8 @@ class MergeController:
         self.win.errorCheckButton.setEnabled(True)
         self.win.mergeButton.setText("Seçili Çevirileri Birleştir")
         self.win.mergeButton.setStyleSheet("background-color: #FF5722; color: white; border-radius: 5px; padding: 10px;")
+        self.win.progressBar.setVisible(False)
+        self.win.statusLabel.setText(f"Durum: Hata - {message}")
         self.win.progressBar.setVisible(False)
         self.win.statusLabel.setText(f"Durum: Hata - {message}")
         self.thread = None

@@ -9,11 +9,10 @@ ProcessController — Küçük ölçekli işlem kontrolcüleri.
   - ChapterCheckController: Başlık kontrolü
   - MLTerminologyController: YZ terminoloji üretimi
 """
-
+from core.localization import tr_log
 import os
 from PyQt6.QtCore import Qt, QThread
 from PyQt6.QtWidgets import QMessageBox, QFileDialog
-
 from core.workers.cleaning_worker import CleaningWorker
 from core.workers.split_worker import SplitWorker
 from core.workers.epub_worker import EpubWorker
@@ -21,7 +20,7 @@ from core.chapter_check_worker import ChapterCheckWorker
 from core.workers.translation_error_check_worker import TranslationErrorCheckWorker
 from core.workers.ml_terminology_worker import MLTerminologyWorker
 from core.utils import natural_sort_key
-
+from core.path_resolver import get_project_dir, get_subfolder_path
 
 class CleaningController:
     """Temizleme işlemlerini yönetir."""
@@ -34,35 +33,32 @@ class CleaningController:
     def start(self):
         current_item = self.win.project_list.currentItem()
         if not current_item:
-            QMessageBox.warning(self.win, "Proje Seçilmedi", "Lütfen sol listeden bir proje seçin.")
+            QMessageBox.warning(self.win, 'Proje Seçilmedi', 'Lütfen sol listeden bir proje seçin.')
             return
         project_name = current_item.text()
-        project_path = os.path.join(os.getcwd(), project_name)
-
+        project_path = get_project_dir(os.getcwd(), project_name)
+        trslt_dir = get_subfolder_path(project_path, 'translate')
+        dwnld_dir = get_subfolder_path(project_path, 'download')
         selected_file_paths = []
         for row in range(self.win.file_table.rowCount()):
             checkbox_item = self.win.file_table.item(row, 0)
             if checkbox_item and checkbox_item.checkState() == Qt.CheckState.Checked:
                 original_file_name = self.win.file_table.item(row, 1).text()
                 translated_file_name = self.win.file_table.item(row, 2).text()
-
-                if translated_file_name and translated_file_name != "Yok":
-                    file_path = os.path.join(project_path, 'trslt', translated_file_name)
+                if translated_file_name and translated_file_name != 'Yok':
+                    file_path = os.path.join(trslt_dir, translated_file_name)
                     if os.path.exists(file_path):
                         selected_file_paths.append(file_path)
-                elif original_file_name and original_file_name != "Orijinali Yok":
-                    file_path = os.path.join(project_path, 'dwnld', original_file_name)
+                elif original_file_name and original_file_name != 'Orijinali Yok':
+                    file_path = os.path.join(dwnld_dir, original_file_name)
                     if os.path.exists(file_path):
                         selected_file_paths.append(file_path)
-
         if not selected_file_paths:
-            QMessageBox.warning(self.win, "Dosya Seçilmedi", "Lütfen temizlemek için en az bir dosya seçin.")
+            QMessageBox.warning(self.win, 'Dosya Seçilmedi', 'Lütfen temizlemek için en az bir dosya seçin.')
             return
-
         self._stop_existing()
-
         self.thread = QThread()
-        self.worker = CleaningWorker(selected_file_paths, os.path.join(project_path, 'trslt'))
+        self.worker = CleaningWorker(selected_file_paths, trslt_dir)
         self.worker.moveToThread(self.thread)
         self.thread.started.connect(self.worker.run)
         self.worker.finished.connect(self.thread.quit)
@@ -72,8 +68,6 @@ class CleaningController:
         self.worker.error.connect(self._on_error)
         self.worker.progress.connect(self._on_progress)
         self.thread.start()
-
-        self.win.startButton.setEnabled(False)
         self.win.translateButton.setEnabled(False)
         self.win.mergeButton.setEnabled(False)
         self.win.projectSettingsButton.setEnabled(False)
@@ -81,35 +75,34 @@ class CleaningController:
         self.win.progressBar.setValue(0)
         self.win.progressBar.setMaximum(len(selected_file_paths))
         self.win.progressBar.setVisible(True)
-        self.win.statusLabel.setText(f"Durum: {len(selected_file_paths)} dosya temizleniyor...")
+        self.win.statusLabel.setText(f'Durum: {len(selected_file_paths)} dosya temizleniyor...')
 
     def _on_progress(self, current, total):
         self.win.progressBar.setValue(current)
         self.win.progressBar.setMaximum(total)
-        self.win.statusLabel.setText(f"Durum: Temizleniyor... Dosya {current}/{total}")
+        self.win.statusLabel.setText(f'Durum: Temizleniyor... Dosya {current}/{total}')
 
     def _on_finished(self):
-        QMessageBox.information(self.win, "Tamamlandı", "Metin temizleme işlemi bitti.")
+        QMessageBox.information(self.win, 'Tamamlandı', 'Metin temizleme işlemi bitti.')
         self._restore_buttons()
         self.win.progressBar.setVisible(False)
-        self.win.statusLabel.setText("Durum: Hazır")
+        self.win.statusLabel.setText('Durum: Hazır')
         self.thread = None
         self.worker = None
         self.win.sync_database_if_exists()
         self.win.update_file_list_from_selection()
 
     def _on_error(self, message):
-        QMessageBox.critical(self.win, "Temizleme Hatası", f"Bir hata oluştu:\n{message}")
+        QMessageBox.critical(self.win, 'Temizleme Hatası', f'Bir hata oluştu:\n{message}')
         self._restore_buttons()
         self.win.progressBar.setVisible(False)
-        self.win.statusLabel.setText(f"Durum: Hata - {message}")
+        self.win.statusLabel.setText(f'Durum: Hata - {message}')
         self.thread = None
         self.worker = None
         self.win.sync_database_if_exists()
         self.win.update_file_list_from_selection()
 
     def _restore_buttons(self):
-        self.win.startButton.setEnabled(True)
         self.win.translateButton.setEnabled(True)
         self.win.mergeButton.setEnabled(True)
         self.win.epubButton.setEnabled(True)
@@ -132,7 +125,6 @@ class CleaningController:
         if self.worker:
             self.worker.stop()
 
-
 class SplitController:
     """Dosya bölme işlemlerini yönetir."""
 
@@ -144,22 +136,16 @@ class SplitController:
     def start(self):
         current_item = self.win.project_list.currentItem()
         if not current_item:
-            QMessageBox.warning(self.win, "Proje Seçilmedi", "Lütfen sol listeden bir proje seçin.")
+            QMessageBox.warning(self.win, 'Proje Seçilmedi', 'Lütfen sol listeden bir proje seçin.')
             return
         project_name = current_item.text()
-        project_path = os.path.join(os.getcwd(), project_name)
-
-        input_file_path, _ = QFileDialog.getOpenFileName(
-            self.win, "Bölünecek TXT Dosyasını Seçin", "",
-            "Text Dosyaları (*.txt);;Tüm Dosyalar (*)"
-        )
+        project_path = get_project_dir(os.getcwd(), project_name)
+        (input_file_path, _) = QFileDialog.getOpenFileName(self.win, 'Bölünecek TXT Dosyasını Seçin', '', 'Text Dosyaları (*.txt);;Tüm Dosyalar (*)')
         if not input_file_path:
             return
-
-        output_folder = os.path.join(project_path, 'dwnld')
+        output_folder = get_subfolder_path(project_path, 'download', create=True)
         os.makedirs(output_folder, exist_ok=True)
         self._stop_existing()
-
         self.thread = QThread()
         self.worker = SplitWorker(input_file_path, output_folder)
         self.worker.moveToThread(self.thread)
@@ -171,25 +157,25 @@ class SplitController:
         self.worker.error.connect(self._on_error)
         self.worker.progress.connect(self._on_progress)
         self.thread.start()
-        self.win._set_ui_state_on_process_start(self.win.splitButton, "Bölünüyor...", "#FFC107", "black", 100, "Durum: Dosya parçalanıyor...")
+        self.win._set_ui_state_on_process_start(self.win.splitButton, 'Bölünüyor...', '#FFC107', 'black', 100, 'Durum: Dosya parçalanıyor...')
 
     def _on_progress(self, current, total):
         self.win.progressBar.setValue(current)
         if total > 0:
             self.win.progressBar.setMaximum(total)
-            self.win.statusLabel.setText(f"Durum: Parçalanıyor... {current}/{total} bölüm oluşturuldu")
+            self.win.statusLabel.setText(f'Durum: Parçalanıyor... {current}/{total} bölüm oluşturuldu')
 
     def _on_finished(self):
-        QMessageBox.information(self.win, "Tamamlandı", "Dosya başarıyla parçalandı ve projeye eklendi.")
-        self.win._set_ui_state_on_process_end(self.win.splitButton, "Toplu Bölüm Ekle", "#3F51B5", "white", "Durum: Hazır")
+        QMessageBox.information(self.win, 'Tamamlandı', 'Dosya başarıyla parçalandı ve projeye eklendi.')
+        self.win._set_ui_state_on_process_end(self.win.splitButton, 'Toplu Bölüm Ekle', '#3F51B5', 'white', 'Durum: Hazır')
         self.thread = None
         self.worker = None
         self.win.sync_database_if_exists()
         self.win.update_file_list_from_selection()
 
     def _on_error(self, message):
-        QMessageBox.critical(self.win, "Parçalama Hatası", f"Bir hata oluştu:\n{message}")
-        self.win._set_ui_state_on_process_end(self.win.splitButton, "Toplu Bölüm Ekle", "#FF5722", "white", f"Durum: Hata - {message}")
+        QMessageBox.critical(self.win, 'Parçalama Hatası', f'Bir hata oluştu:\n{message}')
+        self.win._set_ui_state_on_process_end(self.win.splitButton, 'Toplu Bölüm Ekle', '#FF5722', 'white', f'Durum: Hata - {message}')
         self.thread = None
         self.worker = None
 
@@ -207,7 +193,6 @@ class SplitController:
     def stop(self):
         if self.worker:
             self.worker.stop()
-
 
 class EpubController:
     """EPUB oluşturma işlemlerini yönetir."""
@@ -220,33 +205,44 @@ class EpubController:
     def start(self):
         current_item = self.win.project_list.currentItem()
         if not current_item:
-            QMessageBox.warning(self.win, "Proje Seçilmedi", "Lütfen sol listeden bir proje seçin.")
+            QMessageBox.warning(self.win, 'Proje Seçilmedi', 'Lütfen sol listeden bir proje seçin.')
             return
         project_name = current_item.text()
-        project_path = os.path.join(os.getcwd(), project_name)
-
+        project_path = get_project_dir(os.getcwd(), project_name)
+        trslt_dir = get_subfolder_path(project_path, 'translate')
         selected_files = []
         for row in range(self.win.file_table.rowCount()):
             checkbox_item = self.win.file_table.item(row, 0)
             if checkbox_item and checkbox_item.checkState() == Qt.CheckState.Checked:
                 translated_file_name = self.win.file_table.item(row, 2).text()
-                if translated_file_name and translated_file_name not in ["Yok", "N/A"]:
-                    file_path = os.path.join(project_path, 'trslt', translated_file_name)
+                if translated_file_name and translated_file_name not in ['Yok', 'N/A']:
+                    file_path = os.path.join(trslt_dir, translated_file_name)
                     if os.path.exists(file_path):
                         selected_files.append(file_path)
-
         if not selected_files:
-            QMessageBox.warning(self.win, "Dosya Seçilmedi", "Lütfen EPUB yapmak için en az bir çevrilmiş dosya seçin.")
+            QMessageBox.warning(self.win, 'Dosya Seçilmedi', 'Lütfen EPUB yapmak için en az bir çevrilmiş dosya seçin.')
             return
-
         selected_files.sort(key=lambda x: natural_sort_key(os.path.basename(x)))
         self._stop_existing()
-
-        output_folder = os.path.join(project_path, 'cmplt')
+        output_folder = get_subfolder_path(project_path, 'completed', create=True)
         os.makedirs(output_folder, exist_ok=True)
-
         self.thread = QThread()
-        self.worker = EpubWorker(selected_files, output_folder, project_name=project_name)
+        first_chapter = None
+        last_chapter = None
+        try:
+            basenames = [os.path.splitext(os.path.basename(f))[0].replace('translated_', '') for f in selected_files]
+            import re
+            numbers = []
+            for bn in basenames:
+                match = re.search('(\\d+)', bn)
+                if match:
+                    numbers.append(int(match.group(1)))
+            if numbers:
+                first_chapter = min(numbers)
+                last_chapter = max(numbers)
+        except Exception:
+            pass
+        self.worker = EpubWorker(selected_files, output_folder, project_name=project_name, first_chapter=first_chapter, last_chapter=last_chapter)
         self.worker.moveToThread(self.thread)
         self.thread.started.connect(self.worker.run)
         self.worker.finished.connect(self.thread.quit)
@@ -256,32 +252,25 @@ class EpubController:
         self.worker.error.connect(self._on_error)
         self.worker.progress.connect(self._on_progress)
         self.thread.start()
-        self.win._set_ui_state_on_process_start(
-            self.win.epubButton, "Epub Oluşturuluyor...", "#FFC107", "black",
-            len(selected_files), "Durum: EPUB dosyası oluşturuluyor..."
-        )
+        self.win._set_ui_state_on_process_start(self.win.epubButton, 'Epub Oluşturuluyor...', '#FFC107', 'black', len(selected_files), 'Durum: EPUB dosyası oluşturuluyor...')
 
     def _on_progress(self, current, total):
         self.win.progressBar.setValue(current)
         self.win.progressBar.setMaximum(total)
-        self.win.statusLabel.setText(f"Durum: EPUB Bölümleri Ekleniyor... {current}/{total}")
+        self.win.statusLabel.setText(f'Durum: EPUB Bölümleri Ekleniyor... {current}/{total}')
 
     def _on_finished(self, message):
         if message:
-            QMessageBox.information(self.win, "Tamamlandı", message)
-        self.win._set_ui_state_on_process_end(
-            self.win.epubButton, "Seçilenleri EPUB Yap", "#795548", "white", "Durum: Hazır"
-        )
+            QMessageBox.information(self.win, 'Tamamlandı', message)
+        self.win._set_ui_state_on_process_end(self.win.epubButton, 'Seçilenleri EPUB Yap', '#795548', 'white', 'Durum: Hazır')
         self.thread = None
         self.worker = None
         self.win.sync_database_if_exists()
         self.win.update_file_list_from_selection()
 
     def _on_error(self, message):
-        QMessageBox.critical(self.win, "Hata", message)
-        self.win._set_ui_state_on_process_end(
-            self.win.epubButton, "Seçilenleri EPUB Yap", "#FF5722", "white", f"Durum: Hata - {message}"
-        )
+        QMessageBox.critical(self.win, 'Hata', message)
+        self.win._set_ui_state_on_process_end(self.win.epubButton, 'Seçilenleri EPUB Yap', '#FF5722', 'white', f'Durum: Hata - {message}')
         self.thread = None
         self.worker = None
 
@@ -300,7 +289,6 @@ class EpubController:
         if self.worker:
             self.worker.stop()
 
-
 class ErrorCheckController:
     """Çeviri hata kontrolü işlemlerini yönetir."""
 
@@ -311,29 +299,31 @@ class ErrorCheckController:
 
     def start(self):
         if not self.win.current_project_path:
-            QMessageBox.warning(self.win, "Proje Seçilmedi", "Lütfen bir proje seçin.")
+            QMessageBox.warning(self.win, 'Proje Seçilmedi', 'Lütfen bir proje seçin.')
             return
-        trslt_folder = os.path.join(self.win.current_project_path, 'trslt')
+        trslt_folder = get_subfolder_path(self.win.current_project_path, 'translate')
         if not os.path.exists(trslt_folder):
-            QMessageBox.warning(self.win, "Klasör Yok", "Çeviri klasörü (trslt) bulunamadı.")
+            QMessageBox.warning(self.win, 'Klasör Yok', 'Çeviri klasörü bulunamadı.')
             return
-
-        report_folder = os.path.join(self.win.current_project_path, 'trslt', 'hata_kontrol')
+        report_folder = os.path.join(trslt_folder, 'hata_kontrol')
         self.win._set_all_buttons_enabled_state(False)
-        self.win.statusLabel.setText("Durum: Çeviri hata kontrolü yapılıyor...")
+        self.win.statusLabel.setText('Durum: Çeviri hata kontrolü yapılıyor...')
         self.win.progressBar.setValue(0)
         self.win.progressBar.setMaximum(0)
         self.win.progressBar.setVisible(True)
-
-        source_lang = "en"
+        source_lang = 'ko'
+        target_lang = 'tr'
+        min_line_count = 15
         try:
-            if hasattr(self.win, 'project_config') and self.win.project_config:
-                source_lang = self.win.project_config.get("source_lang", "en")
+            from ui.app_settings_dialog import load_app_settings
+            _settings = load_app_settings()
+            source_lang = _settings.get('langdetect_source_lang', 'ko')
+            target_lang = _settings.get('langdetect_target_lang', 'tr')
+            min_line_count = int(_settings.get('min_line_count', 15))
         except Exception:
             pass
-
         self.thread = QThread()
-        self.worker = TranslationErrorCheckWorker(trslt_folder, report_folder, source_lang=source_lang)
+        self.worker = TranslationErrorCheckWorker(trslt_folder, report_folder, source_lang=source_lang, target_lang=target_lang, min_line_count=min_line_count)
         self.worker.moveToThread(self.thread)
         self.thread.started.connect(self.worker.run)
         self.worker.finished.connect(self._on_finished)
@@ -347,38 +337,21 @@ class ErrorCheckController:
     def _on_progress(self, current, total):
         self.win.progressBar.setMaximum(total)
         self.win.progressBar.setValue(current)
-        self.win.statusLabel.setText(f"Durum: Hata kontrolü... Dosya {current}/{total}")
+        self.win.statusLabel.setText(f'Durum: Hata kontrolü... Dosya {current}/{total}')
 
     def _on_finished(self, results):
         self.win._set_all_buttons_enabled_state(True)
         self.win.progressBar.setVisible(False)
-        self.win.statusLabel.setText("Durum: Hazır")
-
-        high = results.get("high", [])
-        low = results.get("low", [])
-        report_path = results.get("report_path", "")
-
+        self.win.statusLabel.setText('Durum: Hazır')
+        high = results.get('high', [])
+        low = results.get('low', [])
+        low_line = results.get('low_line', [])
+        report_path = results.get('report_path', '')
         if not high:
-            QMessageBox.information(
-                self.win, "Hata Kontrolü Tamamlandı",
-                f"Çevrilmiş dosyaların kontrolü tamamlandı. Hatalı veya çevrilmemiş dosya bulunamadı.\n"
-                f"Düşük riskli / şüpheli dosya sayısı: {len(low)}\n"
-                f"Raporlar: {report_path}"
-            )
+            QMessageBox.information(self.win, 'Hata Kontrolü Tamamlandı', f'Çevrilmiş dosyaların kontrolü tamamlandı. Hatalı veya çevrilmemiş dosya bulunamadı.\nDüşük riskli / şüpheli dosya sayısı: {len(low)}\nDüşük satır sayılı dosya sayısı: {len(low_line)}\nRaporlar: {report_path}')
         else:
-            file_list_str = "\n".join([
-                f"  - {f['filename']} ({f.get('reason', 'Hatalı')})"
-                for f in high[:20]
-            ])
-            reply = QMessageBox.question(
-                self.win, 'Çeviri Hata Kontrolü',
-                f"Hatalı/çevrilmemiş veya yüksek riskli {len(high)} dosya tespit edildi:\n\n"
-                f"{file_list_str}\n\n"
-                f"Bu dosyaları silmek istiyor musunuz?\n"
-                f"(Raporlar {report_path} içinde kaydedildi)",
-                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-                QMessageBox.StandardButton.No
-            )
+            file_list_str = '\n'.join([f"  - {f['filename']} ({f.get('reason', 'Hatalı')})" for f in high[:20]])
+            reply = QMessageBox.question(self.win, 'Çeviri Hata Kontrolü', f'Hatalı/çevrilmemiş veya yüksek riskli {len(high)} dosya tespit edildi:\n\n{file_list_str}\n\nBu dosyaları silmek istiyor musunuz?\n(Raporlar {report_path} içinde kaydedildi)', QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No, QMessageBox.StandardButton.No)
             if reply == QMessageBox.StandardButton.Yes:
                 deleted_count = 0
                 for f_info in high:
@@ -387,18 +360,32 @@ class ErrorCheckController:
                         deleted_count += 1
                     except Exception:
                         pass
-                QMessageBox.information(self.win, "Silindi", f"{deleted_count} dosya silindi.")
+                QMessageBox.information(self.win, 'Silindi', f'{deleted_count} dosya silindi.')
                 self.win.sync_database_if_exists()
                 self.win.update_file_list_from_selection()
-
+        if low_line:
+            low_line_str = '\n'.join([f"  - {f['filename']} ({f.get('reason', '')})" for f in low_line[:20]])
+            extra = f'\n  ... ve {len(low_line) - 20} dosya daha' if len(low_line) > 20 else ''
+            reply_ll = QMessageBox.question(self.win, '📏 Düşük Satır Sayılı Çeviriler', f'{len(low_line)} dosyanın satır sayısı eşiğin altında:\n\n{low_line_str}{extra}\n\nBu dosyaları silmek istiyor musunuz?\n(Raporlar {report_path} içinde kaydedildi)', QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No, QMessageBox.StandardButton.No)
+            if reply_ll == QMessageBox.StandardButton.Yes:
+                deleted_ll = 0
+                for f_info in low_line:
+                    try:
+                        os.remove(f_info['filepath'])
+                        deleted_ll += 1
+                    except Exception:
+                        pass
+                QMessageBox.information(self.win, 'Silindi', f'{deleted_ll} düşük satırlı dosya silindi.')
+                self.win.sync_database_if_exists()
+                self.win.update_file_list_from_selection()
         self.thread = None
         self.worker = None
 
     def _on_error(self, message):
         self.win._set_all_buttons_enabled_state(True)
         self.win.progressBar.setVisible(False)
-        self.win.statusLabel.setText("Durum: Hazır")
-        QMessageBox.critical(self.win, "Hata Kontrol Hatası", message)
+        self.win.statusLabel.setText('Durum: Hazır')
+        QMessageBox.critical(self.win, 'Hata Kontrol Hatası', message)
         self.thread = None
         self.worker = None
 
@@ -408,7 +395,6 @@ class ErrorCheckController:
     def stop(self):
         if self.worker:
             self.worker.stop()
-
 
 class ChapterCheckController:
     """Başlık kontrolü işlemlerini yönetir."""
@@ -421,26 +407,23 @@ class ChapterCheckController:
     def start(self):
         current_item = self.win.project_list.currentItem()
         if not current_item:
-            QMessageBox.warning(self.win, "Proje Seçilmedi", "Lütfen sol listeden bir proje seçin.")
+            QMessageBox.warning(self.win, 'Proje Seçilmedi', 'Lütfen sol listeden bir proje seçin.')
             return
         project_name = current_item.text()
-        project_path = os.path.join(os.getcwd(), project_name)
-
+        project_path = get_project_dir(os.getcwd(), project_name)
+        trslt_dir = get_subfolder_path(project_path, 'translate')
         files_to_check = []
         for row in range(self.win.file_table.rowCount()):
             checkbox_item = self.win.file_table.item(row, 0)
             if checkbox_item and checkbox_item.checkState() == Qt.CheckState.Checked:
                 translated_file_name = self.win.file_table.item(row, 2).text()
-                if translated_file_name and translated_file_name != "Yok" and translated_file_name != "N/A":
-                    file_path = os.path.join(project_path, 'trslt', translated_file_name)
+                if translated_file_name and translated_file_name != 'Yok' and (translated_file_name != 'N/A'):
+                    file_path = os.path.join(trslt_dir, translated_file_name)
                     files_to_check.append((translated_file_name, file_path))
-
         if not files_to_check:
-            QMessageBox.warning(self.win, "Dosya Seçilmedi", "Lütfen başlık kontrolü için en az bir çevrilmiş dosya seçin.")
+            QMessageBox.warning(self.win, 'Dosya Seçilmedi', 'Lütfen başlık kontrolü için en az bir çevrilmiş dosya seçin.')
             return
-
         self._stop_existing()
-
         self.thread = QThread()
         self.worker = ChapterCheckWorker(project_path, files_to_check)
         self.worker.moveToThread(self.thread)
@@ -456,15 +439,15 @@ class ChapterCheckController:
     def _on_progress(self, current, total):
         self.win.progressBar.setValue(current)
         self.win.progressBar.setMaximum(total)
-        self.win.statusLabel.setText(f"Durum: Kontrol ediliyor... Dosya {current}/{total}")
+        self.win.statusLabel.setText(f'Durum: Kontrol ediliyor... Dosya {current}/{total}')
 
     def _on_finished(self, message):
-        QMessageBox.information(self.win, "Tamamlandı", message)
+        QMessageBox.information(self.win, 'Tamamlandı', message)
         self.thread = None
         self.worker = None
 
     def _on_error(self, message):
-        QMessageBox.critical(self.win, "Hata", message)
+        QMessageBox.critical(self.win, 'Hata', message)
         self.thread = None
         self.worker = None
 
@@ -483,7 +466,6 @@ class ChapterCheckController:
         if self.worker:
             self.worker.stop()
 
-
 class MLTerminologyController:
     """YZ terminoloji üretimi işlemlerini yönetir."""
 
@@ -494,89 +476,56 @@ class MLTerminologyController:
     def start(self):
         current_item = self.win.project_list.currentItem()
         if not current_item:
-            QMessageBox.warning(self.win, "Proje Seçilmedi", "Lütfen sol listeden bir proje seçin.")
+            QMessageBox.warning(self.win, 'Proje Seçilmedi', 'Lütfen sol listeden bir proje seçin.')
             return
         project_name = current_item.text()
-        project_path = os.path.join(os.getcwd(), project_name)
-
+        project_path = get_project_dir(os.getcwd(), project_name)
         if self.thread and self.thread.isRunning():
-            QMessageBox.warning(self.win, "Çalışıyor", "Terminoloji işlemi zaten devam ediyor.")
+            QMessageBox.warning(self.win, 'Çalışıyor', 'Terminoloji işlemi zaten devam ediyor.')
             return
-
-        # -- Bölüm Aralığı Diyalogunu Aç --
         from ui.ml_terminology_range_dialog import MLTerminologyRangeDialog
         from PyQt6.QtWidgets import QDialog
         dlg = MLTerminologyRangeDialog(project_path, parent=self.win)
         if dlg.exec() != QDialog.DialogCode.Accepted:
-            return  # Kullanıcı iptal etti
-
-        start_ch, end_ch, max_tokens, extract_all, async_enabled, async_threads = dlg.get_values()
-
-        # NOT: _save_last_operation işlem bittikten sonra gerçek son bölümle çağrılır.
-        # (Başlangıçta kaydedilirse, token limiti nedeniyle erken durulduğunda yanlış değer kalır.)
-
-        self.thread = MLTerminologyWorker(
-            project_path,
-            start_chapter=start_ch,
-            end_chapter=end_ch,
-            max_tokens=max_tokens,
-            extract_all=extract_all,
-            async_enabled=async_enabled,
-            async_threads=async_threads
-        )
-        self.thread.progress_update.connect(lambda msg: self.win.statusLabel.setText(f"Durum: {msg}"))
+            return
+        (start_ch, end_ch, max_tokens, extract_all, async_enabled, async_threads) = dlg.get_values()
+        self.thread = MLTerminologyWorker(project_path, start_chapter=start_ch, end_chapter=end_ch, max_tokens=max_tokens, extract_all=extract_all, async_enabled=async_enabled, async_threads=async_threads)
+        self.thread.progress_update.connect(lambda msg: self.win.statusLabel.setText(f'Durum: {msg}'))
         self.thread.error_signal.connect(self._on_error)
-        # finished_signal(int) → gerçekte işlenen son bölüm numarasını taşır
-        self.thread.finished_signal.connect(
-            lambda actual_end_ch: self._on_finished(project_path, start_ch, actual_end_ch)
-        )
-
-        self.win._set_ui_state_on_process_start(
-            self.win.generateTerminologyButton, "Terminoloji Üretiliyor...",
-            "#FFC107", "black", 0, "Durum: Terminoloji modeli çalışıyor, analiz ediliyor..."
-        )
+        self.thread.finished_signal.connect(lambda actual_end_ch: self._on_finished(project_path, start_ch, actual_end_ch))
+        self.win._set_ui_state_on_process_start(self.win.generateTerminologyButton, 'Terminoloji Üretiliyor...', '#FFC107', 'black', 0, 'Durum: Terminoloji modeli çalışıyor, analiz ediliyor...')
         self.win.progressBar.setMaximum(0)
         self.thread.start()
 
     def _save_last_operation(self, project_path: str, start_ch: int, end_ch: int):
         """Son terminoloji işleminin bölüm numaralarını proje config.ini'sine yazar."""
         import configparser
-        config_path = os.path.join(project_path, "config", "config.ini")
+        config_dir = get_subfolder_path(project_path, 'config', create=True)
+        config_path = os.path.join(config_dir, 'config.ini')
         cfg = configparser.ConfigParser()
         try:
             if os.path.exists(config_path):
-                cfg.read(config_path, encoding="utf-8")
-            if "TerminologyOp" not in cfg:
-                cfg["TerminologyOp"] = {}
-            cfg["TerminologyOp"]["last_start_chapter"] = str(start_ch)
-            cfg["TerminologyOp"]["last_end_chapter"] = str(end_ch)
-            with open(config_path, "w", encoding="utf-8") as f:
+                cfg.read(config_path, encoding='utf-8')
+            if 'TerminologyOp' not in cfg:
+                cfg['TerminologyOp'] = {}
+            cfg['TerminologyOp']['last_start_chapter'] = str(start_ch)
+            cfg['TerminologyOp']['last_end_chapter'] = str(end_ch)
+            with open(config_path, 'w', encoding='utf-8') as f:
                 cfg.write(f)
         except Exception as e:
             from logger import app_logger
-            app_logger.warning(f"Terminoloji bölüm bilgisi config.ini'ye yazılamadı: {e}")
+            app_logger.warning(tr_log('core.process_controller', 620, f"Terminoloji bölüm bilgisi config.ini'ye yazılamadı: {e}"))
 
     def _on_error(self, err):
-        QMessageBox.critical(self.win, "Terminoloji Hatası", str(err))
-        self.win._set_ui_state_on_process_end(
-            self.win.generateTerminologyButton, "YZ İle Terminoloji Üret",
-            "#E91E63", "white", f"Durum: Hata - {err}"
-        )
+        QMessageBox.critical(self.win, 'Terminoloji Hatası', str(err))
+        self.win._set_ui_state_on_process_end(self.win.generateTerminologyButton, 'YZ İle Terminoloji Üret', '#E91E63', 'white', f'Durum: Hata - {err}')
         self.thread = None
 
     def _on_finished(self, project_path: str, start_ch: int, actual_end_ch: int):
         """İşlem bittiğinde gerçek son bölüm numarasıyla config.ini'yi günceller."""
-        # Gerçekte işlenen son bölümü kaydet (kullanıcının girdiği değil)
         self._save_last_operation(project_path, start_ch, actual_end_ch)
-
-        QMessageBox.information(self.win, "Başarılı",
-                                f"Yapay Zeka ile terminoloji çıkarımı başarıyla tamamlandı.\n"
-                                f"İşlenen bölümler: {start_ch} → {actual_end_ch}\n"
-                                f"Sözlüğe yeni terimler eklendi.")
-        self.win._set_ui_state_on_process_end(
-            self.win.generateTerminologyButton, "YZ İle Terminoloji Üret",
-            "#E91E63", "white", f"Durum: Hazır (Son bölüm: {actual_end_ch})"
-        )
+        QMessageBox.information(self.win, 'Başarılı', f'Yapay Zeka ile terminoloji çıkarımı başarıyla tamamlandı.\nİşlenen bölümler: {start_ch} → {actual_end_ch}\nSözlüğe yeni terimler eklendi.')
+        self.win._set_ui_state_on_process_end(self.win.generateTerminologyButton, 'YZ İle Terminoloji Üret', '#E91E63', 'white', f'Durum: Hazır (Son bölüm: {actual_end_ch})')
         self.thread = None
 
     def is_running(self):

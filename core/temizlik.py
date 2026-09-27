@@ -1,3 +1,4 @@
+from core.localization import tr_log
 import os
 import re
 from logger import app_logger
@@ -18,67 +19,47 @@ def temizle_ve_kaydet(dosya_adi: str) -> tuple[bool, str]:
     """
     try:
         if not os.path.exists(dosya_adi):
-            return False, f"Hata: '{dosya_adi}' dosyası bulunamadı."
-
+            return (False, f"Hata: '{dosya_adi}' dosyası bulunamadı.")
         with open(dosya_adi, 'r', encoding='utf-8') as dosya:
             icerik = dosya.read()
-        
-        # Tüm bölüm formatlarını algılayan güncellenmiş regex
-        # Örnekler: **Bölüm**, **1. Bölüm**, **Bölüm:1**, **Bölüm 1**, **1.Bölüm**
-        bolum_baslangici = re.search(r'\*\*(\d+\.\s*)?Bölüm[\s:]*\d*[\s:]*\*\*|'
-                                    r'\*\*Bölüm[\s:]*\**', 
-                                    icerik, re.IGNORECASE) # ignorecase ekleyerek büyük/küçük harf duyarsız yapıldı
-        
+        bolum_baslangici = re.search('\\*\\*(\\d+\\.\\s*)?Bölüm[\\s:]*\\d*[\\s:]*\\*\\*|\\*\\*Bölüm[\\s:]*\\**', icerik, re.IGNORECASE)
         if bolum_baslangici:
-            # Bölüm başlangıcından itibaren içeriği al
             temiz_icerik = icerik[bolum_baslangici.start():]
-            
-            # Dosyayı temizlenmiş içerikle yeniden yaz
             with open(dosya_adi, 'w', encoding='utf-8') as dosya:
                 dosya.write(temiz_icerik)
-            
-            return True, bolum_baslangici.group().strip()
+            return (True, bolum_baslangici.group().strip())
         else:
-            return False, "Bölüm başlığı bulunamadı. Dosya temizlenmedi."
-    
+            return (False, 'Bölüm başlığı bulunamadı. Dosya temizlenmedi.')
     except Exception as e:
-        return False, f"Temizleme sırasında hata: {str(e)}"
-
-if __name__ == "__main__":
-    # Bu kısmı test amaçlı kullanabiliriz
-    # Örnek bir dosya oluştur
-    test_file_name = "test_temizlik.txt"
+        return (False, f'Temizleme sırasında hata: {str(e)}')
+if __name__ == '__main__':
+    test_file_name = 'test_temizlik.txt'
     with open(test_file_name, 'w', encoding='utf-8') as f:
-        f.write("Gereksiz giriş metni.\n\n")
-        f.write("Bu kısım silinmeli miydi?\n")
-        f.write("**Bölüm 1:** Buradan sonrası kalmalı.\n")
-        f.write("Bu da bölümün bir parçası.\n")
-    
-    app_logger.info(f"'{test_file_name}' temizleniyor...")
-    basarili, mesaj = temizle_ve_kaydet(test_file_name)
+        f.write('Gereksiz giriş metni.\n\n')
+        f.write('Bu kısım silinmeli miydi?\n')
+        f.write('**Bölüm 1:** Buradan sonrası kalmalı.\n')
+        f.write('Bu da bölümün bir parçası.\n')
+    app_logger.info(tr_log('core.temizlik', 57, f"'{test_file_name}' temizleniyor..."))
+    (basarili, mesaj) = temizle_ve_kaydet(test_file_name)
     if basarili:
-        app_logger.info(f"✓ '{test_file_name}': Başarılı. Bölüm başlığı: {mesaj}")
+        app_logger.info(tr_log('core.temizlik', 60, f"✓ '{test_file_name}': Başarılı. Bölüm başlığı: {mesaj}"))
         with open(test_file_name, 'r', encoding='utf-8') as f:
-            app_logger.info("\nTemizlenmiş içerik:")
-            app_logger.info(f.read())
+            app_logger.info(tr_log('core.temizlik', 62, '\nTemizlenmiş içerik:'))
+            app_logger.info(tr_log('core.temizlik', 63, f.read()))
     else:
-        app_logger.error(f"✗ '{test_file_name}': Hata/Uyarı: {mesaj}")
-
-    # Olmayan bir dosyayı deneme
-    app_logger.info("\nOlmayan bir dosyayı deneme:")
-    basarili, mesaj = temizle_ve_kaydet("olmayan_dosya.txt")
-    app_logger.error(f"✗ olmayan_dosya.txt: {mesaj}")
-
-    # Sadece bölüm başlığı olmayan bir dosya denemesi
-    app_logger.info("\nBölüm başlığı olmayan bir dosyayı deneme:")
-    test_file_no_chapter = "test_no_chapter.txt"
+        app_logger.error(tr_log('core.temizlik', 65, f"✗ '{test_file_name}': Hata/Uyarı: {mesaj}"))
+    app_logger.info(tr_log('core.temizlik', 68, '\nOlmayan bir dosyayı deneme:'))
+    (basarili, mesaj) = temizle_ve_kaydet('olmayan_dosya.txt')
+    app_logger.error(tr_log('core.temizlik', 70, f'✗ olmayan_dosya.txt: {mesaj}'))
+    app_logger.info(tr_log('core.temizlik', 73, '\nBölüm başlığı olmayan bir dosyayı deneme:'))
+    test_file_no_chapter = 'test_no_chapter.txt'
     with open(test_file_no_chapter, 'w', encoding='utf-8') as f:
-        f.write("Bu dosyada bölüm başlığı yok.\n")
-        f.write("Tamamen silinmemeli, olduğu gibi kalmalı.\n")
-    basarili, mesaj = temizle_ve_kaydet(test_file_no_chapter)
+        f.write('Bu dosyada bölüm başlığı yok.\n')
+        f.write('Tamamen silinmemeli, olduğu gibi kalmalı.\n')
+    (basarili, mesaj) = temizle_ve_kaydet(test_file_no_chapter)
     if basarili:
-        app_logger.info(f"✓ '{test_file_no_chapter}': Başarılı. Bölüm başlığı: {mesaj}")
+        app_logger.info(tr_log('core.temizlik', 80, f"✓ '{test_file_no_chapter}': Başarılı. Bölüm başlığı: {mesaj}"))
     else:
-        app_logger.error(f"✗ '{test_file_no_chapter}': Hata/Uyarı: {mesaj}")
+        app_logger.error(tr_log('core.temizlik', 82, f"✗ '{test_file_no_chapter}': Hata/Uyarı: {mesaj}"))
     os.remove(test_file_name)
     os.remove(test_file_no_chapter)

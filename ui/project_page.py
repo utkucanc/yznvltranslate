@@ -22,10 +22,16 @@ from ui.dark_theme import (
     ACCENT_RED, ACCENT_CYAN
 )
 from core.localization import tr
+from core.path_resolver import (
+    get_subfolder_path, get_project_dir,
+    is_old_project_structure, migrate_project_structure
+)
 
 # ------------------------------------------------------------------
 # Yardımcılar
 # ------------------------------------------------------------------
+def __init__(self):
+    self._basedir = os.getcwd()
 
 def _badge(text: str, color: str) -> QLabel:
     lbl = QLabel(text)
@@ -124,17 +130,17 @@ def _build_project_list_side(win) -> QWidget:
 
     toolbar.addStretch()
 
-    refresh_btn = QPushButton("⟳  Yenile")
+    refresh_btn = QPushButton(tr("project_page_extra.btn_refresh", "⟳  Yenile"))
     refresh_btn.setObjectName("smallBtn")
     refresh_btn.clicked.connect(win.load_existing_projects)
     toolbar.addWidget(refresh_btn)
 
-    new_btn = QPushButton("+  Yeni Proje")
+    new_btn = QPushButton(tr("project_page_extra.btn_new_project", "+  Yeni Proje"))
     new_btn.setObjectName("primaryBtn")
     new_btn.clicked.connect(win.new_project_clicked)
     toolbar.addWidget(new_btn)
 
-    del_btn = QPushButton("🗑  Sil")
+    del_btn = QPushButton(tr("project_page_extra.btn_delete", "🗑  Sil"))
     del_btn.setObjectName("dangerBtn")
     del_btn.clicked.connect(win.delete_project_clicked)
     toolbar.addWidget(del_btn)
@@ -146,9 +152,9 @@ def _build_project_list_side(win) -> QWidget:
     stats_row.setSpacing(10)
     total_count, active_count, done_count = _count_projects()
 
-    win.proj_page_total_card  = _stat_card("Toplam Proje", str(total_count))
-    win.proj_page_active_card = _stat_card("Aktif", str(active_count), ACCENT_GREEN)
-    win.proj_page_done_card   = _stat_card("Tamamlanan", str(done_count), ACCENT_BLUE)
+    win.proj_page_total_card  = _stat_card(tr("project_page_extra.stat_total_projects", "Toplam Proje"), str(total_count))
+    win.proj_page_active_card = _stat_card(tr("project_page_extra.stat_active_projects", "Aktif"), str(active_count), ACCENT_GREEN)
+    win.proj_page_done_card   = _stat_card(tr("project_page_extra.stat_completed_projects", "Tamamlanan"), str(done_count), ACCENT_BLUE)
     stats_row.addWidget(win.proj_page_total_card)
     stats_row.addWidget(win.proj_page_active_card)
     stats_row.addWidget(win.proj_page_done_card)
@@ -246,13 +252,67 @@ def _populate_project_details(win, frame: QFrame, project_name: str = None):
     path_lbl.setWordWrap(True)
     outer.addWidget(path_lbl)
 
+    # Eski dosya yapısı kontrolü ve aktarma butonu
+    base_dir = os.getcwd()
+    if is_old_project_structure(base_dir, project_name):
+        warn_box = QFrame()
+        warn_box.setStyleSheet(
+            f"background:{ACCENT_ORANGE}15; border:1px solid {ACCENT_ORANGE}66; "
+            f"border-radius:8px; padding:10px;"
+        )
+        warn_layout = QVBoxLayout(warn_box)
+        warn_layout.setContentsMargins(8, 8, 8, 8)
+        warn_layout.setSpacing(6)
+
+        warn_lbl = QLabel(tr("project_page_extra.warning_old_structure", "⚠️ Bu proje eski dosya yapısını kullanıyor. Lütfen yeni formata yükseltin."))
+        warn_lbl.setStyleSheet(f"color:{ACCENT_ORANGE}; font-size:11px; font-weight:600;")
+        warn_lbl.setWordWrap(True)
+        warn_layout.addWidget(warn_lbl)
+
+        migrate_btn = QPushButton(tr("project_page_extra.btn_migrate_structure", "🔄 Proje Yapısını Güncelle"))
+        migrate_btn.setFont(QFont("Segoe UI", 9, QFont.Weight.Bold))
+        migrate_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        migrate_btn.setStyleSheet(
+            f"background:{ACCENT_ORANGE}; color:#FFFFFF; border:none; "
+            f"border-radius:6px; padding:6px 12px; font-weight:bold;"
+        )
+
+        from PyQt6.QtWidgets import QMessageBox
+
+        def _on_migrate(p_name=project_name):
+            ok, msg = migrate_project_structure(os.getcwd(), p_name)
+            if ok:
+                QMessageBox.information(
+                    win,
+                    tr("app_settings.msg_settings_saved_title", "Başarılı"),
+                    tr("project_page_extra.msg_migration_success", "Proje dosya yapısı kayıpsız olarak yeni formata aktarıldı.")
+                )
+                if hasattr(win, "refresh_project_list"):
+                    win.refresh_project_list()
+                if hasattr(win, "update_file_list_from_selection"):
+                    win.update_file_list_from_selection()
+                if hasattr(win, "sync_database_if_exists"):
+                    win.sync_database_if_exists()
+                refresh_project_details(win)
+            else:
+                QMessageBox.critical(
+                    win,
+                    tr("main_window.msg_structure_error_title", "Hata"),
+                    tr("project_page_extra.msg_migration_error", "Proje dönüştürülürken hata oluştu: {}").format(msg)
+                )
+
+        migrate_btn.clicked.connect(lambda: _on_migrate(project_name))
+        warn_layout.addWidget(migrate_btn)
+        outer.addWidget(warn_box)
+
     sep = QFrame()
     sep.setFrameShape(QFrame.Shape.HLine)
     sep.setStyleSheet(f"color:{BORDER};")
     outer.addWidget(sep)
 
     # Proje Boyutu Satırı
-    p_path = os.path.join(os.getcwd(), project_name)
+    base = os.getcwd()
+    p_path = get_project_dir(base,project_name)
     p_size = _format_size(_get_folder_size(p_path)) if os.path.exists(p_path) else "—"
     size_row = QHBoxLayout()
     kl_sz = QLabel(tr("project_page_extra.project_size", "Proje Boyutu"))
@@ -387,8 +447,8 @@ def _count_projects():
             if os.path.isdir(os.path.join(base, name)) and os.path.exists(cfg):
                 total += 1
                 # Tamamlanma kontrolü
-                trslt = os.path.join(base, name, "trslt")
-                dwnld = os.path.join(base, name, "dwnld")
+                trslt = get_subfolder_path(name, "translate")
+                dwnld = get_subfolder_path(name, "download")
                 t = len([f for f in os.listdir(trslt) if f.endswith(".txt")]) if os.path.exists(trslt) else 0
                 d = len([f for f in os.listdir(dwnld) if f.endswith(".txt")]) if os.path.exists(dwnld) else 0
                 if d > 0 and t >= d:
@@ -405,7 +465,7 @@ def _read_project_meta(project_name: str) -> dict:
     result = {}
     try:
         base = os.getcwd()
-        project_path = os.path.join(base, project_name)
+        project_path = get_project_dir(base,project_name)
         result["_path"] = project_path
         cfg_path = os.path.join(project_path, "config", "config.ini")
         if not os.path.exists(cfg_path):
@@ -437,11 +497,23 @@ def _read_global_model() -> str:
 
 
 def _count_project_files(project_name: str):
-    """(total_dwnld, done_trslt) dosya sayılarını döndürür."""
+    """(total_dwnld, done_trslt) dosya sayılarını veritabanından çeker."""
     try:
-        base = os.path.join(os.getcwd(), project_name)
-        dwnld = os.path.join(base, "dwnld")
-        trslt = os.path.join(base, "trslt")
+        base = os.getcwd()
+        project_path = get_project_dir(base, project_name)
+        from core.database_manager import DatabaseManager
+        db_mgr = DatabaseManager(project_path)
+        if db_mgr.db_exists():
+            files = db_mgr.get_all_files()
+            total = sum(1 for f in files if f.get("original_file_name") and f.get("original_file_name") not in ("Orijinali Yok", "N/A"))
+            done = sum(1 for f in files if f.get("is_translated") or f.get("translation_status") in ("Çevrildi", "Birleştirildi"))
+            return total, done
+    except Exception:
+        pass
+
+    try:
+        dwnld = get_subfolder_path(project_name, "download")
+        trslt = get_subfolder_path(project_name, "translate")
         total = len([f for f in os.listdir(dwnld) if f.endswith(".txt")]) if os.path.exists(dwnld) else 0
         done  = len([f for f in os.listdir(trslt) if f.endswith(".txt")]) if os.path.exists(trslt) else 0
         return total, done
@@ -454,7 +526,7 @@ def _get_recent_files(project_name: str, n: int = 4):
     import datetime
     result = []
     try:
-        trslt = os.path.join(os.getcwd(), project_name, "trslt")
+        trslt = get_subfolder_path(project_name, "translate")
         if not os.path.exists(trslt):
             return result
         files = [(f, os.path.getmtime(os.path.join(trslt, f)))
@@ -508,7 +580,8 @@ def update_project_list_widgets(win):
         if not item:
             continue
         project_name = item.text()
-        project_path = os.path.join(os.getcwd(), project_name)
+        base = os.getcwd()
+        project_path = get_project_dir(base,project_name)
         size_bytes = _get_folder_size(project_path)
         size_str = _format_size(size_bytes)
 
@@ -612,7 +685,8 @@ def _show_project_context_menu(win, pos):
         return
     win.project_list.setCurrentItem(item)
     project_name = item.text()
-    project_path = os.path.join(os.getcwd(), project_name)
+    base = os.getcwd()
+    project_path = get_project_dir(base,project_name)
 
     from PyQt6.QtWidgets import QMenu
     from PyQt6.QtGui import QAction

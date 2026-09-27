@@ -65,13 +65,6 @@ def _save_js_file(main_window, js_filename):
     source_path = os.path.join(os.getcwd(), js_filename)
 
     if not os.path.exists(source_path):
-        try:
-            from core.js_create import create_js_file
-            create_js_file(js_filename)
-        except Exception:
-            pass
-
-    if not os.path.exists(source_path):
         QMessageBox.warning(main_window, tr("menu_bar.msg_file_not_found_title", "Dosya Bulunamadı"), tr("menu_bar.msg_file_not_found_body", "'{}' dosyası ana dizinde bulunamadı!").format(js_filename))
         return
 

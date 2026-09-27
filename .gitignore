@@ -209,3 +209,6 @@ bugfix.md
 /test4
 AppConfigs/request_count.json
 AppConfigs/request_stats.json
+/Project
+/1test
+AppConfigs/app.log.1

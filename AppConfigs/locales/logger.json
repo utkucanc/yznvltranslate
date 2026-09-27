@@ -1,0 +1,1748 @@
+{
+  "ui": {
+    "app_settings_dialog": [
+      {
+        "line": 78,
+        "level": "warning",
+        "message": "app_settings.json okunamadı: {e}"
+      },
+      {
+        "line": 89,
+        "level": "error",
+        "message": "app_settings.json kaydedilemedi: {e}"
+      },
+      {
+        "line": 110,
+        "level": "debug",
+        "message": "Tema zaten aktif ({theme_name}), yeniden uygulama atlandı."
+      },
+      {
+        "line": 116,
+        "level": "info",
+        "message": "Tema: Sistem varsayılanı uygulandı. (Süre: {(time.perf_counter() - t0) * 1000}ms)"
+      },
+      {
+        "line": 128,
+        "level": "info",
+        "message": "Özel JSON teması uygulandı: {theme_name} (Süre: {(time.perf_counter() - t0) * 1000}ms)"
+      },
+      {
+        "line": 131,
+        "level": "error",
+        "message": "Özel JSON teması uygulanamadı ({theme_name}): {e}"
+      },
+      {
+        "line": 149,
+        "level": "info",
+        "message": "qt-material teması uygulandı: {material_theme}"
+      },
+      {
+        "line": 151,
+        "level": "warning",
+        "message": "qt-material yüklü değil. Özel QSS'e geçiliyor. Yüklemek için: pip install qt-material"
+      },
+      {
+        "line": 156,
+        "level": "error",
+        "message": "qt-material uygulanamadı: {e}"
+      },
+      {
+        "line": 172,
+        "level": "info",
+        "message": "QSS override katmanı uygulandı: {override_name}.qss"
+      },
+      {
+        "line": 174,
+        "level": "error",
+        "message": "Tema override dosyası okunamadı ({override_name}): {e}"
+      },
+      {
+        "line": 177,
+        "level": "warning",
+        "message": "Tema dosyası bulunamadı ve qt-material yüklü değil: {theme_file}"
+      },
+      {
+        "line": 180,
+        "level": "info",
+        "message": "Tema başarıyla uygulandı: {theme_name} (Toplam Süre: {(time.perf_counter() - t0) * 1000}ms)"
+      },
+      {
+        "line": 612,
+        "level": "info",
+        "message": "Ayarları kaydetme işlemi başladı..."
+      },
+      {
+        "line": 639,
+        "level": "debug",
+        "message": "[Ayar Kayıt] Form verileri toplandı: {(t_collect - t_start) * 1000}ms"
+      },
+      {
+        "line": 643,
+        "level": "debug",
+        "message": "[Ayar Kayıt] app_settings.json kaydedildi: {(t_save - t_collect) * 1000}ms"
+      },
+      {
+        "line": 650,
+        "level": "debug",
+        "message": "[Ayar Kayıt] Log seviyesi & çeviriler güncellendi: {(t_loc - t_save) * 1000}ms"
+      },
+      {
+        "line": 654,
+        "level": "debug",
+        "message": "[Ayar Kayıt] settings_changed sinyali yayımlandı: {(t_emit - t_loc) * 1000}ms"
+      },
+      {
+        "line": 659,
+        "level": "debug",
+        "message": "[Ayar Kayıt] Ana pencere UI yenilendi: {(t_refresh - t_emit) * 1000}ms"
+      },
+      {
+        "line": 661,
+        "level": "info",
+        "message": "Uygulama ayarları başarıyla kaydedildi ve uygulandı (Toplam Süre: {(t_refresh - t_start) * 1000}ms): tema={self.settings['theme']}, language={self.settings['language']}, log_level={self.settings['log_level']}"
+      }
+    ],
+    "connection_bar_builder": [
+      {
+        "line": 275,
+        "level": "warning",
+        "message": "Connection bar yenilenemedi: {e}"
+      }
+    ],
+    "dashboard_page": [
+      {
+        "line": 586,
+        "level": "warning",
+        "message": "Terminology dialog açılamadı: {e}"
+      }
+    ],
+    "file_table_manager": [
+      {
+        "line": 60,
+        "level": "error",
+        "message": "Satır doldurulurken hata: {e}"
+      }
+    ],
+    "mcp_server_dialog": [
+      {
+        "line": 204,
+        "level": "debug",
+        "message": "Gemini model listesi alınamadı (MCP): {e}"
+      },
+      {
+        "line": 273,
+        "level": "warning",
+        "message": "Anahtar okunamadı ({name}): {e}"
+      }
+    ],
+    "new_project_dialog": [
+      {
+        "line": 561,
+        "level": "debug",
+        "message": "Gemini model listesi alınırken uyarı: {e}"
+      }
+    ],
+    "request_counter_manager": [
+      {
+        "line": 56,
+        "level": "error",
+        "message": "request_stats.json yüklenemedi: {e}"
+      },
+      {
+        "line": 65,
+        "level": "error",
+        "message": "request_stats.json kaydedilemedi: {e}"
+      },
+      {
+        "line": 84,
+        "level": "debug",
+        "message": "API isteği kaydedildi: {today}/{key} = {self._stats[today][key]}"
+      },
+      {
+        "line": 122,
+        "level": "error",
+        "message": "request_count.json yüklenemedi: {e}"
+      },
+      {
+        "line": 136,
+        "level": "error",
+        "message": "request_count.json kaydedilemedi: {e}"
+      }
+    ],
+    "sidebar_builder": [
+      {
+        "line": 202,
+        "level": "warning",
+        "message": "Terminology dialog açılamadı: {e}"
+      },
+      {
+        "line": 211,
+        "level": "warning",
+        "message": "Prompt editor açılamadı: {e}"
+      },
+      {
+        "line": 222,
+        "level": "warning",
+        "message": "Text editor açılamadı: {e}"
+      }
+    ],
+    "text_editor_dialog": [
+      {
+        "line": 41,
+        "level": "info",
+        "message": "Tekrar çeviri için terminoloji bölümü eklendi."
+      },
+      {
+        "line": 43,
+        "level": "warning",
+        "message": "Terminoloji yüklenemedi: {te}"
+      }
+    ],
+    "text_editor_page": [
+      {
+        "line": 570,
+        "level": "info",
+        "message": "Çeviri Başlıyor: {file_name}"
+      },
+      {
+        "line": 593,
+        "level": "info",
+        "message": "Çeviri Tamamlandı: {file_name}"
+      },
+      {
+        "line": 599,
+        "level": "info",
+        "message": "Çeviri Hatası: {err_msg}"
+      },
+      {
+        "line": 615,
+        "level": "info",
+        "message": "Çeviri Hatası: {e}"
+      }
+    ],
+    "theme_manager_dialog": [
+      {
+        "line": 646,
+        "level": "debug",
+        "message": "Tema token'ı güncellendi: {self._active_cat} -> {self._active_key} = {value} (Eski: {old_val})"
+      },
+      {
+        "line": 662,
+        "level": "error",
+        "message": "Canlı önizleme uygulanırken hata: {e}"
+      },
+      {
+        "line": 720,
+        "level": "info",
+        "message": "Tema kaydetme isteği: {self._selected_theme}"
+      },
+      {
+        "line": 724,
+        "level": "warning",
+        "message": "Yerleşik tema kaydedilmeye çalışıldı: {self._selected_theme}"
+      },
+      {
+        "line": 733,
+        "level": "info",
+        "message": "Tema başarıyla kaydedildi: {self._selected_theme} ({label})"
+      },
+      {
+        "line": 737,
+        "level": "info",
+        "message": "Aktif tema güncellendi, canlı önizleme/uygulama için sinyal gönderiliyor: {self._selected_theme}"
+      },
+      {
+        "line": 742,
+        "level": "error",
+        "message": "Tema kaydedilirken hata oluştu: {self._selected_theme}"
+      },
+      {
+        "line": 771,
+        "level": "info",
+        "message": "Farklı kaydet isteği: '{self._selected_theme}' -> '{name}'"
+      },
+      {
+        "line": 776,
+        "level": "info",
+        "message": "Tema başarıyla farklı kaydedildi: {name}"
+      },
+      {
+        "line": 786,
+        "level": "error",
+        "message": "Farklı kaydetme başarısız: {name}"
+      }
+    ]
+  },
+  "terminology": {
+    "terminology_manager": [
+      {
+        "line": 80,
+        "level": "warning",
+        "message": "Terminology dosyası yüklenemedi: {e}"
+      },
+      {
+        "line": 89,
+        "level": "error",
+        "message": "Terminology dosyası kaydedilemedi: {e}"
+      },
+      {
+        "line": 133,
+        "level": "warning",
+        "message": "Otomatik terim çıkarma: metin veya provider eksik."
+      },
+      {
+        "line": 138,
+        "level": "info",
+        "message": "Otomatik terim çıkarma başlatıldı..."
+      },
+      {
+        "line": 145,
+        "level": "info",
+        "message": "Otomatik terim çıkarma tamamlandı: {count} terim eklendi."
+      },
+      {
+        "line": 147,
+        "level": "warning",
+        "message": "Otomatik terim çıkarma: LLM yanıtından terim parse edilemedi."
+      },
+      {
+        "line": 152,
+        "level": "error",
+        "message": "Otomatik terim çıkarma hatası: {e}"
+      },
+      {
+        "line": 234,
+        "level": "info",
+        "message": "Token limiti ({token_limit}) aşılacak, '{f}' eklenmedi."
+      },
+      {
+        "line": 238,
+        "level": "info",
+        "message": "'{f}' örnekleme için eklendi. Toplam token: {total_tokens}"
+      }
+    ]
+  },
+  "core": {
+    "ch-kontrol": [
+      {
+        "line": 15,
+        "level": "error",
+        "message": "Hata: '{klasor_yolu}' yolu bulunamadı."
+      },
+      {
+        "line": 18,
+        "level": "info",
+        "message": "--- '{klasor_yolu}' klasörü taranıyor --- Çeviri/Çince Kontrol ---"
+      },
+      {
+        "line": 49,
+        "level": "info",
+        "message": "Dosya: {dosya_adi} -> Hatalı/Çevrilmemiş Tespit Edildi"
+      },
+      {
+        "line": 55,
+        "level": "error",
+        "message": "Hata: {dosya_adi} okunamadı. Sebebi: {e}"
+      },
+      {
+        "line": 58,
+        "level": "info",
+        "message": "Klasörde hiç .txt dosyası bulunamadı."
+      },
+      {
+        "line": 60,
+        "level": "info",
+        "message": "Sorunlu Dosya Sayısı: {sorunlu_dosya}"
+      },
+      {
+        "line": 61,
+        "level": "info",
+        "message": "Sorunsuz Dosya Sayısı: {sorunsuz_dosya}"
+      },
+      {
+        "line": 62,
+        "level": "info",
+        "message": "Toplam Dosya Sayısı: {toplam_dosya}"
+      },
+      {
+        "line": 72,
+        "level": "error",
+        "message": "Silme hatası ({dosya_yol}): {e}"
+      },
+      {
+        "line": 73,
+        "level": "info",
+        "message": "Silme Tamamlandı"
+      }
+    ],
+    "chapter_check_worker": [
+      {
+        "line": 76,
+        "level": "error",
+        "message": "Hata ({filename}): {e}"
+      }
+    ],
+    "database_manager": [
+      {
+        "line": 56,
+        "level": "warning",
+        "message": "db şeması uyumsuz"
+      },
+      {
+        "line": 136,
+        "level": "info",
+        "message": "DB Upsert: {len(files_data)} dosya işlemi başarılı."
+      },
+      {
+        "line": 138,
+        "level": "error",
+        "message": "Veritabanı kayıt hatası (upsert_files): {e}"
+      },
+      {
+        "line": 158,
+        "level": "info",
+        "message": "DB Delete: sort_key='{sort_key}' silindi."
+      },
+      {
+        "line": 161,
+        "level": "error",
+        "message": "Veritabanı silme hatası (delete_file): {e}"
+      },
+      {
+        "line": 176,
+        "level": "error",
+        "message": "Aktarılma hatası (sync_directory_to_db): {e}"
+      }
+    ],
+    "file_list_manager": [
+      {
+        "line": 62,
+        "level": "debug",
+        "message": "download klasörü bulunamadı: {self.download_folder}"
+      },
+      {
+        "line": 98,
+        "level": "debug",
+        "message": "translated klasörü bulunamadı: {self.translated_folder}"
+      },
+      {
+        "line": 118,
+        "level": "debug",
+        "message": "completed klasörü bulunamadı: {self.completed_folder}"
+      },
+      {
+        "line": 144,
+        "level": "info",
+        "message": "FileListManager: {len(sorted_entries)} dosya bulundu ve işlendi (Legacy Yöntem)."
+      }
+    ],
+    "free_translators": [
+      {
+        "line": 53,
+        "level": "warning",
+        "message": "app_settings.json okunamadı: {e}"
+      },
+      {
+        "line": 70,
+        "level": "error",
+        "message": "Ayar kaydedilemedi ({key}): {e}"
+      },
+      {
+        "line": 125,
+        "level": "error",
+        "message": "Free translators ayarları kaydedilemedi: {e}"
+      },
+      {
+        "line": 247,
+        "level": "warning",
+        "message": "DeepL anahtarı ile çeviri başarısız ({key[:8]}...): {e}"
+      },
+      {
+        "line": 377,
+        "level": "warning",
+        "message": "Yandex anahtarı ile çeviri başarısız ({key[:8]}...): {e}"
+      },
+      {
+        "line": 380,
+        "level": "debug",
+        "message": "Yandex anahtarı yok veya sonuç vermedi, MyMemory fallback devrede."
+      },
+      {
+        "line": 521,
+        "level": "debug",
+        "message": "Google Translate proxy ile başlatıldı: {proxies}"
+      },
+      {
+        "line": 527,
+        "level": "debug",
+        "message": "Google Translate proxy olmadan başlatıldı."
+      },
+      {
+        "line": 529,
+        "level": "error",
+        "message": "Google Translate başlatma hatası: {e}"
+      },
+      {
+        "line": 567,
+        "level": "error",
+        "message": "{self.provider_name.capitalize()} çeviri motoru None döndürdü"
+      },
+      {
+        "line": 571,
+        "level": "error",
+        "message": "{self.provider_name.capitalize()} çeviri hatası: {e}"
+      }
+    ],
+    "kr-kontrol": [
+      {
+        "line": 15,
+        "level": "error",
+        "message": "Hata: '{klasor_yolu}' yolu bulunamadı."
+      },
+      {
+        "line": 18,
+        "level": "info",
+        "message": "--- '{klasor_yolu}' klasörü taranıyor --- Çeviri/Korece Kontrol ---"
+      },
+      {
+        "line": 49,
+        "level": "info",
+        "message": "Dosya: {dosya_adi} -> Hatalı/Çevrilmemiş Tespit Edildi"
+      },
+      {
+        "line": 55,
+        "level": "error",
+        "message": "Hata: {dosya_adi} okunamadı. Sebebi: {e}"
+      },
+      {
+        "line": 58,
+        "level": "info",
+        "message": "Klasörde hiç .txt dosyası bulunamadı."
+      },
+      {
+        "line": 60,
+        "level": "info",
+        "message": "Sorunlu Dosya Sayısı: {sorunlu_dosya}"
+      },
+      {
+        "line": 61,
+        "level": "info",
+        "message": "Sorunsuz Dosya Sayısı: {sorunsuz_dosya}"
+      },
+      {
+        "line": 62,
+        "level": "info",
+        "message": "Toplam Dosya Sayısı: {toplam_dosya}"
+      },
+      {
+        "line": 72,
+        "level": "error",
+        "message": "Silme hatası ({dosya_yol}): {e}"
+      },
+      {
+        "line": 73,
+        "level": "info",
+        "message": "Silme Tamamlandı"
+      }
+    ],
+    "llm_provider": [
+      {
+        "line": 46,
+        "level": "error",
+        "message": "MCP_Endpoints.json okunamadı: {e}"
+      },
+      {
+        "line": 88,
+        "level": "error",
+        "message": "API anahtarları okunamadı ({endpoint_id}): {e}"
+      },
+      {
+        "line": 262,
+        "level": "info",
+        "message": "Pool tükendi: '{self.ep_name}' — {self._tried_key_count}/{len(self._key_pool.keys)} anahtar denendi."
+      },
+      {
+        "line": 276,
+        "level": "info",
+        "message": "Pool anahtarı rotasyonu: '{self.ep_name}' ({self._tried_key_count}/{len(self._key_pool.keys)}. anahtar kullanılacak)"
+      },
+      {
+        "line": 374,
+        "level": "warning",
+        "message": "Proje endpoint'i yüklenemedi ({project_endpoint_id}): {e}"
+      },
+      {
+        "line": 385,
+        "level": "warning",
+        "message": "Global endpoint yüklenemedi: {e}"
+      }
+    ],
+    "process_controller": [
+      {
+        "line": 620,
+        "level": "warning",
+        "message": "Terminoloji bölüm bilgisi config.ini'ye yazılamadı: {e}"
+      }
+    ],
+    "project_manager": [
+      {
+        "line": 53,
+        "level": "error",
+        "message": "Proje listesi taranırken hata ({scan_dir}): {e}"
+      },
+      {
+        "line": 104,
+        "level": "info",
+        "message": "Proje oluşturuldu: {project_name}"
+      },
+      {
+        "line": 108,
+        "level": "error",
+        "message": "Proje oluşturma hatası ({project_name}): {e}"
+      },
+      {
+        "line": 111,
+        "level": "error",
+        "message": "Proje oluşturma hatası ({project_name}): {e}"
+      },
+      {
+        "line": 127,
+        "level": "info",
+        "message": "Proje silindi: {project_name}"
+      },
+      {
+        "line": 130,
+        "level": "error",
+        "message": "Proje silme hatası ({project_name}): {e}"
+      },
+      {
+        "line": 133,
+        "level": "error",
+        "message": "Proje silme hatası ({project_name}): {e}"
+      },
+      {
+        "line": 152,
+        "level": "error",
+        "message": "Config okuma hatası ({project_name}): {e}"
+      },
+      {
+        "line": 163,
+        "level": "info",
+        "message": "Config kaydedildi: {project_name}"
+      },
+      {
+        "line": 166,
+        "level": "error",
+        "message": "Config kayıt hatası ({project_name}): {e}"
+      }
+    ],
+    "startup_worker": [
+      {
+        "line": 85,
+        "level": "debug",
+        "message": "Presync: Proje bulunamadı, atlanıyor."
+      },
+      {
+        "line": 99,
+        "level": "info",
+        "message": "Presync: '{project_name}' projesi başarıyla veritabanına aktarıldı."
+      },
+      {
+        "line": 101,
+        "level": "warning",
+        "message": "Presync: '{project_name}' veritabanına aktarılması başarısız."
+      },
+      {
+        "line": 103,
+        "level": "warning",
+        "message": "Presync: '{project_name}' için hata: {proj_err}"
+      },
+      {
+        "line": 106,
+        "level": "info",
+        "message": "Presync: Toplam {migrated} proje veritabanına aktarıldı."
+      },
+      {
+        "line": 109,
+        "level": "error",
+        "message": "Veritabanı senkronizasyonu hatası: {str(e)}"
+      }
+    ],
+    "temizlik": [
+      {
+        "line": 57,
+        "level": "info",
+        "message": "'{test_file_name}' temizleniyor..."
+      },
+      {
+        "line": 60,
+        "level": "info",
+        "message": "✓ '{test_file_name}': Başarılı. Bölüm başlığı: {mesaj}"
+      },
+      {
+        "line": 62,
+        "level": "info",
+        "message": "\nTemizlenmiş içerik:"
+      },
+      {
+        "line": 63,
+        "level": "info",
+        "message": "f.read()"
+      },
+      {
+        "line": 65,
+        "level": "error",
+        "message": "✗ '{test_file_name}': Hata/Uyarı: {mesaj}"
+      },
+      {
+        "line": 68,
+        "level": "info",
+        "message": "\nOlmayan bir dosyayı deneme:"
+      },
+      {
+        "line": 70,
+        "level": "error",
+        "message": "✗ olmayan_dosya.txt: {mesaj}"
+      },
+      {
+        "line": 73,
+        "level": "info",
+        "message": "\nBölüm başlığı olmayan bir dosyayı deneme:"
+      },
+      {
+        "line": 80,
+        "level": "info",
+        "message": "✓ '{test_file_no_chapter}': Başarılı. Bölüm başlığı: {mesaj}"
+      },
+      {
+        "line": 82,
+        "level": "error",
+        "message": "✗ '{test_file_no_chapter}': Hata/Uyarı: {mesaj}"
+      }
+    ],
+    "theme_defaultCreate": [
+      {
+        "line": 527,
+        "level": "error",
+        "message": "Tema klasörü oluşturulamadı: {e}"
+      },
+      {
+        "line": 542,
+        "level": "info",
+        "message": "Tema metadata dosyası oluşturuldu: themes_meta.json"
+      },
+      {
+        "line": 544,
+        "level": "error",
+        "message": "themes_meta.json oluşturulamadı: {e}"
+      },
+      {
+        "line": 552,
+        "level": "info",
+        "message": "Sistem tema JSON dosyası oluşturuldu: system.json"
+      },
+      {
+        "line": 554,
+        "level": "error",
+        "message": "system.json oluşturulamadı: {e}"
+      },
+      {
+        "line": 564,
+        "level": "info",
+        "message": "Varsayılan tema dosyası oluşturuldu: {filename}"
+      },
+      {
+        "line": 566,
+        "level": "error",
+        "message": "{filename} oluşturulamadı: {e}"
+      }
+    ],
+    "theme_engine": [
+      {
+        "line": 247,
+        "level": "warning",
+        "message": "themes_meta.json okunamadı: {e}"
+      },
+      {
+        "line": 258,
+        "level": "error",
+        "message": "themes_meta.json kaydedilemedi: {e}"
+      },
+      {
+        "line": 317,
+        "level": "error",
+        "message": "Tema yüklenemedi ({name}): {e}"
+      },
+      {
+        "line": 327,
+        "level": "warning",
+        "message": "Yerleşik tema kayıt edilemez: {name}"
+      },
+      {
+        "line": 341,
+        "level": "error",
+        "message": "Tema kaydedilemedi ({name}): {e}"
+      },
+      {
+        "line": 354,
+        "level": "info",
+        "message": "Özel tema kaydedildi: {name} ({label})"
+      },
+      {
+        "line": 364,
+        "level": "warning",
+        "message": "Yerleşik tema silinemez: {name}"
+      },
+      {
+        "line": 371,
+        "level": "error",
+        "message": "Tema dosyası silinemedi ({name}): {e}"
+      },
+      {
+        "line": 377,
+        "level": "info",
+        "message": "Özel tema silindi: {name}"
+      },
+      {
+        "line": 403,
+        "level": "info",
+        "message": "Tema dışa aktarıldı: {name} → {export_path}"
+      },
+      {
+        "line": 406,
+        "level": "error",
+        "message": "Tema dışa aktarılamadı ({name}): {e}"
+      },
+      {
+        "line": 420,
+        "level": "error",
+        "message": "Tema içe aktarma hatası: {e}"
+      }
+    ],
+    "token_controller": [
+      {
+        "line": 86,
+        "level": "info",
+        "message": "Yerel token sayım worker'ı başlatıldı."
+      },
+      {
+        "line": 96,
+        "level": "info",
+        "message": "Token sayımı tamamlandı. UI güncelleniyor..."
+      },
+      {
+        "line": 187,
+        "level": "info",
+        "message": "[PERF] Yerel token sayımı UI güncellemesi tamamlandı: {_time.time() - _t0}s"
+      },
+      {
+        "line": 190,
+        "level": "error",
+        "message": "Token sayım hatası: {message}"
+      }
+    ],
+    "translation_controller": [
+      {
+        "line": 231,
+        "level": "info",
+        "message": "TranslationController: QThread kapandı, referanslar temizleniyor."
+      },
+      {
+        "line": 275,
+        "level": "error",
+        "message": "TranslationController: Çeviri hatası sinyali alındı — {message}"
+      }
+    ],
+    "workers": {
+      "cleaning_worker": [
+        {
+          "line": 32,
+          "level": "info",
+          "message": "Temizleme hataları '{error_log_path}' dosyasına kaydedildi."
+        },
+        {
+          "line": 34,
+          "level": "error",
+          "message": "Temizleme hataları dosyaya kaydedilirken sorun oluştu: {e}"
+        },
+        {
+          "line": 47,
+          "level": "warning",
+          "message": "Mevcut temizleme hata dosyası yüklenirken sorun oluştu: {e}. Yeni bir dosya oluşturulacak."
+        },
+        {
+          "line": 50,
+          "level": "warning",
+          "message": "Mevcut temizleme hata dosyası yüklenirken genel hata: {e}. Yeni bir dosya oluşturulacak."
+        },
+        {
+          "line": 56,
+          "level": "info",
+          "message": "Temizleme işçisi durdurma isteği aldı, döngüden çıkılıyor."
+        },
+        {
+          "line": 64,
+          "level": "info",
+          "message": "'{file_name}' temizleniyor..."
+        },
+        {
+          "line": 70,
+          "level": "info",
+          "message": "'{file_name}' başarıyla temizlendi: {message}"
+        },
+        {
+          "line": 73,
+          "level": "error",
+          "message": "'{file_name}' temizlenirken sorun oluştu: {message}"
+        },
+        {
+          "line": 75,
+          "level": "info",
+          "message": "'{file_name}' zaten hata geçmişinde. Tekrar deneniyor..."
+        },
+        {
+          "line": 80,
+          "level": "info",
+          "message": "'{file_name}' başarıyla temizlendi: {message}"
+        },
+        {
+          "line": 83,
+          "level": "error",
+          "message": "'{file_name}' temizlenirken sorun oluştu: {message}"
+        },
+        {
+          "line": 91,
+          "level": "error",
+          "message": "Temizleme çalıştırılırken beklenmedik hata: {e}",
+          "kwargs": {
+            "exc_info": "True"
+          }
+        },
+        {
+          "line": 96,
+          "level": "info",
+          "message": "Temizleme işçisi tamamlandı/durduruldu."
+        },
+        {
+          "line": 101,
+          "level": "info",
+          "message": "Temizleme işçisi durdurma isteği aldı."
+        }
+      ],
+      "epub_worker": [
+        {
+          "line": 81,
+          "level": "warning",
+          "message": "Uyarı: {file_name} işlenirken hata: {e}"
+        }
+      ],
+      "jsonoutput": [
+        {
+          "line": 24,
+          "level": "error",
+          "message": "İşlenecek dosya seçilmedi."
+        },
+        {
+          "line": 27,
+          "level": "info",
+          "message": "JSON oluşturma işlemi başlatıldı. Proje: {self.project_name}"
+        },
+        {
+          "line": 39,
+          "level": "error",
+          "message": "İşlem kullanıcı tarafından durduruldu."
+        },
+        {
+          "line": 81,
+          "level": "error",
+          "message": "'{os.path.basename(file_path)}' okunurken hata oluştu: {str(e)}"
+        },
+        {
+          "line": 89,
+          "level": "info",
+          "message": "JSON dosyası başarıyla kaydedildi: {output_filepath}"
+        },
+        {
+          "line": 93,
+          "level": "error",
+          "message": "JSON oluşturma işlemi sırasında genel hata oluştu: {str(e)}"
+        },
+        {
+          "line": 96,
+          "level": "info",
+          "message": "JSON oluşturma işlemi tamamlandı."
+        }
+      ],
+      "local_token_count_worker": [
+        {
+          "line": 67,
+          "level": "warning",
+          "message": "LocalTokenCountWorker: Dosya bulunamadı: {file_name}"
+        },
+        {
+          "line": 75,
+          "level": "debug",
+          "message": "Yerel token sayımı: {file_name} → {token_count}"
+        },
+        {
+          "line": 77,
+          "level": "warning",
+          "message": "LocalTokenCountWorker dosya okuma hatası ({file_name}): {e}"
+        },
+        {
+          "line": 101,
+          "level": "error",
+          "message": "LocalTokenCountWorker genel hata: {e}"
+        }
+      ],
+      "ml_terminology_extractor": [
+        {
+          "line": 27,
+          "level": "error",
+          "message": "llm_provider.py bulunamadı. Lütfen aracın yznvltranslate-main klasöründe olduğundan emin olun."
+        },
+        {
+          "line": 68,
+          "level": "info",
+          "message": "LLM Provider başarıyla yüklendi: {self.llm_provider.ep_name}"
+        },
+        {
+          "line": 70,
+          "level": "error",
+          "message": "LLM Provider başlatılamadı: {e}"
+        },
+        {
+          "line": 96,
+          "level": "info",
+          "message": "ml_max_tokens app_settings.json'dan okundu: {value}"
+        },
+        {
+          "line": 99,
+          "level": "warning",
+          "message": "app_settings.json okunamadı, varsayılan kullanılıyor: {e}"
+        },
+        {
+          "line": 120,
+          "level": "error",
+          "message": "Eksik klasör. '{self.dwnld_dir}' bulunamadı."
+        },
+        {
+          "line": 130,
+          "level": "info",
+          "message": "Bölüm aralığı filtresi uygulandı: {start_chapter}-{end_chapter} → {len(dwnld_files)} dosya seçildi."
+        },
+        {
+          "line": 151,
+          "level": "info",
+          "message": "'{file}' ile token limiti ({upper_limit}) %5 sapma dahil aşılıyor. Bu bölüm çıkarıldı ve ekleme durduruluyor."
+        },
+        {
+          "line": 158,
+          "level": "info",
+          "message": "'{file}' dosyası eklendi. Toplam token sayısı: {acc_tokens}"
+        },
+        {
+          "line": 160,
+          "level": "info",
+          "message": "Hedef token sayısına ({target_token_count}) ulaşıldı veya yaklaşıldı. (Güncel: {acc_tokens})"
+        },
+        {
+          "line": 164,
+          "level": "info",
+          "message": "Toplanan metin için tahmini token sayısı: {acc_tokens} | Gerçek son bölüm: {actual_end_chapter}"
+        },
+        {
+          "line": 181,
+          "level": "error",
+          "message": "LLM Provider mevcut olmadığı için işleme devam edilemiyor."
+        },
+        {
+          "line": 184,
+          "level": "info",
+          "message": "İşlem başlıyor... Dosyalar toplandıyor."
+        },
+        {
+          "line": 194,
+          "level": "info",
+          "message": "Mevcut terminolojiden {len(existing_terms)} terim yüklendi."
+        },
+        {
+          "line": 196,
+          "level": "warning",
+          "message": "Mevcut terminoloji okunamadı: {e}"
+        },
+        {
+          "line": 205,
+          "level": "warning",
+          "message": "Terminoloji çıkarmak için uygun metin bulunamadı."
+        },
+        {
+          "line": 217,
+          "level": "info",
+          "message": "Yapay zekaya terminoloji çıkarma isteği gönderiliyor. Bu işlem model bağlam penceresine göre uzun (1-5 dakika) sürebilir..."
+        },
+        {
+          "line": 233,
+          "level": "info",
+          "message": "Toplam {len(final_terms)} eşsiz terim çıkarıldı."
+        },
+        {
+          "line": 238,
+          "level": "error",
+          "message": "Yapay zeka işlemi sırasında hata oluştu: {e}"
+        },
+        {
+          "line": 253,
+          "level": "warning",
+          "message": "Mevcut terminoloji okunamadı: {e}"
+        },
+        {
+          "line": 267,
+          "level": "info",
+          "message": "Mevcut listeye {added_count} adet yeni terim eklendi."
+        },
+        {
+          "line": 279,
+          "level": "info",
+          "message": "İşlem Tamamlandı: {terms_file} [{action}]"
+        },
+        {
+          "line": 281,
+          "level": "error",
+          "message": "Terminoloji dosyası kaydedilemedi: {e}"
+        }
+      ],
+      "ml_terminology_worker": [
+        {
+          "line": 64,
+          "level": "warning",
+          "message": "Terminoloji bölüm bilgisi config.ini'ye yazılamadı: {e}"
+        },
+        {
+          "line": 202,
+          "level": "error",
+          "message": "Paralel terminoloji çıkarma hatası: {e}"
+        }
+      ],
+      "prompt_generator": [
+        {
+          "line": 71,
+          "level": "info",
+          "message": "Prompt Gen token limiti ayarlardan okundu: {token_limit}"
+        },
+        {
+          "line": 112,
+          "level": "info",
+          "message": "Prompt örnekleme token limiti ({token_limit}) aşılacak, '{f}' atlandı."
+        },
+        {
+          "line": 183,
+          "level": "info",
+          "message": "LLM sağlayıcı başlatılıyor..."
+        },
+        {
+          "line": 210,
+          "level": "warning",
+          "message": "Debug - Model: {info['name']} ({info['model_id']}) "
+        },
+        {
+          "line": 211,
+          "level": "info",
+          "message": "Prompt üretiliyor ({info['name']} — {info['model_id']})... Bu işlem 30-60 saniye sürebilir"
+        },
+        {
+          "line": 243,
+          "level": "error",
+          "message": "Prompt ayrıştırma hatası: {e}"
+        },
+        {
+          "line": 244,
+          "level": "error",
+          "message": "Ayrıştırma hatası: {str(e)}"
+        },
+        {
+          "line": 250,
+          "level": "error",
+          "message": "Ayrıştırma başarısız, ham metin A promptuna kaydedildi."
+        },
+        {
+          "line": 381,
+          "level": "info",
+          "message": "Bağlam derleniyor..."
+        },
+        {
+          "line": 390,
+          "level": "error",
+          "message": "Bağlam oluşturulamadı. Lütfen wiki bilgisi girin veya proje dosyalarını kontrol edin."
+        },
+        {
+          "line": 398,
+          "level": "info",
+          "message": "📊 Örneklem hazırlandı: ~{total_tokens} token. LLM bağlantısı kuruluyor..."
+        },
+        {
+          "line": 446,
+          "level": "info",
+          "message": "Prompt üretimi tamamlandı!"
+        },
+        {
+          "line": 463,
+          "level": "error",
+          "message": "Prompt Üretim Hatası: {str(msg)}"
+        }
+      ],
+      "token_count_worker": [
+        {
+          "line": 31,
+          "level": "info",
+          "message": "TokenCountWorker başlatıldı. Proje: {self.project_path}"
+        },
+        {
+          "line": 57,
+          "level": "info",
+          "message": "Token sayılacak dosya sayısı: {total_files_to_check}"
+        },
+        {
+          "line": 62,
+          "level": "info",
+          "message": "TokenCountWorker durduruldu, döngüden çıkılıyor."
+        },
+        {
+          "line": 68,
+          "level": "debug",
+          "message": "[{processed_count + 1}/{total_files_to_check}] İşleniyor: {file_name} ({file_type})"
+        },
+        {
+          "line": 91,
+          "level": "debug",
+          "message": "'{file_name}' için önbellekteki değer kullanılıyor: {token_count}"
+        },
+        {
+          "line": 94,
+          "level": "debug",
+          "message": "'{file_name}' için API çağrısı yapılıyor..."
+        },
+        {
+          "line": 98,
+          "level": "debug",
+          "message": "'{file_name}' token sayımı tamamlandı: {tokens}"
+        },
+        {
+          "line": 100,
+          "level": "error",
+          "message": "Token sayım hatası ({file_name}): {err}"
+        },
+        {
+          "line": 127,
+          "level": "info",
+          "message": "Tüm dosyalar işlendi. finished sinyali yayınlanıyor..."
+        },
+        {
+          "line": 146,
+          "level": "info",
+          "message": "finished sinyali yayınlandı."
+        }
+      ],
+      "token_counter": [
+        {
+          "line": 106,
+          "level": "debug",
+          "message": "Token sayım isteği (Deneme {attempt + 1}/{max_retries})..."
+        },
+        {
+          "line": 109,
+          "level": "debug",
+          "message": "Token sayımı başarılı: {token_count}"
+        },
+        {
+          "line": 112,
+          "level": "warning",
+          "message": "Token sayım hatası (Deneme {attempt + 1}/{max_retries}): {inner_e}"
+        },
+        {
+          "line": 115,
+          "level": "info",
+          "message": "Kota aşıldı, 3 saniye bekleniyor..."
+        },
+        {
+          "line": 124,
+          "level": "warning",
+          "message": "llm_provider yüklenemedi, eski Gemini yöntemine dönülüyor."
+        },
+        {
+          "line": 127,
+          "level": "error",
+          "message": "Token sayımı genel hatası: {str(e)}"
+        },
+        {
+          "line": 184,
+          "level": "error",
+          "message": "Hata: Token kaydetme başarısız: {e}"
+        }
+      ],
+      "translation_error_check_worker": [
+        {
+          "line": 84,
+          "level": "warning",
+          "message": "Orijinal dosya okunamadı ({orig_filename}): {oe}"
+        },
+        {
+          "line": 168,
+          "level": "error",
+          "message": "Dosya kontrol hatası ({filename}): {e}"
+        }
+      ],
+      "translation_quality_checker": [
+        {
+          "line": 73,
+          "level": "warning",
+          "message": "langdetect kütüphanesi bulunamadı. Dil tespiti devre dışı kalacak."
+        },
+        {
+          "line": 113,
+          "level": "warning",
+          "message": "Benzerlik kontrolü BAŞARISIZ: oran={ratio} >= {self.similarity_threshold} (çevrilmemiş)"
+        },
+        {
+          "line": 131,
+          "level": "debug",
+          "message": "langdetect tespiti: '{detected}' (kaynak: '{self.source_lang}')"
+        },
+        {
+          "line": 133,
+          "level": "warning",
+          "message": "langdetect BAŞARISIZ: tespit edilen dil '{detected}' kaynak dille aynı."
+        },
+        {
+          "line": 138,
+          "level": "debug",
+          "message": "langdetect tespiti çalıştırılamadı: {e}"
+        },
+        {
+          "line": 156,
+          "level": "warning",
+          "message": "{prefix}KaliteKontrol: Çeviri metni boş veya aşırı kısa."
+        },
+        {
+          "line": 161,
+          "level": "warning",
+          "message": "{prefix}KaliteKontrol: Yüksek CJK/Korece karakter oranı."
+        },
+        {
+          "line": 166,
+          "level": "warning",
+          "message": "{prefix}KaliteKontrol: Metin benzerlik oranı >= %80 (çevrilmemiş)."
+        },
+        {
+          "line": 171,
+          "level": "warning",
+          "message": "{prefix}KaliteKontrol: Dil tespiti kaynak dile eşit ({self.source_lang})."
+        }
+      ],
+      "translation_worker": [
+        {
+          "line": 133,
+          "level": "warning",
+          "message": "DB anlık kayıt hatası ({file_name}): {e}"
+        },
+        {
+          "line": 164,
+          "level": "error",
+          "message": "LLMProvider başlatılamadı: {e}"
+        },
+        {
+          "line": 177,
+          "level": "info",
+          "message": "Ücretsiz çeviri motoru başlatıldı: {self.translation_provider}"
+        },
+        {
+          "line": 179,
+          "level": "error",
+          "message": "Ücretsiz çeviri motoru başlatılamadı: {e}"
+        },
+        {
+          "line": 188,
+          "level": "error",
+          "message": "Ücretsiz çeviri motoru başlatılmamış."
+        },
+        {
+          "line": 280,
+          "level": "warning",
+          "message": "Ücretsiz çeviri hatası (deneme {attempt + 1}/{self.max_retries}): {err}"
+        },
+        {
+          "line": 294,
+          "level": "error",
+          "message": "Ücretsiz çeviri maksimum deneme sayısını aştı; paket atlanıyor."
+        },
+        {
+          "line": 347,
+          "level": "info",
+          "message": "Endpoint failover listesi: {len(valid)} endpoint. Sıra: {[e[1].get('name', e[1].get('id')) for e in valid]}"
+        },
+        {
+          "line": 352,
+          "level": "warning",
+          "message": "Endpoint listesi yüklenemedi: {e}"
+        },
+        {
+          "line": 382,
+          "level": "info",
+          "message": "429 kurtarma: arayan idx={failed_at_idx}, mevcut idx={self._current_endpoint_idx} (başka thread zaten geçti). Mevcut kaynak ile devam."
+        },
+        {
+          "line": 396,
+          "level": "warning",
+          "message": "Tüm endpoint'ler ve pool'ları tükendi ({failed_at_idx + 1}/{len(self._all_endpoints)}). Çeviri durduruluyor."
+        },
+        {
+          "line": 413,
+          "level": "info",
+          "message": "Endpoint geçişi başarılı → {ep.get('name', ep.get('id', '?'))} (idx={next_idx}/{len(self._all_endpoints)})"
+        },
+        {
+          "line": 419,
+          "level": "error",
+          "message": "Endpoint geçişi başarısız [{ep.get('id')}]: {e}"
+        },
+        {
+          "line": 437,
+          "level": "info",
+          "message": "Terminology listesi boş — otomatik terim çıkarma başlatılıyor..."
+        },
+        {
+          "line": 442,
+          "level": "info",
+          "message": "Otomatik terim çıkarma: {count} terim eklendi."
+        },
+        {
+          "line": 444,
+          "level": "info",
+          "message": "Otomatik terim çıkarma: terim bulunamadı."
+        },
+        {
+          "line": 446,
+          "level": "info",
+          "message": "Otomatik terim çıkarma: dwnld klasöründe örnek metin bulunamadı."
+        },
+        {
+          "line": 452,
+          "level": "info",
+          "message": "Terminology Memory etkinleştirildi. {len(self._terminology_manager.terms)} terim yüklendi."
+        },
+        {
+          "line": 454,
+          "level": "info",
+          "message": "Terminology Memory: terim yok, prompt bölümü eklenmedi."
+        },
+        {
+          "line": 456,
+          "level": "warning",
+          "message": "Terminology Manager başlatılamadı: {e}"
+        },
+        {
+          "line": 520,
+          "level": "warning",
+          "message": "429 / ResourceExhausted (EP idx={my_ep_idx}) — sonraki endpoint'e geçiliyor..."
+        },
+        {
+          "line": 530,
+          "level": "warning",
+          "message": "API çağrısı başarısız: {last_error}"
+        },
+        {
+          "line": 574,
+          "level": "warning",
+          "message": "Paragraf bazlı çeviri CJK oranı yüksek."
+        },
+        {
+          "line": 584,
+          "level": "warning",
+          "message": "Paragraf sayı uyumsuzluğu: beklenen {len(paragraphs)}, alınan {len(translated_parts)}. Tek parça olarak işleniyor."
+        },
+        {
+          "line": 610,
+          "level": "info",
+          "message": "Belirlenen limit ({self.file_limit}) sayısına ulaşıldı."
+        },
+        {
+          "line": 645,
+          "level": "info",
+          "message": "Paragraf bazlı çeviri tamamlandı: {file_name}"
+        },
+        {
+          "line": 649,
+          "level": "warning",
+          "message": "Paragraf bazlı çeviri kalite kontrolünden geçemedi: {file_name}"
+        },
+        {
+          "line": 658,
+          "level": "warning",
+          "message": "Cache hit ancak kalite kontrol başarısız, cache atlanıyor: {file_name}"
+        },
+        {
+          "line": 667,
+          "level": "info",
+          "message": "Cache hit: {file_name}"
+        },
+        {
+          "line": 729,
+          "level": "warning",
+          "message": "429 / ResourceExhausted [{file_name}] (EP idx={my_ep_idx}) — sonraki endpoint'e geçiliyor..."
+        },
+        {
+          "line": 761,
+          "level": "warning",
+          "message": "Çeviri sonucu kalite kontrolünden geçemedi: {file_name}"
+        },
+        {
+          "line": 777,
+          "level": "warning",
+          "message": "Cache yazma hatası: {e}"
+        },
+        {
+          "line": 856,
+          "level": "warning",
+          "message": "Batch parse: CJK oranı yüksek, atlanıyor — {file_name}"
+        },
+        {
+          "line": 862,
+          "level": "info",
+          "message": "Batch parse: {len(result)}/{len(batch)} bölüm parse edildi."
+        },
+        {
+          "line": 884,
+          "level": "info",
+          "message": "Batch {batch_idx + 1}/{total_batches}: {len(batch)} dosya işleniyor — {batch}"
+        },
+        {
+          "line": 895,
+          "level": "error",
+          "message": "Batch okuma hatası [{file_name}]: {e}"
+        },
+        {
+          "line": 923,
+          "level": "warning",
+          "message": "Batch {batch_idx + 1}: API yanıtı alınamadı."
+        },
+        {
+          "line": 932,
+          "level": "warning",
+          "message": "Batch {batch_idx + 1}: Parse başarısız. Batch bölünüyor..."
+        },
+        {
+          "line": 945,
+          "level": "info",
+          "message": "Batch çeviri kaydedildi: {file_name}"
+        },
+        {
+          "line": 947,
+          "level": "error",
+          "message": "Batch kaydetme hatası [{file_name}]: {e}"
+        },
+        {
+          "line": 970,
+          "level": "info",
+          "message": "Batch bölünüyor: {first_half} | {second_half}"
+        },
+        {
+          "line": 988,
+          "level": "info",
+          "message": "Batch Çeviri başlatılıyor. Toplam: {total_files} dosya, maxBatchChars={self.max_batch_chars}, maxChaptersPerBatch={self.max_chapters_per_batch}"
+        },
+        {
+          "line": 1005,
+          "level": "info",
+          "message": "Batch Çeviri: {len(pending)} dosya, {len(batches)} batch oluşturuldu."
+        },
+        {
+          "line": 1023,
+          "level": "info",
+          "message": "Batch fallback → tekli çeviri: {file_name}"
+        },
+        {
+          "line": 1030,
+          "level": "info",
+          "message": "Batch Async Modu: {self.async_threads} thread ile {len(batches)} batch paralel işleniyor."
+        },
+        {
+          "line": 1045,
+          "level": "error",
+          "message": "Batch async hatası [batch {b_idx}]: {be}"
+        },
+        {
+          "line": 1051,
+          "level": "info",
+          "message": "Batch Async Modu: Yalnızca 1 batch var, sıralı işleniyor."
+        },
+        {
+          "line": 1057,
+          "level": "info",
+          "message": "Batch Çeviri tamamlandı."
+        },
+        {
+          "line": 1080,
+          "level": "info",
+          "message": "Ücretsiz Çeviri ({self.translation_provider}) başlatılıyor. Toplam: {total_files} dosya."
+        },
+        {
+          "line": 1089,
+          "level": "info",
+          "message": "Ücretsiz çeviri durduruldu: {i}/{total_files}"
+        },
+        {
+          "line": 1093,
+          "level": "info",
+          "message": "Belirlenen limit ({self.file_limit}) sayısına ulaşıldı."
+        },
+        {
+          "line": 1130,
+          "level": "info",
+          "message": "Ücretsiz çeviri kaydedildi: {file_name}"
+        },
+        {
+          "line": 1142,
+          "level": "critical",
+          "message": "Ücretsiz Çeviri Kritik Hata: {type(e).__name__}: {e}\n{traceback.format_exc()}"
+        },
+        {
+          "line": 1156,
+          "level": "info",
+          "message": "Ücretsiz Çeviri: finished sinyali gönderiliyor..."
+        },
+        {
+          "line": 1160,
+          "level": "error",
+          "message": "Ücretsiz Çeviri: finished.emit sonrası RuntimeError: {e}"
+        },
+        {
+          "line": 1208,
+          "level": "info",
+          "message": "Asenkron Çeviri: {self.async_threads} thread ile başlatılıyor. Toplam dosya: {total_files}"
+        },
+        {
+          "line": 1216,
+          "level": "warning",
+          "message": "Async: is_running=False — görev gönderimi durduruldu ({i}/{total_files})"
+        },
+        {
+          "line": 1221,
+          "level": "info",
+          "message": "Async: {len(futures)} görev gönderildi, tamamlanmaları bekleniyor..."
+        },
+        {
+          "line": 1227,
+          "level": "debug",
+          "message": "Async: Görev tamamlandı — {fname}"
+        },
+        {
+          "line": 1229,
+          "level": "error",
+          "message": "Async Thread İstisnası [{fname}]: {type(thread_e).__name__}: {thread_e}"
+        },
+        {
+          "line": 1232,
+          "level": "warning",
+          "message": "Async: is_running=False — kalan görevler beklenecek, yeni görev gönderilmeyecek"
+        },
+        {
+          "line": 1237,
+          "level": "info",
+          "message": "Async: Executor kapatılıyor (tüm thread'ler bekleniyor)..."
+        },
+        {
+          "line": 1239,
+          "level": "info",
+          "message": "Async: Executor tamamen kapandı."
+        },
+        {
+          "line": 1242,
+          "level": "info",
+          "message": "Klasik (Ardışık) Çeviri başlatılıyor."
+        },
+        {
+          "line": 1245,
+          "level": "info",
+          "message": "Sıralı çeviri durduruldu: {i}/{total_files}"
+        },
+        {
+          "line": 1251,
+          "level": "critical",
+          "message": "TranslationWorker Kritik Hata: {type(e).__name__}: {e}\n{traceback.format_exc()}"
+        },
+        {
+          "line": 1257,
+          "level": "info",
+          "message": "TranslationWorker: finally bloğu — global_error={'var' if self.global_error else 'yok'}, is_running={self.is_running}"
+        },
+        {
+          "line": 1261,
+          "level": "error",
+          "message": "TranslationWorker: Global hata sinyali gönderiliyor — {self.global_error}"
+        },
+        {
+          "line": 1264,
+          "level": "error",
+          "message": "TranslationWorker: error.emit sonrası RuntimeError (bekleniyor): {e}"
+        },
+        {
+          "line": 1269,
+          "level": "info",
+          "message": "Cache istatistikleri — Dosya Hit: {self.cache_hit_count}, Dosya Miss: {self.cache_miss_count}, Paragraf Hit: {self.paragraph_cache_hit_count}, Paragraf Miss: {self.paragraph_cache_miss_count}, API çağrısı: {self.api_request_count}, Süre: {elapsed}s"
+        },
+        {
+          "line": 1284,
+          "level": "info",
+          "message": "TranslationWorker: finished sinyali gönderiliyor..."
+        },
+        {
+          "line": 1288,
+          "level": "error",
+          "message": "TranslationWorker: finished.emit sonrası RuntimeError: {e}"
+        }
+      ]
+    }
+  },
+  "main_window": [
+    {
+      "line": 409,
+      "level": "warning",
+      "message": "Tema dosyaları oluşturulamadı: {e}"
+    },
+    {
+      "line": 485,
+      "level": "info",
+      "message": "Tema Yöneticisinden tema uygulandı: {theme_name}"
+    },
+    {
+      "line": 489,
+      "level": "info",
+      "message": "Uygulama ayarları güncellendi."
+    },
+    {
+      "line": 701,
+      "level": "error",
+      "message": "UI DB Sync Hatası: {e}"
+    },
+    {
+      "line": 729,
+      "level": "info",
+      "message": "refresh_ui_and_theme tamamlandı (Süre: {duration}ms)"
+    },
+    {
+      "line": 956,
+      "level": "warning",
+      "message": "Tray ikon kurulamadı: {e}"
+    },
+    {
+      "line": 972,
+      "level": "info",
+      "message": "Toast bildirimi gösterildi: {title} — {message}"
+    },
+    {
+      "line": 974,
+      "level": "debug",
+      "message": "Toast gösterilemedi: {e}"
+    }
+  ]
+}

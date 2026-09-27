@@ -8,14 +8,14 @@ PyQt6>=6.4.0
 qt-material>=2.14
 
 # --- Test ---
-pytest>=9.0.0
+pytest>=9.0.3
 
 # --- Web İndirme (Requests Yöntemi) ---
-requests>=2.28.0
+requests>=2.33.0
 beautifulsoup4>=4.11.0
 
 # --- Web İndirme (Selenium Yöntemi) ---
-selenium>=4.8.0
+selenium>=4.14.0
 webdriver-manager>=3.8.5
 
 # --- Yapay Zeka API ---
@@ -23,7 +23,7 @@ google-genai>=0.8.0
 openai>=1.0.0
 
 # --- ML / Terminoloji / Çeviri Kalite ---
-transformers>=4.30.0
+transformers>=5.10.0
 langdetect>=1.0.9
 
 # --- EPUB Dışa Aktarma ---

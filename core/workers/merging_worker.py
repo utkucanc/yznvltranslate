@@ -1,7 +1,24 @@
 import os
+import json
 from PyQt6.QtCore import QObject, pyqtSignal
 import datetime
 from logger import app_logger
+
+
+def _get_export_separator() -> str:
+    """app_settings.json'dan export_separator ayarını okur."""
+    try:
+        settings_path = os.path.join(os.getcwd(), "AppConfigs", "app_settings.json")
+        if os.path.exists(settings_path):
+            with open(settings_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            sep = data.get("export_separator", "")
+            if sep:
+                return sep
+    except Exception:
+        pass
+    return "\n\n---BÖLÜM BAŞLANGICI---\n\n"
+
 
 class MergingWorker(QObject):
     finished = pyqtSignal()
@@ -20,6 +37,8 @@ class MergingWorker(QObject):
             self.finished.emit()
             return
 
+        separator = _get_export_separator()
+
         # Çıktı dosya adı: mevcut tarih ve saat
         timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
         output_filename = f"merged_translation_{timestamp}.txt"
@@ -35,7 +54,7 @@ class MergingWorker(QObject):
                     try:
                         with open(file_path, 'r', encoding='utf-8') as infile:
                             content = infile.read()
-                            outfile.write("\n\n---BÖLÜM BAŞLANGICI---\n\n") # Bölümler arasına ayırıcı ekle
+                            outfile.write(separator)  # Bölümler arasına ayırıcı ekle
                             outfile.write(content)
                             
                     except Exception as e:
@@ -44,8 +63,7 @@ class MergingWorker(QObject):
                     
                     self.progress.emit(i + 1, len(self.files_to_merge))
             
-            if self.is_running: # Sadece işlem başarıyla tamamlandıysa bilgi ver
-                # Son dosyanın sonunda ekstra ayırıcıyı kaldırabiliriz, basitlik için şimdilik bırakalım.
+            if self.is_running:
                 pass
 
         except Exception as e:

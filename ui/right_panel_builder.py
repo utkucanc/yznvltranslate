@@ -32,27 +32,6 @@ def build_right_panel(main_window):
     right_layout.setSpacing(4)
     right_layout.setContentsMargins(4, 4, 4, 4)
 
-    # -- İndirme Yöntemi --
-    win.downloadMethodCombo = QComboBox()
-    win.downloadMethodCombo.addItems([
-        tr("right_panel.download_method_booktoki", "Booktoki JS İle İndir (Selenium)"),
-        tr("right_panel.download_method_69shuba", "69shuba JS İle İndir (Selenium)"),
-        tr("right_panel.download_method_novelfire", "Novelfire JS İle İndir (Selenium)"),
-        tr("right_panel.download_method_requests", "Normal Web Kazıma (Requests) (Tavsiye Edilmez)")
-    ])
-    win.downloadMethodLabel = QLabel(tr("right_panel.download_method", "İndirme Yöntemi:"))
-    win.downloadMethodLabel.setFont(QFont("Segoe UI", 8))
-    right_layout.addWidget(win.downloadMethodLabel)
-    right_layout.addWidget(win.downloadMethodCombo)
-
-    # -- İndirme Butonu --
-    win.startButton = QPushButton(tr("right_panel.btn_start_download", "⬇  İndirmeyi Başlat"))
-    win.startButton.setFont(QFont("Segoe UI", 9, QFont.Weight.Bold))
-    win.startButton.setProperty("class", "btn-success")
-    win.startButton.setCursor(Qt.CursorShape.PointingHandCursor)
-    win.startButton.clicked.connect(win.start_download_process)
-    win.startButton.setGraphicsEffect(_make_glow("#2E7D32", blur=16, offset_y=2))
-    right_layout.addWidget(win.startButton)
 
     # -- Toplu Bölüm Ekle --
     win.splitButton = QPushButton(tr("right_panel.btn_split", "✂  Toplu Bölüm Ekle"))
