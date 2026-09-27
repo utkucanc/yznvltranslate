@@ -2,6 +2,8 @@
 [![GitHub Issues](https://img.shields.io/github/issues/utkucanc/yznvltranslate?label=Open%20Issues)](https://github.com/utkucanc/yznvltranslate/issues)
 [![downloads](https://img.shields.io/github/downloads/utkucanc/yznvltranslate/total?label=Total%20Downloads)](https://github.com/utkucanc/yznvltranslate/releases)
 [![downloads-latest](https://img.shields.io/github/downloads/utkucanc/yznvltranslate/latest/total?label=Latest%20release)](https://github.com/utkucanc/yznvltranslate/releases/latest)
+## License
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Futkucanc%2Fyznvltranslate.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Futkucanc%2Fyznvltranslate?ref=badge_large)
 
 Discord : Utkucan#5700
 # NTT (Novel Translation Tool v3.1.1)
@@ -120,7 +122,6 @@ New projects are automatically created under `Project/<ProjectName>/`:
 | 1.9.5 | Added the ability to save selected files as an EPUB file. |
 | 1.9.4 | Added a limit on the number of files to be translated (`file_limit`). |
 | 1.9.3 | Added chapter title validation. |
-## License
-[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Futkucanc%2Fyznvltranslate.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Futkucanc%2Fyznvltranslate?ref=badge_large)
+
 
 ![alt](https://github.com/utkucanc/yznvltranslate/blob/main/diagram.png?raw=true)

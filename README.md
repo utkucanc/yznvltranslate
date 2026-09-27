@@ -2,6 +2,8 @@
 [![GitHub Issues](https://img.shields.io/github/issues/utkucanc/yznvltranslate?label=Open%20Issues)](https://github.com/utkucanc/yznvltranslate/issues)
 [![downloads](https://img.shields.io/github/downloads/utkucanc/yznvltranslate/total?label=Total%20Downloads)](https://github.com/utkucanc/yznvltranslate/releases)
 [![downloads-latest](https://img.shields.io/github/downloads/utkucanc/yznvltranslate/latest/total?label=Latest%20release)](https://github.com/utkucanc/yznvltranslate/releases/latest)
+## License
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Futkucanc%2Fyznvltranslate.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Futkucanc%2Fyznvltranslate?ref=badge_large)
 
 Discord : Utkucan#5700
 # NCA (Novel Çeviri Aracı v3.1.1)
@@ -121,7 +123,5 @@ Yeni projeler `Project/<ProjeAdı>/` dizini altında otomatik oluşturulur:
 | 1.9.5 | Seçili dosyaların EPUB dosyası olarak kaydı sağlandı. |
 | 1.9.4 | Çevirilecek dosya sayısının sınırlandırılması (`file_limit`) getirildi. |
 | 1.9.3 | Bölüm başlığı kontrolü getirildi. |
-## License
-[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Futkucanc%2Fyznvltranslate.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Futkucanc%2Fyznvltranslate?ref=badge_large)
 
 ![alt](https://github.com/utkucanc/yznvltranslate/blob/main/diagram.png?raw=true)
