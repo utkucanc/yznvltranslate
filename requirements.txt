@@ -14,10 +14,6 @@ pytest>=9.0.3
 requests>=2.33.0
 beautifulsoup4>=4.11.0
 
-# --- Web İndirme (Selenium Yöntemi) ---
-selenium>=4.14.0
-webdriver-manager>=3.8.5
-
 # --- Yapay Zeka API ---
 google-genai>=0.8.0
 openai>=1.0.0
