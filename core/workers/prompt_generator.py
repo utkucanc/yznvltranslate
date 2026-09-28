@@ -152,7 +152,7 @@ class PromptGenWorker(QObject):
 
     def run(self):
         try:
-            self.progress.emit('LLM sağlayıcı başlatılıyor...')
+            self.progress.emit(tr('prompt_generator_dialog.progress_initializing', 'LLM sağlayıcı başlatılıyor...'))
             app_logger.info(tr_log('core.workers.prompt_generator', 183, 'LLM sağlayıcı başlatılıyor...'))
             from core.llm_provider import LLMProvider
             provider = None
@@ -163,14 +163,14 @@ class PromptGenWorker(QObject):
             if provider is None:
                 provider = LLMProvider()
             info = provider.get_info()
-            self.progress.emit(f"Prompt üretiliyor ({info['name']} — {info['model_id']})... Bu işlem 30-60 saniye sürebilir")
+            self.progress.emit(tr('prompt_generator_dialog.progress_generating', 'Prompt üretiliyor ({name} — {model_id})... Bu işlem 30-60 saniye sürebilir').format(name=info['name'], model_id=info['model_id']))
             app_logger.warning(tr_log('core.workers.prompt_generator', 210, f"Debug - Model: {info['name']} ({info['model_id']}) "))
             app_logger.info(tr_log('core.workers.prompt_generator', 211, f"Prompt üretiliyor ({info['name']} — {info['model_id']})... Bu işlem 30-60 saniye sürebilir"))
             full_prompt = _get_meta_prompt_template().format(context=self.context)
             result = provider.generate(full_prompt)
             self.finished.emit(result)
         except Exception as e:
-            self.error.emit(f'Prompt üretim hatası: {str(e)}')
+            self.error.emit(tr('prompt_generator_dialog.error_generation', 'Prompt üretim hatası: {error}').format(error=str(e)))
 
 def parse_generated_prompts(raw_text: str) -> dict:
     """LLM yanıtından 3 promptu ayrıştırır."""
@@ -196,7 +196,7 @@ def parse_generated_prompts(raw_text: str) -> dict:
         app_logger.error(tr_log('core.workers.prompt_generator', 244, f'Ayrıştırma hatası: {str(e)}'))
     if not any(prompts.values()):
         prompts['A'] = raw_text.strip()
-        QMessageBox.information(None, 'Ayırma Başarısız!', 'Prompt ayrıştırma başarısız, ham metin A promptuna kaydedildi.')
+        QMessageBox.information(None, tr('prompt_generator_dialog.msg_parse_fail_title', 'Ayırma Başarısız!'), tr('prompt_generator_dialog.msg_parse_fail_body', 'Prompt ayrıştırma başarısız, ham metin A promptuna kaydedildi.'))
         app_logger.error(tr_log('core.workers.prompt_generator', 250, f'Ayrıştırma başarısız, ham metin A promptuna kaydedildi.'))
     return prompts
 
@@ -205,7 +205,7 @@ class PromptGeneratorDialog(QDialog):
 
     def __init__(self, project_name: str, parent=None):
         super().__init__(parent)
-        self.setWindowTitle(f'Prompt Generator — {project_name}')
+        self.setWindowTitle(tr('prompt_generator_dialog.window_title', 'Prompt Generator — {project_name}').format(project_name=project_name))
         self.resize(800, 700)
         self.project_name = project_name
         self.project_path = os.path.join(os.getcwd(), project_name)
@@ -220,7 +220,7 @@ class PromptGeneratorDialog(QDialog):
         wiki_layout = QVBoxLayout()
         wiki_layout.setSpacing(5)
         wiki_layout.setContentsMargins(8, 8, 8, 8)
-        wiki_title = QLabel("📚  Wiki / Karakter Bilgileri <span style='color:#F9E2AF; font-size:9pt;'>(OPSİYONEL — Boş bırakılabilir)</span>")
+        wiki_title = QLabel(f"{tr('prompt_generator_dialog.wiki_title', '📚  Wiki / Karakter Bilgileri')} <span style='color:#F9E2AF; font-size:9pt;'>{tr('prompt_generator_dialog.wiki_title_optional', '(OPSİYONEL — Boş bırakılabilir)')}</span>")
         wiki_title.setFont(QFont('Segoe UI', 11, QFont.Weight.Bold))
         wiki_title.setTextFormat(Qt.TextFormat.RichText)
         wiki_title.setStyleSheet('color: #89B4FA; margin-bottom: 4px;')
@@ -234,7 +234,7 @@ class PromptGeneratorDialog(QDialog):
         wiki_group.setLayout(wiki_layout)
         layout.addWidget(wiki_group)
         sample_layout = QHBoxLayout()
-        sample_layout.addWidget(QLabel('Bölüm örnekleme sayısı (baştan/ortadan/sondan):'))
+        sample_layout.addWidget(QLabel(tr('prompt_generator_dialog.label_sample_count', 'Bölüm örnekleme sayısı (baştan/ortadan/sondan):')))
         self.sample_spin = QSpinBox()
         self.sample_spin.setMinimum(1)
         self.sample_spin.setMaximum(5)
@@ -242,7 +242,7 @@ class PromptGeneratorDialog(QDialog):
         sample_layout.addWidget(self.sample_spin)
         sample_layout.addStretch()
         layout.addLayout(sample_layout)
-        self.generate_btn = QPushButton('🚀 Prompt Üret (3 Varyant)')
+        self.generate_btn = QPushButton(tr('prompt_generator_dialog.btn_generate', '🚀 Prompt Üret (3 Varyant)'))
         self.generate_btn.setStyleSheet('background-color: #E91E63; color: white; font-weight: bold; padding: 12px; border-radius: 6px; font-size: 13pt;')
         self.generate_btn.clicked.connect(self.start_generation)
         layout.addWidget(self.generate_btn)
@@ -257,23 +257,27 @@ class PromptGeneratorDialog(QDialog):
         self.tabs.setVisible(False)
         self.prompt_edits = {}
         self.radio_buttons = {}
-        labels = {'A': '📖 Prompt A — Literal (Birebir)', 'B': '💬 Prompt B — Natural (Doğal)', 'C': '⚖️ Prompt C — Balanced (Dengeli)'}
+        labels = {
+            'A': tr('prompt_generator_dialog.tab_label_a', '📖 Prompt A — Literal (Birebir)'),
+            'B': tr('prompt_generator_dialog.tab_label_b', '💬 Prompt B — Natural (Doğal)'),
+            'C': tr('prompt_generator_dialog.tab_label_c', '⚖️ Prompt C — Balanced (Dengeli)'),
+        }
         for (key, label) in labels.items():
             tab = QWidget()
             tab_layout = QVBoxLayout(tab)
-            radio = QRadioButton(f'Bu promptu kullan ({key})')
+            radio = QRadioButton(tr('prompt_generator_dialog.radio_use_prompt', 'Bu promptu kullan ({key})').format(key=key))
             radio.setFont(QFont('Arial', 10, QFont.Weight.Bold))
             self.radio_buttons[key] = radio
             tab_layout.addWidget(radio)
             edit = QTextEdit()
-            edit.setPlaceholderText('Prompt henüz üretilmedi...')
+            edit.setPlaceholderText(tr('prompt_generator_dialog.placeholder_prompt_not_generated', 'Prompt henüz üretilmedi...'))
             self.prompt_edits[key] = edit
             tab_layout.addWidget(edit)
             self.tabs.addTab(tab, label)
         self.radio_buttons['C'].setChecked(True)
         layout.addWidget(self.tabs)
         bottom_layout = QHBoxLayout()
-        self.save_btn = QPushButton('💾 Seçileni Kaydet ve Kullan')
+        self.save_btn = QPushButton(tr('prompt_generator_dialog.btn_save_and_use', '💾 Seçileni Kaydet ve Kullan'))
         self.save_btn.setStyleSheet('background-color: #4CAF50; color: white; font-weight: bold; padding: 10px; border-radius: 5px;')
         self.save_btn.setVisible(False)
         self.save_btn.clicked.connect(self.save_and_use)
@@ -284,19 +288,19 @@ class PromptGeneratorDialog(QDialog):
         """Prompt üretimini başlatır."""
         self.generate_btn.setEnabled(False)
         self.progress_bar.setVisible(True)
-        self.progress_label.setText('Bağlam derleniyor...')
+        self.progress_label.setText(tr('prompt_generator_dialog.progress_building_context', 'Bağlam derleniyor...'))
         app_logger.info(tr_log('core.workers.prompt_generator', 381, 'Bağlam derleniyor...'))
         QApplication.processEvents()
         builder = ContextBuilder(self.project_path, self.sample_spin.value())
         (context, total_tokens) = builder.build_context(self.wiki_edit.toPlainText())
         if not context.strip():
-            QMessageBox.warning(self, 'Uyarı', 'Bağlam oluşturulamadı. Lütfen wiki bilgisi girin veya proje dosyalarını kontrol edin.')
+            QMessageBox.warning(self, tr('prompt_generator_dialog.msg_no_context_title', 'Uyarı'), tr('prompt_generator_dialog.msg_no_context_body', 'Bağlam oluşturulamadı. Lütfen wiki bilgisi girin veya proje dosyalarını kontrol edin.'))
             app_logger.error(tr_log('core.workers.prompt_generator', 390, 'Bağlam oluşturulamadı. Lütfen wiki bilgisi girin veya proje dosyalarını kontrol edin.'))
             self.generate_btn.setEnabled(True)
             self.progress_bar.setVisible(False)
             self.progress_label.clear()
             return
-        self.progress_label.setText(f'📊 Örneklem hazırlandı: ~{total_tokens:,} token. LLM bağlantısı kuruluyor...')
+        self.progress_label.setText(tr('prompt_generator_dialog.progress_sample_ready', '📊 Örneklem hazırlandı: ~{total_tokens} token. LLM bağlantısı kuruluyor...').format(total_tokens=f'{total_tokens:,}'))
         app_logger.info(tr_log('core.workers.prompt_generator', 398, f'📊 Örneklem hazırlandı: ~{total_tokens:,} token. LLM bağlantısı kuruluyor...'))
         import configparser
         model_version = 'gemini-2.5-flash'
@@ -336,7 +340,7 @@ class PromptGeneratorDialog(QDialog):
 
     def on_generation_finished(self, raw_result):
         self.progress_bar.setVisible(False)
-        self.progress_label.setText('Prompt üretimi tamamlandı!')
+        self.progress_label.setText(tr('prompt_generator_dialog.progress_done', 'Prompt üretimi tamamlandı!'))
         app_logger.info(tr_log('core.workers.prompt_generator', 446, 'Prompt üretimi tamamlandı!'))
         self.generate_btn.setEnabled(True)
         self.generated_prompts = parse_generated_prompts(raw_result)
@@ -348,9 +352,9 @@ class PromptGeneratorDialog(QDialog):
 
     def on_generation_error(self, msg):
         self.progress_bar.setVisible(False)
-        self.progress_label.setText(f'Hata: {msg}')
+        self.progress_label.setText(tr('prompt_generator_dialog.progress_error', 'Hata: {msg}').format(msg=msg))
         self.generate_btn.setEnabled(True)
-        QMessageBox.critical(self, 'Prompt Üretim Hatası', msg)
+        QMessageBox.critical(self, tr('prompt_generator_dialog.msg_error_title', 'Prompt Üretim Hatası'), msg)
         app_logger.error(tr_log('core.workers.prompt_generator', 463, f'Prompt Üretim Hatası: {str(msg)}'))
         self._cleanup_thread()
 
@@ -379,11 +383,11 @@ class PromptGeneratorDialog(QDialog):
                 selected_key = key
                 break
         if not selected_key:
-            QMessageBox.warning(self, 'Seçim Yok', 'Lütfen bir prompt seçin.')
+            QMessageBox.warning(self, tr('prompt_generator_dialog.msg_no_selection_title', 'Seçim Yok'), tr('prompt_generator_dialog.msg_no_selection_body', 'Lütfen bir prompt seçin.'))
             return
         prompt_text = self.prompt_edits[selected_key].toPlainText().strip()
         if not prompt_text:
-            QMessageBox.warning(self, 'Boş Prompt', 'Seçili prompt boş. Lütfen önce prompt üretin.')
+            QMessageBox.warning(self, tr('prompt_generator_dialog.msg_empty_prompt_title', 'Boş Prompt'), tr('prompt_generator_dialog.msg_empty_prompt_body', 'Seçili prompt boş. Lütfen önce prompt üretin.'))
             return
         self.selected_prompt = prompt_text
         try:
@@ -397,9 +401,9 @@ class PromptGeneratorDialog(QDialog):
                     filepath = os.path.join(prompts_folder, filename)
                     with open(filepath, 'w', encoding='utf-8') as f:
                         f.write(content)
-            QMessageBox.information(self, 'Başarılı', f'3 prompt kaydedildi.\nSeçilen: Prompt {selected_key} ({label_map[selected_key]})')
+            QMessageBox.information(self, tr('prompt_generator_dialog.msg_save_success_title', 'Başarılı'), tr('prompt_generator_dialog.msg_save_success_body', '3 prompt kaydedildi.\nSeçilen: Prompt {key} ({label})').format(key=selected_key, label=label_map[selected_key]))
         except Exception as e:
-            QMessageBox.warning(self, 'Kayıt Uyarı', f'Prompt kullanılacak ancak dosyaya kaydedilemedi: {e}')
+            QMessageBox.warning(self, tr('prompt_generator_dialog.msg_save_warn_title', 'Kayıt Uyarı'), tr('prompt_generator_dialog.msg_save_warn_body', 'Prompt kullanılacak ancak dosyaya kaydedilemedi: {error}').format(error=e))
         self.accept()
 
     def get_selected_prompt(self) -> str:

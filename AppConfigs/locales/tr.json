@@ -910,6 +910,20 @@
     "saved_prompts": "Kayıtlı Promtlar:",
     "window_title": "Promt Editörü"
   },
+  "prompt_generator_dialog": {
+    "window_title": "Prompt Generator — {project_name}",
+    "wiki_title": "📚  Wiki / Karakter Bilgileri",
+    "wiki_title_optional": "(OPSİYONEL — Boş bırakılabilir)",
+    "wiki_placeholder": "Hikayenin evren kuralları, karakter isimleri, özel terimleri buraya girebilirsiniz.\nBu alan OPSİYONEL olup boş bırakılabilir.\nBoş bırakılırsa otomatik olarak bölüm örnekleri kullanılır.",
+    "label_sample_count": "Bölüm örnekleme sayısı (baştan/ortadan/sondan):",
+    "btn_generate": "🚀 Prompt Üret (3 Varyant)",
+    "tab_label_a": "📖 Prompt A — Literal (Birebir)",
+    "tab_label_b": "💬 Prompt B — Natural (Doğal)",
+    "tab_label_c": "⚖️ Prompt C — Balanced (Dengeli)",
+    "radio_use_prompt": "Bu promptu kullan ({key})",
+    "placeholder_prompt_not_generated": "Prompt henüz üretilmedi...",
+    "btn_save_and_use": "💾 Seçileni Kaydet ve Kullan"
+  },
   "logger": {
     "log_level_changed": "Log seviyesi {level} olarak ayarlandı.",
     "app_started": "Uygulama başlatıldı.",
