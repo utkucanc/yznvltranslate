@@ -5,7 +5,7 @@
 ## License
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Futkucanc%2Fyznvltranslate.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Futkucanc%2Fyznvltranslate?ref=badge_large)
 
-Discord : Utkucan#5700
+Discord : Utkucanc
 # NTT (Novel Translation Tool v3.1.1)
 
 Novel Translation Tool is a modern PyQt6 desktop application designed to organize web novel translation projects locally (especially from Chinese, Korean, English, etc.), perform volume batch translations using AI (Google Gemini, OpenAI/MCP) and classic translation providers (DeepL, Yandex, Google Translate), ensure in-text terminology consistency, and clean and merge output files into EPUB or TXT formats.
