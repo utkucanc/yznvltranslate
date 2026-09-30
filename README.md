@@ -11,8 +11,8 @@ Discord : Utkucanc
 Bu proje, yabancı dildeki (özellikle Çince, Korece, İngilizce vb.) web romanlarını (novel) yerel ortamda organize etmek, yapay zeka (Google Gemini, OpenAI/MCP) ve klasik çeviri sağlayıcıları (DeepL, Yandex, Google Translate) kullanarak toplu çevirisini yapmak, metin içi terminoloji entegrasyonu sağlamak ve sonuçları temizleyip EPUB/TXT formatlarında birleştirmek için tasarlanmış, PyQt6 tabanlı modern bir masaüstü uygulamasıdır.
 
 ## Nasıl Kullanılır?
-- [![Youtube Video Link](https://img.shields.io/badge/Youtube%20Video%20Link-red?style=for-the-badge&logo=youtube)](https://youtu.be/4HQpAn_qiBU)
-- https://youtu.be/4HQpAn_qiBU
+- [![Youtube Video Link](https://img.shields.io/badge/Youtube%20Video%20Link-red?style=for-the-badge&logo=youtube)]((https://youtu.be/V2B7o9dDJvM))
+- [https://youtu.be/4HQpAn_qiBU](https://youtu.be/V2B7o9dDJvM)
 
 ---
 
