@@ -11,8 +11,8 @@ Discord : Utkucanc
 Novel Translation Tool is a modern PyQt6 desktop application designed to organize web novel translation projects locally (especially from Chinese, Korean, English, etc.), perform volume batch translations using AI (Google Gemini, OpenAI/MCP) and classic translation providers (DeepL, Yandex, Google Translate), ensure in-text terminology consistency, and clean and merge output files into EPUB or TXT formats.
 
 ## How to Use?
-- [![Youtube Video Link](https://img.shields.io/badge/Youtube%20Video%20Link-red?style=for-the-badge&logo=youtube)](https://youtu.be/4HQpAn_qiBU)
-- https://youtu.be/4HQpAn_qiBU
+- [![Youtube Video Link](https://img.shields.io/badge/Youtube%20Video%20Link-red?style=for-the-badge&logo=youtube)]((https://youtu.be/V2B7o9dDJvM))
+- [https://youtu.be/4HQpAn_qiBU](https://youtu.be/V2B7o9dDJvM)
 
 ---
 
