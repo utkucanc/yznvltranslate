@@ -454,6 +454,7 @@ class TranslationWorker(QObject):
         with self.data_lock:
             if self.file_limit is not None and self.translated_count_session >= self.file_limit:
                 app_logger.info(tr_log('core.workers.translation_worker', 610, f'Belirlenen limit ({self.file_limit}) sayısına ulaşıldı.'))
+                self.is_running = False
                 return
         original_file_path = os.path.join(self.input_folder, file_name)
         translated_file_name = f'translated_{file_name}'
@@ -480,6 +481,9 @@ class TranslationWorker(QObject):
                     self.translated_count_session += 1
                     if file_name in self.translation_errors:
                         del self.translation_errors[file_name]
+                    if self.file_limit is not None and self.translated_count_session >= self.file_limit:
+                        app_logger.info(tr_log('core.workers.translation_worker', 610, f'Belirlenen limit ({self.file_limit}) sayısına ulaşıldı.'))
+                        self.is_running = False
                 self._save_translation_to_db(file_name, translated_file_path, 'Çevrildi')
                 app_logger.info(tr_log('core.workers.translation_worker', 645, f'Paragraf bazlı çeviri tamamlandı: {file_name}'))
                 self.progress.emit(i + 1, total_files)
@@ -507,6 +511,9 @@ class TranslationWorker(QObject):
                     self.translated_count_session += 1
                     if file_name in self.translation_errors:
                         del self.translation_errors[file_name]
+                    if self.file_limit is not None and self.translated_count_session >= self.file_limit:
+                        app_logger.info(tr_log('core.workers.translation_worker', 610, f'Belirlenen limit ({self.file_limit}) sayısına ulaşıldı.'))
+                        self.is_running = False
                 self._save_translation_to_db(file_name, translated_file_path, 'Çevrildi')
                 self.progress.emit(i + 1, total_files)
                 return
@@ -592,6 +599,9 @@ class TranslationWorker(QObject):
                     f.write(translated_text)
                 with self.data_lock:
                     self.translated_count_session += 1
+                    if self.file_limit is not None and self.translated_count_session >= self.file_limit:
+                        app_logger.info(tr_log('core.workers.translation_worker', 610, f'Belirlenen limit ({self.file_limit}) sayısına ulaşıldı.'))
+                        self.is_running = False
                 self._save_translation_to_db(file_name, translated_file_path, 'Çevrildi')
                 if self._cache:
                     try:
@@ -678,6 +688,11 @@ class TranslationWorker(QObject):
             time.sleep(0.5)
         if not self.is_running:
             return batch
+        with self.data_lock:
+            if self.file_limit is not None and self.translated_count_session >= self.file_limit:
+                app_logger.info(tr_log('core.workers.translation_worker', 610, f'Belirlenen limit ({self.file_limit}) sayısına ulaşıldı.'))
+                self.is_running = False
+                return []
         app_logger.info(tr_log('core.workers.translation_worker', 884, f'Batch {batch_idx + 1}/{total_batches}: {len(batch)} dosya işleniyor — {batch}'))
         contents = {}
         unreadable = []
@@ -713,6 +728,11 @@ class TranslationWorker(QObject):
             app_logger.warning(tr_log('core.workers.translation_worker', 932, f'Batch {batch_idx + 1}: Parse başarısız. Batch bölünüyor...'))
             return self._fallback_split_batch(readable_batch, batch_idx, total_batches)
         for (file_name, chapter_text) in parsed.items():
+            with self.data_lock:
+                if self.file_limit is not None and self.translated_count_session >= self.file_limit:
+                    app_logger.info(tr_log('core.workers.translation_worker', 1093, f'Belirlenen limit ({self.file_limit}) sayısına ulaşıldı.'))
+                    self.is_running = False
+                    break
             translated_file_path = os.path.join(self.output_folder, f'translated_{file_name}')
             try:
                 with open(translated_file_path, 'w', encoding='utf-8') as f:
@@ -721,7 +741,12 @@ class TranslationWorker(QObject):
                     self.translated_count_session += 1
                     if file_name in self.translation_errors:
                         del self.translation_errors[file_name]
+                    if self.file_limit is not None and self.translated_count_session >= self.file_limit:
+                        app_logger.info(tr_log('core.workers.translation_worker', 1093, f'Belirlenen limit ({self.file_limit}) sayısına ulaşıldı.'))
+                        self.is_running = False
                 app_logger.info(tr_log('core.workers.translation_worker', 945, f'Batch çeviri kaydedildi: {file_name}'))
+                if not self.is_running:
+                    break
             except Exception as e:
                 app_logger.error(tr_log('core.workers.translation_worker', 947, f'Batch kaydetme hatası [{file_name}]: {e}'))
                 failed.append(file_name)
@@ -765,6 +790,14 @@ class TranslationWorker(QObject):
                 self.progress.emit(files_to_translate.index(file_name) + 1, total_files)
             else:
                 pending.append(file_name)
+        if self.file_limit is not None:
+            with self.data_lock:
+                rem_limit = max(0, self.file_limit - self.translated_count_session)
+            if rem_limit == 0:
+                app_logger.info(tr_log('core.workers.translation_worker', 610, f'Belirlenen limit ({self.file_limit}) sayısına ulaşıldı.'))
+                self.is_running = False
+                return
+            pending = pending[:rem_limit]
         batches = self.build_batches(pending)
         app_logger.info(tr_log('core.workers.translation_worker', 1005, f'Batch Çeviri: {len(pending)} dosya, {len(batches)} batch oluşturuldu.'))
         _progress_counter = [total_files - len(pending)]
@@ -772,8 +805,12 @@ class TranslationWorker(QObject):
         def _run_single_batch(args):
             """Tek bir batch'i işler: API çağrısı + fallback. Async executor ile uyumlu."""
             (batch_idx, batch) = args
-            if not self.is_running:
-                return
+            with self.data_lock:
+                if not self.is_running:
+                    return
+                if self.file_limit is not None and self.translated_count_session >= self.file_limit:
+                    self.is_running = False
+                    return
             failed = self._process_batch(batch, batch_idx, len(batches))
             with self.data_lock:
                 _progress_counter[0] += len(batch)

@@ -59,7 +59,8 @@
     "toast_translation_complete_title": "✅ Çeviri Tamamlandı",
     "toast_translation_complete_body": "{} dosya başarıyla çevrildi.",
     "shutdown_warning_title": "Uygulamayı Kapat",
-    "shutdown_warning_body": "Devam eden işlemler var. Çıkmak istediğinizden emin misiniz? Tüm işlemler durdurulacaktır."
+    "shutdown_warning_body": "Devam eden işlemler var. Çıkmak istediğinizden emin misiniz? Tüm işlemler durdurulacaktır.",
+    "msg_api_mcp_reminder": "Ayarlardan API veya MCP seçmeyi unutmayın."
   },
   "menu_bar": {
     "file": "Dosya",
@@ -922,7 +923,9 @@
     "tab_label_c": "⚖️ Prompt C — Balanced (Dengeli)",
     "radio_use_prompt": "Bu promptu kullan ({key})",
     "placeholder_prompt_not_generated": "Prompt henüz üretilmedi...",
-    "btn_save_and_use": "💾 Seçileni Kaydet ve Kullan"
+    "btn_save_and_use": "💾 Seçileni Kaydet ve Kullan",
+    "progress_generating": "Prompt üretiliyor ({name} — {model_id})... Bu işlem 30-60 saniye sürebilir",
+    "progress_done": "Prompt üretimi tamamlandı!"
   },
   "logger": {
     "log_level_changed": "Log seviyesi {level} olarak ayarlandı.",

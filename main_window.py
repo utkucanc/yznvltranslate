@@ -926,7 +926,9 @@ class MainWindow(QMainWindow):
                 self.shutdown_checkbox.blockSignals(True)
                 self.shutdown_checkbox.setChecked(False)
                 self.shutdown_checkbox.blockSignals(False)
-
+    def limit_checkbox_toggled(self, checked):
+        # Düzeltilecek!
+        return
     def show_help_clicked(self):
         QDesktopServices.openUrl(QUrl("https://github.com/utkucanc/yznvltranslate"))
 

@@ -226,7 +226,7 @@ class PromptGeneratorDialog(QDialog):
         wiki_title.setStyleSheet('color: #89B4FA; margin-bottom: 4px;')
         wiki_layout.addWidget(wiki_title)
         self.wiki_edit = QTextEdit()
-        self.wiki_edit.setPlaceholderText('Hikayenin evren kuralları, karakter isimleri, özel terimleri buraya girebilirsiniz.\nBu alan OPSİYONEL olup boş bırakılabilir.\nBoş bırakılırsa otomatik olarak bolüm örnekleri kullanılır.')
+        self.wiki_edit.setPlaceholderText(tr('prompt_generator_dialog.wiki_placeholder', ''))
         self.wiki_edit.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         self.wiki_edit.setMinimumHeight(140)
         self.wiki_edit.setMaximumHeight(220)

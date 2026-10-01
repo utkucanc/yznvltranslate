@@ -59,7 +59,8 @@
     "toast_translation_complete_title": "✅ Translation Completed",
     "toast_translation_complete_body": "{} files successfully translated.",
     "shutdown_warning_title": "Close Application",
-    "shutdown_warning_body": "There are operations in progress. Are you sure you want to exit? All operations will be stopped."
+    "shutdown_warning_body": "There are operations in progress. Are you sure you want to exit? All operations will be stopped.",
+    "msg_api_mcp_reminder": "Don't forget to select API or MCP in the settings."
   },
   "menu_bar": {
     "file": "File",
@@ -903,7 +904,9 @@
     "tab_label_c": "⚖️ Prompt C — Balanced",
     "radio_use_prompt": "Use this prompt ({key})",
     "placeholder_prompt_not_generated": "Prompt not yet generated...",
-    "btn_save_and_use": "💾 Save Selected and Use"
+    "btn_save_and_use": "💾 Save Selected and Use",
+    "progress_generating": "Generating prompt ({name} — {model_id})... This may take 30–60 seconds",
+    "progress_done": "Prompt generation completed!"
   },
   "logger": {
     "log_level_changed": "Log level set to {level}.",
