@@ -6,7 +6,7 @@
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Futkucanc%2Fyznvltranslate.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Futkucanc%2Fyznvltranslate?ref=badge_large)
 
 Discord : Utkucanc
-# NTT (Novel Translation Tool v3.1.1)
+# NTT (Novel Translation Tool v3.1.2)
 
 Novel Translation Tool is a modern PyQt6 desktop application designed to organize web novel translation projects locally (especially from Chinese, Korean, English, etc.), perform volume batch translations using AI (Google Gemini, OpenAI/MCP) and classic translation providers (DeepL, Yandex, Google Translate), ensure in-text terminology consistency, and clean and merge output files into EPUB or TXT formats.
 
@@ -18,17 +18,17 @@ Novel Translation Tool is a modern PyQt6 desktop application designed to organiz
 
 ## 🚀 Key Features
 
-* **SQLite Database & High Performance (v3.1.1)**:
+* **SQLite Database & High Performance (v3.1.2)**:
   - Project file states and paths are indexed in real time via an SQLite database.
   - Startup time and file list indexing have been accelerated to millisecond speeds by avoiding OS filesystem scans.
   - Legacy projects created without a database are automatically detected and migrated seamlessly upon opening.
   - Completed translations are written directly to the database without delay.
 
-* **Log Localization Infrastructure (v3.1.1)**:
+* **Log Localization Infrastructure (v3.1.2)**:
   - System and UI log messages are extracted and localized into Turkish and English (`logger.json` / `loggeren.json`).
   - Log messages containing variables or f-strings use dynamic regex pattern matching to map runtime values to English log templates seamlessly.
 
-* **Enhanced File & User Interactions (v3.1.1)**:
+* **Enhanced File & User Interactions (v3.1.2)**:
   - **Go to Chapter / Row:** Inputting a chapter number auto-scrolls and highlights the row without filtering out other files from the list.
   - **Dynamic EPUB Naming:** Generated EPUB files are automatically formatted as `[ProjectName]-[StartChapter]-[EndChapter].epub` (e.g., `TestProject-1-500.epub`).
   - **Context Menu File Deletion:** Added right-click context menu deletion with a confirmation dialog box (`QMessageBox.question`).
@@ -43,7 +43,7 @@ Novel Translation Tool is a modern PyQt6 desktop application designed to organiz
   - **In-Text Injection:** Saved terms are injected directly into the source text before sending the API request. The AI recognizes pre-translated terms and naturally integrates them into the sentence flow while cutting token usage by up to 80%.
   - **Chapter Range Terminology Extraction:** ML-driven automatic term extractor detects key proper nouns, locations, and techniques within specified chapter ranges and populates the dictionary.
 
-* **Flexible Settings & Prompt Management (v3.1.0 & v3.1.1)**:
+* **Flexible Settings & Prompt Management (v3.1.0 & v3.1.2)**:
   - **In-App System Prompt Editor:** Customize system prompts for Prompt Generator and ML Terminology Extractor directly inside App Settings.
   - **Customizable Separators:** Chapter merge (`export_separator`) and bulk split (`split_separator`) templates can be dynamically configured in settings.
   - **Langdetect & Line Count Controls:** Customize Langdetect source and target languages for quality checks; detect low-line count translation files with detailed error reporting.
@@ -82,7 +82,7 @@ Output executable will be generated at `build/NovelCeviriAraci-Portable/CeviriUy
 ```bash
 python setup.py bdist_msi
 ```
-Installer package will be created in the `dist/` directory as `NovelCeviriAraci-3.1.1-win64.msi`.
+Installer package will be created in the `dist/` directory as `NovelCeviriAraci-3.1.2-win64.msi`.
 
 ---
 
@@ -106,6 +106,7 @@ New projects are automatically created under `Project/<ProjectName>/`:
 
 | Version | Highlights & Changes |
 |---------|----------------------|
+| 3.1.2 | **Redesigned 3-Column Project Settings UI:** Redesigned Project Settings into a modern 3-column horizontal layout; relocated DeepL/Yandex API groups and optimized settings layout. **Dynamic Source Language Support:** Added source language selector to New Project and Project Settings dialogs, dynamically used by the translation worker. **Dashboard Export Format & Prompt Generator:** Activated TXT/EPUB radio buttons on the Dashboard for seamless exports; added quick Prompt Generator button. **Default Project Page Startup:** Set initial application tab to the Project Selection page. **SQLite Database & Migration:** File tracking powered by SQLite; legacy projects auto-migrated. **Log Localization:** Added dynamic `tr`/`en` log translation system. |
 | 3.1.1 | **SQLite Database Architecture & Auto-Migration:** File tracking moved from OS filesystem scanning to SQLite database for instant file list loads; legacy projects automatically migrated. **Log Localization Infrastructure:** Extracted all system log messages into `tr`/`en` dynamic translation engine with regex f-string parameter mapping. **Smart Row/Chapter Focus:** Added direct "Go to Chapter" auto-scroll and highlight without filtering the list. **Dynamic EPUB Naming:** Combined EPUB outputs named as `[ProjectName]-[StartChapter]-[EndChapter].epub`. **Confirmed File Deletion:** Added right-click context menu file deletion with confirmation dialog. **UI & Dashboard Graph Fixes:** Fixed stats graph rendering, overall daily request counting, splash screen loader, proxy dialog dimensions, and API/MCP prompts. **Quality Control Enhancements:** Added customizable Langdetect source/target languages and low-line count detection with detailed reporting. |
 | 3.1.0 | **New Project Architecture & Backwards Compatibility:** Projects created under `Project/<ProjectName>/` with standardized folders (`completed`, `config`, `download`, `translate`); legacy projects supported seamlessly (`path_resolver`). **In-App Prompt Editing:** Customize system prompts for Prompt Generator and ML Extractor in App Settings. **Dynamic Separators:** Configurable Split & Export separators. **Module Cleanup:** Removed legacy Selenium/Scraper code for a lighter UI. **Full i18n:** Terminology page and new UI elements fully localized (`tr()`). |
 | 3.0.0 | **Redesigned Dark UI:** Dashboard, Project details panel, and embedded Terminology/Text Editor pages. **In-Text Terminology Injection:** Injected terms prior to API calls, saving up to 80% tokens. **New Translation Providers:** DeepL, Yandex, Google Translate (SOCKS/HTTP proxy support). Unstable translation cache removed. |

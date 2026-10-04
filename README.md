@@ -6,7 +6,7 @@
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Futkucanc%2Fyznvltranslate.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Futkucanc%2Fyznvltranslate?ref=badge_large)
 
 Discord : Utkucanc
-# NCA (Novel Çeviri Aracı v3.1.1)
+# NCA (Novel Çeviri Aracı v3.1.2)
 
 Bu proje, yabancı dildeki (özellikle Çince, Korece, İngilizce vb.) web romanlarını (novel) yerel ortamda organize etmek, yapay zeka (Google Gemini, OpenAI/MCP) ve klasik çeviri sağlayıcıları (DeepL, Yandex, Google Translate) kullanarak toplu çevirisini yapmak, metin içi terminoloji entegrasyonu sağlamak ve sonuçları temizleyip EPUB/TXT formatlarında birleştirmek için tasarlanmış, PyQt6 tabanlı modern bir masaüstü uygulamasıdır.
 
@@ -18,17 +18,17 @@ Bu proje, yabancı dildeki (özellikle Çince, Korece, İngilizce vb.) web roman
 
 ## 🚀 Öne Çıkan Özellikler
 
-* **SQLite Veri Tabanı & Yüksek Performans (v3.1.1)**:
+* **SQLite Veri Tabanı & Yüksek Performans (v3.1.2)**:
   - Projenin dosya durumları ve yolları SQLite veri tabanı üzerinde anlık olarak indekslenir.
   - Açılış süresi ve dosya listesi yüklemeleri OS filesystem taraması yapılmadan milisaniyeler seviyesine indirilmiştir.
   - Veri tabanı kullanmayan eski projeler açıldığında otomatik tespit edilerek verileri eksiksiz veri tabanına aktarılır (otomatik migrasyon).
   - Tamamlanan çeviriler bekletilmeden anında veri tabanına işlenir.
 
-* **Log Yerelleştirme Altyapısı (v3.1.1)**:
+* **Log Yerelleştirme Altyapısı (v3.1.2)**:
   - Tüm sistem ve arayüz log mesajları ayrıştırılarak Türkçe ve İngilizce (`logger.json` / `loggeren.json`) olarak yerelleştirildi.
   - f-string ve değişken içeren log mesajları dinamik regex desen eşlemesi (pattern matching) ile çalışma zamanında İngilizce karşılıklarına dönüştürülür.
 
-* **Gelişmiş Dosya ve Kullanıcı Etkileşimleri (v3.1.1)**:
+* **Gelişmiş Dosya ve Kullanıcı Etkileşimleri (v3.1.2)**:
   - **Bölüme/Satıra Git:** Liste filtrelenmeden girilen bölüm numarasına otomatik kaydırma (scroll to row) yapılır ve ilgili satır vurgulanır.
   - **Dinamik EPUB İsimlendirmesi:** Oluşturulan EPUB dosyaları otomatik olarak `[ProjeAdı]-[İlkBölüm]-[SonBölüm].epub` (örn. `TestProje-1-500.epub`) formatında kaydedilir.
   - **Sağ Tık Menüsünden Dosya Silme:** Proje dosya listesinde sağ tık menüsüne onay diyalog kutulu dosya silme özelliği eklendi.
@@ -43,7 +43,7 @@ Bu proje, yabancı dildeki (özellikle Çince, Korece, İngilizce vb.) web roman
   - **Metin İçi Enjeksiyon:** Kayıtlı terimler isteğe gönderilmeden önce doğrudan kaynak metne yerleştirilir. Bu sayede AI terimleri doğru Türkçe eklerle doğal bir şekilde bağlama oturtur ve %80'e varan token tasarrufu sağlanır.
   - **Bölüm Aralıklı Terminoloji Çıkarma:** ML tabanlı otomatik terim çıkarıcı ile belirlenen bölüm aralıklarındaki en önemli özel isim ve teknikler otomatik tespit edilip sözlüğe eklenir.
 
-* **Esnek Ayarlar ve Prompt Yönetimi (v3.1.0 & v3.1.1)**:
+* **Esnek Ayarlar ve Prompt Yönetimi (v3.1.0 & v3.1.2)**:
   - **Uygulama İçi Prompt Düzenleme:** Prompt Generator ve ML Terminoloji Çıkarıcı için kullanılan sistem promptları uygulama içinden doğrudan düzenlenebilir.
   - **Özelleştirilebilir Ayraçlar:** Bölüm birleştirme (`export_separator`) ve toplu bölüm parçalama (`split_separator`) ayraçları dinamik olarak ayarlanabilir.
   - **Langdetect & Satır Kontrolü:** Kalite kontrol için Langdetect kaynak/hedef dili ayarlanabilir; düşük satır sayılı dosyalar tespit edilip raporlanır.
@@ -83,7 +83,7 @@ python setup.py build
 ```bash
 python setup.py bdist_msi
 ```
-Çıktı `dist/` klasörü altında `NovelCeviriAraci-3.1.1-win64.msi` olarak hazırlanır.
+Çıktı `dist/` klasörü altında `NovelCeviriAraci-3.1.2-win64.msi` olarak hazırlanır.
 
 ---
 
@@ -107,6 +107,7 @@ Yeni projeler `Project/<ProjeAdı>/` dizini altında otomatik oluşturulur:
 
 | Sürüm | Değişiklikler |
 |-------|--------------|
+| 3.1.2 | **Yenilenmiş 3 Kolonlu Proje Ayarları Arayüzü:** Proje ayarları diyaloğu yatay 3 kolonlu modern tasarıma dönüştürüldü; DeepL/Yandex API grupları ve ayarlar düzenlendi. **Dinamik Kaynak Dil Desteği:** Yeni proje ve proje ayarları ekranlarına kaynak dil seçeneği eklendi, çeviri motorunda dinamik kullanımı sağlandı. **Dashboard Format & Prompt Generator:** Dashboard çıktı formatı (`TXT`/`EPUB`) radio butonları aktifleştirildi, hızlı Prompt Oluşturucu (Generator) eklendi. **Proje Sayfası Açılışı:** Uygulama açılış sekmesi Proje Seçim Ekranı olarak ayarlandı. **SQLite Veri Tabanı & Migrasyon:** Proje dosya takibi SQLite veritabanına taşındı; eski projeler otomatik aktarıldı. **Log Yerelleştirme:** Sistem logları için `tr`/`en` dinamik yerelleştirme eklendi. |
 | 3.1.1 | **SQLite Veri Tabanı Mimarisi & Otomatik Migrasyon:** Proje dosya takibi OS dosya taramasından SQLite veritabanına taşındı; açılış ve erişim hızlandırıldı, eski projeler otomatik aktarıldı. **Log Yerelleştirme Altyapısı (Log Localization):** Tüm log mesajları ayrıştırılarak `tr`/`en` dinamik çeviri ve regex f-string parametre eşleme altyapısı kuruldu. **Satıra/Bölüme Gitme Özelliği:** Liste filtrelenmeden girilen bölüm satırına otomatik scroll yapma ve vurgulama eklendi. **Dinamik EPUB İsimlendirmesi:** Birleştirilen EPUB çıktıları `[ProjeAdı]-[İlkBölüm]-[SonBölüm].epub` formatına kavuşturuldu. **Onaylı Dosya Silme:** Tablo sağ tık menüsüne onay iletişim kutulu dosya silme eklendi. **Grafik ve UI İyileştirmeleri:** Dashboard grafik yenileme, toplam istek sayısı takibi, splash ekranı, proxy diyalog boyutları ve yeni proje API/MCP uyarıları düzenlendi. **Kalite & Hata Kontrolü:** Langdetect dili özelleştirme ve düşük satır sayılı dosyaları denetleyip raporlama özellikleri eklendi. |
 | 3.1.0 | **Yeni Proje Mimarisi & Geriye Uyumlu Klasör Yapısı:** Projeler `Project/<ProjeAdı>/` dizininde düzenli isimlerle (`completed`, `config`, `download`, `translate`) oluşturulur; eski yapılar geriye dönük uyumla (`path_resolver`) desteklenir. **Prompt Düzenleme:** Prompt Generator ve ML Terminoloji için sistem promptları App Settings üzerinden doğrudan düzenlenebilir. **Dinamik Ayraçlar:** Split ve Export ayraçları ayarlardan özelleştirilebilir. **İndirme Temizliği:** Karmaşık Selenium/Web scraping kodları temizlendi, arayüz hafifletildi. **Tam Lokalizasyon:** Terminoloji sayfası ve tüm yeni bileşenler i18n (`tr()`) ile Türkçe/İngilizce olarak tamamlandı. |
 | 3.0.0 | **Yenilenmiş Koyu UI:** Dashboard, Proje detay paneli ve gömülü Terminoloji/Metin Editörü sayfaları ile kart tabanlı yeni tasarım. **Metin İçi Terminoloji Enjeksiyonu:** Terimler AI'a gönderilmeden önce metne enjekte edilerek %80 token tasarrufu ve daha akıcı çekimleme sağlandı. **Yeni Çeviri Sağlayıcıları:** DeepL, Yandex Translate, Google Translate ve Proxy (SOCKS/HTTP) desteği eklendi. Stabil çalışmayan çeviri önbelleği (cache) kaldırıldı. |
