@@ -3,16 +3,21 @@ import sys
 import os
 import configparser
 from PyQt6.QtWidgets import (
-    QDialog, QLineEdit, QFormLayout, QDialogButtonBox, 
-    QMessageBox, QLabel, QApplication, QTextEdit, QListWidget, 
+    QDialog, QLineEdit, QFormLayout, QDialogButtonBox,
+    QMessageBox, QLabel, QApplication, QTextEdit, QListWidget,
     QVBoxLayout, QHBoxLayout, QPushButton, QComboBox, QInputDialog,
     QSpinBox, QCheckBox, QGroupBox, QSplitter, QWidget, QProgressBar,
-    QScrollArea, QSizePolicy
+    QScrollArea, QSizePolicy, QFrame
 )
 from PyQt6.QtGui import QIntValidator, QFont, QIcon, QAction
 from PyQt6.QtCore import Qt, QThread, pyqtSignal, QObject, QSize
 from logger import app_logger
 from core.localization import tr
+from ui.dark_theme import (
+    BG_APP, BG_PANEL, BG_PANEL2, BORDER,
+    TEXT_MAIN, TEXT_DIM, TEXT_FAINT,
+    ACCENT_BLUE, ACCENT_GREEN, ACCENT_ORANGE, ACCENT_PURPLE
+)
 
 # --- V2.1.0 Geriye Uyumluluk Re-export'lar ---
 try:
@@ -23,7 +28,6 @@ try:
     from ui.mcp_server_dialog import MCPServerDialog
 except ImportError:
     pass
-
 
 
 # --- Yardımcı Fonksiyonlar ---
@@ -47,228 +51,290 @@ def load_files_to_combo(combobox, subfolder):
             try:
                 with open(file_path, 'r', encoding='utf-8') as file:
                     content = file.read().strip()
-                # Item text: Dosya Adı, Item Data: Dosya İçeriği
                 combobox.addItem(f.replace('.txt', ''), content)
             except:
                 pass
 
 
 class ProjectSettingsDialog(QDialog):
-    """Mevcut proje ayarlarını düzenleme penceresi."""
-    def __init__(self, project_name, project_link, max_pages, api_key, start_promt, gemini_version, deepl_api, yandex_api, parent=None,
+    """Mevcut proje ayarlarını düzenleme penceresi — 3 kolonlu yatay tasarım."""
+
+    def __init__(self, project_name, project_link, max_pages, api_key, start_promt,
+                 gemini_version, deepl_api, yandex_api, parent=None,
                  mcp_endpoint_id=None, terminology_enabled=True,
                  async_enabled=False, async_threads=3,
                  batch_enabled=False, max_batch_chars=33000, max_chapters_per_batch=5,
                  translation_provider="llm", source_lang=None):
         super().__init__(parent)
-        self.setWindowTitle(tr("project_settings.window_title", "'{}' Ayarları").format(project_name))
-        self.setMinimumWidth(520)
-        self.setMaximumWidth(880)
-        # Ekran yüksekliğinin %85'ini geç
-        screen = QApplication.primaryScreen()
-        self.setMinimumHeight(900)
-        self.setMaximumHeight(1000)
-        self.resize(560, 640)
+        self.setWindowTitle(
+            tr("project_settings.window_title", "'{}' Ayarları").format(project_name)
+        )
+        self.setModal(True)
+        self.setMinimumSize(1020, 660)
+        self.resize(1080, 720)
         self.project_name = project_name
 
-        # Dış layout: dikey
-        outer_layout = QVBoxLayout(self)
-        outer_layout.setContentsMargins(0, 0, 0, 0)
-        outer_layout.setSpacing(0)
-
-        # ScrollArea
-        scroll = QScrollArea()
-        scroll.setWidgetResizable(True)
-        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        scroll.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
-
-        # İçerik widget'ı
-        content_widget = QWidget()
-        self.form_layout = QFormLayout(content_widget)
-        self.form_layout.setContentsMargins(14, 10, 14, 10)
-        self.form_layout.setSpacing(8)
-        self.form_layout.setLabelAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
-        self.form_layout.setFieldGrowthPolicy(QFormLayout.FieldGrowthPolicy.ExpandingFieldsGrow)
-
-        scroll.setWidget(content_widget)
-        outer_layout.addWidget(scroll, 1)
-
-        # Sabit alt buton barı (scroll edilmez)
-        btn_bar = QWidget()
-        btn_bar.setStyleSheet("background-color: #181825; border-top: 1px solid #313244;")
-        btn_bar.setFixedHeight(46)
-        btn_bar_layout = QHBoxLayout(btn_bar)
-        btn_bar_layout.setContentsMargins(14, 6, 14, 6)
-        buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Save | QDialogButtonBox.StandardButton.Cancel)
-        buttons.accepted.connect(self.accept)
-        buttons.rejected.connect(self.reject)
-        btn_bar_layout.addStretch()
-        btn_bar_layout.addWidget(buttons)
-        outer_layout.addWidget(btn_bar)
-
-        # Form alanları
-        self.projectNameLabel = QLabel(project_name)
-        self.projectNameLabel.setStyleSheet("font-weight: bold;")
-
-        self.projectLinkInput = QLineEdit()
-        self.projectLinkInput.setText(project_link)
-        
-        self.maxPagesInput = QLineEdit()
-        if max_pages is not None:
-            self.maxPagesInput.setText(str(max_pages))
-            
-        self.maxRetriesInput = QSpinBox()
-        self.maxRetriesInput.setMinimum(1)
-        self.maxRetriesInput.setMaximum(20)
-        self.maxRetriesInput.setValue(parent.max_retries if hasattr(parent, 'max_retries') else 3)
-        self.maxRetriesInput.setToolTip("Bir API hatası alındığında (Örn. 500) tekrar deneme sayısı.")
-        
-        # Çeviri Sağlayıcısı Seçimi
-        self.provider_combo = QComboBox(self)
-        self.provider_combo.addItem(tr("project_settings.provider_llm", "Yapay Zeka (LLM / MCP)"), "llm")
-        self.provider_combo.addItem(tr("project_settings.provider_google", "Google Translate (Ücretsiz)"), "google")
-        self.provider_combo.addItem(tr("project_settings.provider_yandex", "Yandex Translate (Ücretsiz)"), "yandex")
-        self.provider_combo.addItem(tr("project_settings.provider_deepl", "DeepL Translate (Ücretli)"), "deepl")
-
-        idx = self.provider_combo.findData(translation_provider)
-        if idx >= 0:
-            self.provider_combo.setCurrentIndex(idx)
-        self.provider_combo.currentIndexChanged.connect(self.on_provider_changed)
-
-        # Kaynak Dil Seçimi
+        # Dil listesi
         _LANG_CODES = [
-            ('en', 'English (en)'),
-            ('ko', 'Korean (ko)'),
-            ('zh-cn', 'Chinese Simplified (zh-cn)'),
-            ('zh-tw', 'Chinese Traditional (zh-tw)'),
-            ('ja', 'Japanese (ja)'),
-            ('tr', 'Turkish (tr)'),
-            ('de', 'German (de)'),
-            ('fr', 'French (fr)'),
-            ('es', 'Spanish (es)'),
+            ('en', tr('languages.en', 'İngilizce (en)')),
+            ('ko', tr('languages.ko', 'Korece (ko)')),
+            ('zh-cn', tr('languages.zh_cn', 'Çince Basitleştirilmiş (zh-cn)')),
+            ('zh-tw', tr('languages.zh_tw', 'Çince Geleneksel (zh-tw)')),
+            ('ja', tr('languages.ja', 'Japonca (ja)')),
+            ('tr', tr('languages.tr', 'Türkçe (tr)')),
+            ('de', tr('languages.de', 'Almanca (de)')),
+            ('fr', tr('languages.fr', 'Fransızca (fr)')),
+            ('es', tr('languages.es', 'İspanyolca (es)')),
         ]
-        self.source_lang_combo = QComboBox(self)
-        for code, label in _LANG_CODES:
-            self.source_lang_combo.addItem(label, code)
+
+        # Kaynak dil varsayılanı
         if not source_lang:
             try:
                 from ui.app_settings_dialog import load_app_settings
                 source_lang = load_app_settings().get('langdetect_source_lang', 'en')
             except Exception:
                 source_lang = 'en'
-        all_src_codes = [self.source_lang_combo.itemData(i) for i in range(self.source_lang_combo.count())]
-        src_idx = all_src_codes.index(source_lang) if source_lang in all_src_codes else 0
-        self.source_lang_combo.setCurrentIndex(src_idx)
 
-        # MCP Endpoint Seçimi
-        mcp_group = QGroupBox(tr("project_settings.group_mcp", "Yapay Zeka Kaynağı (MCP)"))
-        mcp_layout = QVBoxLayout()
-        mcp_layout.setSpacing(5)
-        mcp_layout.setContentsMargins(8, 6, 8, 6)
-        
-        self.use_custom_endpoint = QCheckBox(tr("project_settings.checkbox_custom_mcp", "Bu proje için özel bağlantı kullan"))
-        mcp_layout.addWidget(self.use_custom_endpoint)
-        
-        ep_layout = QHBoxLayout()
-        ep_layout.setSpacing(5)
-        self.endpoint_combo = QComboBox()
-        self.endpoint_combo.setEnabled(False)
-        self._load_endpoints(mcp_endpoint_id)
-        
-        self.mcp_manage_btn = QPushButton(tr("project_settings.btn_mcp_manage", "MCP Yönet"))
-        self.mcp_manage_btn.setFixedWidth(85)
-        self.mcp_manage_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.mcp_manage_btn.clicked.connect(self.open_mcp_dialog)
-        
-        ep_layout.addWidget(self.endpoint_combo, 1)
-        ep_layout.addWidget(self.mcp_manage_btn)
-        mcp_layout.addLayout(ep_layout)
-        mcp_group.setLayout(mcp_layout)
-        
-        self.use_custom_endpoint.toggled.connect(self.endpoint_combo.setEnabled)
-        if mcp_endpoint_id:
-            self.use_custom_endpoint.setChecked(True)
-        
-        # API Key Seçimi
-        key_layout = QHBoxLayout()
-        key_layout.setSpacing(5)
+        #  Dış layout
+        outer = QVBoxLayout(self)
+        outer.setContentsMargins(0, 0, 0, 0)
+        outer.setSpacing(0)
+
+        panel = QFrame()
+        panel.setObjectName('card')
+        outer.addWidget(panel)
+
+        lay = QVBoxLayout(panel)
+        lay.setContentsMargins(24, 20, 24, 20)
+        lay.setSpacing(16)
+
+        # Başlık
+        header = QHBoxLayout()
+        icon_lbl = QLabel('⚙')
+        icon_lbl.setStyleSheet(
+            f'background:{ACCENT_BLUE}22; color:{ACCENT_BLUE};'
+            ' border-radius:8px; font-size:16px; padding:6px 10px;'
+        )
+        header.addWidget(icon_lbl)
+        title_lbl = QLabel(
+            tr("project_settings.window_title", "'{}' Ayarları").format(project_name)
+        )
+        title_lbl.setStyleSheet(f'color:{TEXT_MAIN}; font-size:17px; font-weight:700;')
+        header.addWidget(title_lbl)
+        header.addStretch()
+        close_btn = QPushButton('✕')
+        close_btn.setObjectName('iconBtn')
+        close_btn.clicked.connect(self.reject)
+        header.addWidget(close_btn)
+        lay.addLayout(header)
+
+        # 3 Kolon
+        cols = QHBoxLayout()
+        cols.setSpacing(20)
+        cols.addLayout(self._build_column1(
+            project_name, project_link, max_pages,
+            translation_provider, deepl_api, yandex_api,
+            _LANG_CODES, source_lang, parent
+        ), 1)
+        cols.addWidget(self._vline())
+        cols.addLayout(self._build_column2(
+            api_key, mcp_endpoint_id,
+            async_enabled, async_threads,
+            batch_enabled, max_batch_chars, max_chapters_per_batch,
+            terminology_enabled
+        ), 1)
+        cols.addWidget(self._vline())
+        cols.addLayout(self._build_column3(start_promt), 1)
+        lay.addLayout(cols, 1)
+
+        # Footer butonlar
+        footer = QHBoxLayout()
+        footer.addStretch()
+        cancel_btn = QPushButton(tr('new_project.btn_cancel', 'İptal'))
+        cancel_btn.setObjectName('smallBtn')
+        cancel_btn.clicked.connect(self.reject)
+        save_btn = QPushButton('💾  ' + tr('project_settings.btn_save', 'Kaydet'))
+        save_btn.setObjectName('primaryBtn')
+        save_btn.clicked.connect(self.accept)
+        footer.addWidget(cancel_btn)
+        footer.addWidget(save_btn)
+        lay.addLayout(footer)
+
+        # Combolar yükle & provider görünürlüğü
+        self.refresh_combos()
+        self.on_provider_changed()
+
+    # Kolon 1: Temel Bilgiler + Provider
+    def _build_column1(self, project_name, project_link, max_pages,
+                       translation_provider, deepl_api, yandex_api,
+                       lang_codes, source_lang, parent):
+        col = QVBoxLayout()
+        col.setSpacing(8)
+        col.addWidget(self._section_title('1. ' + tr('new_project.col1_title', 'Temel Bilgiler')))
+
+        col.addWidget(self._field_label(tr('project_settings.label_project_name', 'Proje Adı')))
+        name_lbl = QLabel(project_name)
+        name_lbl.setStyleSheet(f'color:{TEXT_MAIN}; font-weight:600;')
+        col.addWidget(name_lbl)
+        self.projectNameLabel = name_lbl
+
+        col.addWidget(self._field_label(tr('project_settings.label_project_link', 'Proje Linki')))
+        self.projectLinkInput = QLineEdit()
+        self.projectLinkInput.setText(project_link)
+        col.addWidget(self.projectLinkInput)
+
+        col.addWidget(self._field_label(tr('project_settings.label_max_pages', 'Maks. Sayfa')))
+        self.maxPagesInput = QLineEdit()
+        if max_pages is not None:
+            self.maxPagesInput.setText(str(max_pages))
+        col.addWidget(self.maxPagesInput)
+
+        col.addWidget(self._field_label(tr('project_settings.label_max_retries', 'Maks. Deneme')))
+        self.maxRetriesInput = QSpinBox()
+        self.maxRetriesInput.setMinimum(1)
+        self.maxRetriesInput.setMaximum(20)
+        self.maxRetriesInput.setValue(parent.max_retries if hasattr(parent, 'max_retries') else 3)
+        col.addWidget(self.maxRetriesInput)
+
+        col.addWidget(self._field_label(tr('project_settings.label_provider_select', 'Çeviri Sağlayıcısı')))
+        self.provider_combo = QComboBox()
+        self.provider_combo.addItem(tr('project_settings.provider_llm', 'Yapay Zeka (LLM / MCP)'), 'llm')
+        self.provider_combo.addItem(tr('project_settings.provider_google', 'Google Translate (Ücretsiz)'), 'google')
+        self.provider_combo.addItem(tr('project_settings.provider_yandex', 'Yandex Translate (Ücretsiz)'), 'yandex')
+        self.provider_combo.addItem(tr('project_settings.provider_deepl', 'DeepL Translate (Ücretli)'), 'deepl')
+        idx = self.provider_combo.findData(translation_provider)
+        if idx >= 0:
+            self.provider_combo.setCurrentIndex(idx)
+        self.provider_combo.currentIndexChanged.connect(self.on_provider_changed)
+        col.addWidget(self.provider_combo)
+
+        col.addWidget(self._field_label(tr('project_settings.label_source_lang', 'Kaynak Dil')))
+        self.source_lang_combo = QComboBox()
+        for code, label in lang_codes:
+            self.source_lang_combo.addItem(label, code)
+        all_codes = [self.source_lang_combo.itemData(i) for i in range(self.source_lang_combo.count())]
+        src_idx = all_codes.index(source_lang) if source_lang in all_codes else 0
+        self.source_lang_combo.setCurrentIndex(src_idx)
+        col.addWidget(self.source_lang_combo)
+
+        # DeepL grubu
+        self.deepl_group = QGroupBox(tr('project_settings.group_deepl', 'DeepL API Key (Ücretli)'))
+        deepl_lay = QFormLayout(self.deepl_group)
+        deepl_lay.setSpacing(4)
+        deepl_lay.setContentsMargins(8, 6, 8, 6)
+        self.deepl_api_key_combo = QLineEdit()
+        self.deepl_api_key_combo.setText(deepl_api)
+        deepl_lay.addRow(QLabel(tr('project_settings.label_deepl_api_key', 'DeepL API Key:')))
+        deepl_lay.addWidget(self.deepl_api_key_combo)
+        col.addWidget(self.deepl_group)
+
+        # Yandex grubu
+        self.yandex_group = QGroupBox(tr('project_settings.group_yandex', 'Yandex API Key (Ücretsiz)'))
+        yandex_lay = QFormLayout(self.yandex_group)
+        yandex_lay.setSpacing(4)
+        yandex_lay.setContentsMargins(8, 6, 8, 6)
+        self.yandex_api_key_combo = QLineEdit()
+        self.yandex_api_key_combo.setText(yandex_api)
+        yandex_lay.addRow(QLabel(tr('project_settings.label_yandex_api_key', 'Yandex API Key:')))
+        yandex_lay.addWidget(self.yandex_api_key_combo)
+        col.addWidget(self.yandex_group)
+
+        col.addStretch()
+        return col
+
+
+    # Kolon 2: API Key + MCP + Async/Batch + Terminoloji
+
+    def _build_column2(self, api_key, mcp_endpoint_id,
+                       async_enabled, async_threads,
+                       batch_enabled, max_batch_chars, max_chapters_per_batch,
+                       terminology_enabled):
+        col = QVBoxLayout()
+        col.setSpacing(8)
+        col.addWidget(self._section_title('2. ' + tr('new_project.col2_title', 'Proje Ayarları')))
+
+        # API Key seçimi
+        col.addWidget(self._field_label(tr('project_settings.label_api_key_select', 'API Key Seç')))
+        key_row = QHBoxLayout()
         self.api_key_combo = QComboBox()
         self.api_key_combo.currentIndexChanged.connect(self.on_api_combo_changed)
-        
+        key_row.addWidget(self.api_key_combo, 1)
+        self.edit_keys_btn = QPushButton(tr('app_settings.btn_edit', 'Düzenle'))
+        self.edit_keys_btn.setObjectName('smallBtn')
+        self.edit_keys_btn.setFixedWidth(65)
+        self.edit_keys_btn.clicked.connect(self.open_key_editor)
+        key_row.addWidget(self.edit_keys_btn)
+        col.addLayout(key_row)
+
+        col.addWidget(self._field_label(tr('project_settings.label_current_api_key', 'Mevcut API Key')))
         self.api_key_input = QLineEdit()
         self.api_key_input.setText(api_key)
         self.api_key_input.setEchoMode(QLineEdit.EchoMode.Password)
-        
-        self.edit_keys_btn = QPushButton(tr("app_settings.btn_edit", "Düzenle"))
-        self.edit_keys_btn.setFixedWidth(70)
-        self.edit_keys_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.edit_keys_btn.clicked.connect(self.open_key_editor)
-        
-        key_layout.addWidget(self.api_key_combo, 1)
-        key_layout.addWidget(self.edit_keys_btn)
+        col.addWidget(self.api_key_input)
 
-        # Prompt Seçimi 
-        promt_layout = QHBoxLayout()
-        promt_layout.setSpacing(5)
-        self.promt_combo = QComboBox()
-        self.promt_combo.currentIndexChanged.connect(self.on_promt_combo_changed)
-        
-        self.edit_promt_btn = QPushButton(tr("app_settings.btn_edit", "Düzenle"))
-        self.edit_promt_btn.setFixedWidth(70)
-        self.edit_promt_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.edit_promt_btn.clicked.connect(self.open_promt_editor)
-        
-        promt_layout.addWidget(self.promt_combo, 1)
-        promt_layout.addWidget(self.edit_promt_btn)
-
-        self.startpromtinput = QTextEdit()
-        self.startpromtinput.setText(start_promt)
-        self.startpromtinput.setFixedHeight(130)
-
-        # Prompt Generator Butonu 
-        self.prompt_gen_btn = QPushButton(tr("project_settings.btn_prompt_gen", "⚡ Prompt Oluşturucu (Generator)"))
-        self.prompt_gen_btn.setStyleSheet(
-            "background-color: #880E4F; color: white; font-weight: bold; "
-            "padding: 4px 10px; border-radius: 4px; font-size: 9pt;"
+        # MCP grubu
+        self.mcp_group = QGroupBox(tr('project_settings.group_mcp', 'Yapay Zeka Kaynağı (MCP)'))
+        mcp_lay = QVBoxLayout(self.mcp_group)
+        mcp_lay.setSpacing(5)
+        mcp_lay.setContentsMargins(8, 6, 8, 6)
+        self.use_custom_endpoint = QCheckBox(
+            tr('project_settings.checkbox_custom_mcp', 'Bu proje için özel bağlantı kullan')
         )
-        self.prompt_gen_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.prompt_gen_btn.clicked.connect(self.open_prompt_generator)
+        mcp_lay.addWidget(self.use_custom_endpoint)
+        ep_row = QHBoxLayout()
+        self.endpoint_combo = QComboBox()
+        self.endpoint_combo.setEnabled(False)
+        self._load_endpoints(mcp_endpoint_id)
+        self.mcp_manage_btn = QPushButton(tr('project_settings.btn_mcp_manage', 'MCP Yönet'))
+        self.mcp_manage_btn.setObjectName('smallBtn')
+        self.mcp_manage_btn.setFixedWidth(90)
+        self.mcp_manage_btn.clicked.connect(self.open_mcp_dialog)
+        ep_row.addWidget(self.endpoint_combo, 1)
+        ep_row.addWidget(self.mcp_manage_btn)
+        mcp_lay.addLayout(ep_row)
+        self.use_custom_endpoint.toggled.connect(self.endpoint_combo.setEnabled)
+        if mcp_endpoint_id:
+            self.use_custom_endpoint.setChecked(True)
+        col.addWidget(self.mcp_group)
 
-        # Otomatik Özellikler (Cache & Terminology) 
-        features_group = QGroupBox(tr("project_settings.group_features", "Otomatik Özellikler"))
-        features_layout = QVBoxLayout()
-        features_layout.setSpacing(4)
-        features_layout.setContentsMargins(8, 6, 8, 6)
-        self.terminology_checkbox = QCheckBox(tr("project_settings.checkbox_terminology", "Terminoloji Hafızası (Terminology Memory)"))
+        # Özellikler grubu (Terminoloji Memory)
+        self.features_group = QGroupBox(tr('project_settings.group_features', 'Otomatik Özellikler'))
+        feat_lay = QVBoxLayout(self.features_group)
+        feat_lay.setSpacing(4)
+        feat_lay.setContentsMargins(8, 6, 8, 6)
+        self.terminology_checkbox = QCheckBox(
+            tr('project_settings.checkbox_terminology', 'Terminoloji Hafızası (Terminology Memory)')
+        )
         self.terminology_checkbox.setChecked(terminology_enabled)
-        self.terminology_checkbox.setToolTip(tr("project_settings.checkbox_terminology_tooltip", "Proje terminoloji sözlüğünü otomatik olarak prompta ekler."))
-        features_layout.addWidget(self.terminology_checkbox)
-        features_group.setLayout(features_layout)
+        self.terminology_checkbox.setToolTip(
+            tr('project_settings.checkbox_terminology_tooltip',
+               'Proje terminoloji sözlüğünü otomatik olarak prompta ekler.')
+        )
+        feat_lay.addWidget(self.terminology_checkbox)
+        col.addWidget(self.features_group)
 
-        # Gelişmiş Özellikler
-        advanced_group = QGroupBox(tr("project_settings.group_advanced", "Performans ve Altyapı"))
-        self.advanced_layout = QFormLayout()
-        self.advanced_layout.setSpacing(6)
-        self.advanced_layout.setContentsMargins(8, 6, 8, 6)
+        # Performans grubu
+        self.advanced_group = QGroupBox(tr('project_settings.group_advanced', 'Performans ve Altyapı'))
+        adv_lay = QFormLayout()
+        adv_lay.setSpacing(6)
+        adv_lay.setContentsMargins(8, 6, 8, 6)
+        self.advanced_layout = adv_lay
 
-        self.async_checkbox = QCheckBox(tr("project_settings.checkbox_async", "Asenkron Çeviri [RPM Değeri Önemli]"))
+        self.async_checkbox = QCheckBox(
+            tr('project_settings.checkbox_async', 'Asenkron Çeviri [RPM Değeri Önemli]')
+        )
         self.async_checkbox.setChecked(async_enabled)
-        self.async_checkbox.setToolTip(tr("project_settings.checkbox_async_tooltip", "Çevirileri aynı anda başlatarak performansı ciddi oranda arttırır."))
-        
         self.async_threads_spinbox = QSpinBox()
         self.async_threads_spinbox.setMinimum(1)
         self.async_threads_spinbox.setMaximum(100)
-        self.async_threads_spinbox.setSingleStep(1)
         self.async_threads_spinbox.setValue(async_threads)
         self.async_threads_spinbox.setEnabled(async_enabled)
         self.async_checkbox.toggled.connect(self.async_threads_spinbox.setEnabled)
 
-        # Toplu Çeviri (Batch Mode)
-        self.batch_checkbox = QCheckBox(tr("project_settings.checkbox_batch", "Toplu Çeviri / Batch Mode [TPM Değeri Önemli]"))
-        self.batch_checkbox.setChecked(batch_enabled)
-        self.batch_checkbox.setToolTip(
-            tr("project_settings.checkbox_batch_tooltip", "Birden fazla bölümü tek API isteğine gruplayarak RPD kotasından daha fazla bölüm çevirir.")
+        self.batch_checkbox = QCheckBox(
+            tr('project_settings.checkbox_batch', 'Toplu Çeviri / Batch Mode [TPM Değeri Önemli]')
         )
+        self.batch_checkbox.setChecked(batch_enabled)
         self.batch_checkbox.toggled.connect(self._on_batch_toggled)
 
         self.batch_chars_spinbox = QSpinBox()
@@ -277,162 +343,137 @@ class ProjectSettingsDialog(QDialog):
         self.batch_chars_spinbox.setSingleStep(1000)
         self.batch_chars_spinbox.setValue(max_batch_chars)
         self.batch_chars_spinbox.setEnabled(batch_enabled)
-        self.batch_chars_spinbox.setToolTip(tr("project_settings.checkbox_batch_tooltip_chars", "Bir batch'te gönderilebilecek maksimum karakter sayısı."))
 
         self.batch_chapters_spinbox = QSpinBox()
         self.batch_chapters_spinbox.setMinimum(1)
         self.batch_chapters_spinbox.setMaximum(100)
-        self.batch_chapters_spinbox.setSingleStep(1)
         self.batch_chapters_spinbox.setValue(max_chapters_per_batch)
         self.batch_chapters_spinbox.setEnabled(batch_enabled)
-        self.batch_chapters_spinbox.setToolTip(tr("project_settings.checkbox_batch_tooltip_chapters", "Bir batch'e konabilecek maksimum bölüm sayısı."))
 
-        self.advanced_layout.addRow(self.async_checkbox)
-        self.advanced_layout.addRow(tr("project_settings.label_async_threads", "Thread sayısı:"), self.async_threads_spinbox)
-        self.advanced_layout.addRow(self.batch_checkbox)
-        self.advanced_layout.addRow(tr("project_settings.label_max_chars_batch", "Maks karakter/batch:"), self.batch_chars_spinbox)
-        self.advanced_layout.addRow(tr("project_settings.label_max_chapters_batch", "Maks bölüm/batch:"), self.batch_chapters_spinbox)
-        
-        # Veritabanı Taşıma
+        adv_lay.addRow(self.async_checkbox)
+        adv_lay.addRow(tr('project_settings.label_async_threads', 'Thread sayısı:'), self.async_threads_spinbox)
+        adv_lay.addRow(self.batch_checkbox)
+        adv_lay.addRow(tr('project_settings.label_max_chars_batch', 'Maks karakter/batch:'), self.batch_chars_spinbox)
+        adv_lay.addRow(tr('project_settings.label_max_chapters_batch', 'Maks bölüm/batch:'), self.batch_chapters_spinbox)
+
+        # Veritabanı taşıma butonu
         from core.database_manager import DatabaseManager
         project_path = get_project_dir(os.getcwd(), self.project_name)
         self.db_mgr = DatabaseManager(project_path)
-        self.db_migrate_btn = QPushButton(tr("project_settings.btn_db_migrate", "📦 Eski Projeyi Veritabanına Taşı (Hızlandır)"))
+        self.db_migrate_btn = QPushButton(
+            tr('project_settings.btn_db_migrate', '📦 Eski Projeyi Veritabanına Taşı (Hızlandır)')
+        )
         self.db_migrate_btn.setStyleSheet(
-            "background-color: #0D47A1; color: white; "
-            "padding: 4px 10px; border-radius: 4px; font-size: 9pt;"
+            'background-color: #0D47A1; color: white;'
+            ' padding: 4px 10px; border-radius: 4px; font-size: 9pt;'
         )
         self.db_migrate_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         self.db_migrate_btn.clicked.connect(self.run_db_migration)
-        
         if self.db_mgr.db_exists():
             self.db_migrate_btn.setVisible(False)
-            
-        self.advanced_layout.addRow(self.db_migrate_btn)
-        advanced_group.setLayout(self.advanced_layout)
+        adv_lay.addRow(self.db_migrate_btn)
 
-        # Terminoloji Sözlüğü Butonu
-        self.terminology_manage_btn = QPushButton(tr("project_settings.btn_terminology_manage", "📖 Terminoloji Sözlüğünü Yönet / Düzenle"))
-        self.terminology_manage_btn.setStyleSheet(
-            "background-color: #6A1B9A; color: white; font-weight: bold; "
-            "padding: 4px 10px; border-radius: 4px; font-size: 9pt;"
+        self.advanced_group.setLayout(adv_lay)
+        col.addWidget(self.advanced_group)
+        col.addStretch()
+        return col
+
+    # Kolon 3: Prompt Seçimi + İçerik + Generator
+
+    def _build_column3(self, start_promt):
+        col = QVBoxLayout()
+        col.setSpacing(8)
+        col.addWidget(self._section_title('3. ' + tr('new_project.col3_title', 'Bağlantı & Gelişmiş')))
+
+        col.addWidget(self._field_label(tr('project_settings.label_prompt_select', 'Prompt Seç')))
+        promt_row = QHBoxLayout()
+        self.promt_combo = QComboBox()
+        self.promt_combo.currentIndexChanged.connect(self.on_promt_combo_changed)
+        promt_row.addWidget(self.promt_combo, 1)
+        self.edit_promt_btn = QPushButton(tr('app_settings.btn_edit', 'Düzenle'))
+        self.edit_promt_btn.setObjectName('smallBtn')
+        self.edit_promt_btn.setFixedWidth(65)
+        self.edit_promt_btn.clicked.connect(self.open_promt_editor)
+        promt_row.addWidget(self.edit_promt_btn)
+        col.addLayout(promt_row)
+
+        col.addWidget(self._field_label(tr('project_settings.label_prompt_content', 'Prompt İçeriği')))
+        self.startpromtinput = QTextEdit()
+        self.startpromtinput.setText(start_promt)
+        self.startpromtinput.setMinimumHeight(110)
+        self.startpromtinput.setMaximumHeight(220)
+        col.addWidget(self.startpromtinput)
+
+        # Prompt Generator butonu
+        self.prompt_gen_btn = QPushButton(
+            tr('project_settings.btn_prompt_gen', '⚡ Prompt Oluşturucu (Generator)')
         )
-        self.terminology_manage_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.terminology_manage_btn.clicked.connect(self.open_terminology_dialog)
+        self.prompt_gen_btn.setStyleSheet(
+            'background-color: #880E4F; color: white; font-weight: bold;'
+            ' padding: 6px 10px; border-radius: 4px; font-size: 9pt;'
+        )
+        self.prompt_gen_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.prompt_gen_btn.clicked.connect(self.open_prompt_generator)
+        col.addWidget(self.prompt_gen_btn)
 
-        # Deepl api key
-        self.deepl_group = QGroupBox(tr("project_settings.group_deepl", "DeepL API Key (Ücretli)"))
-        self.deepl_layout = QFormLayout(self.deepl_group)
-        self.deepl_layout.setSpacing(2)
-        self.deepl_layout.setContentsMargins(8, 6, 8, 6)
-        self.deepl_layout.addRow(QLabel(tr("project_settings.label_deepl_api_key", "DeepL API Key:")))
-        self.deepl_api_key_combo = QLineEdit()
-        self.deepl_api_key_combo.setText(deepl_api)
-        self.deepl_layout.addWidget(self.deepl_api_key_combo)
+        col.addStretch()
+        return col
 
-        # Yandex Api key
-        self.yandex_group = QGroupBox(tr("project_settings.group_yandex", "Yandex API Key (Ücretsiz)"))
-        self.yandex_layout = QFormLayout(self.yandex_group)
-        self.yandex_layout.setSpacing(2)
-        self.yandex_layout.setContentsMargins(8, 6, 8, 6)
-        self.yandex_layout.addRow(QLabel(tr("project_settings.label_yandex_api_key", "Yandex API Key:")))
-        self.yandex_api_key_combo = QLineEdit()
-        self.yandex_api_key_combo.setText(yandex_api)
-        self.yandex_layout.addWidget(self.yandex_api_key_combo)
+    # Yardımcı widget oluşturucular
+    def _section_title(self, text: str) -> QLabel:
+        l = QLabel(text)
+        l.setStyleSheet(f'color:{TEXT_MAIN}; font-size:13px; font-weight:700;')
+        return l
 
-        self.mcp_group = mcp_group
-        self.features_group = features_group
-        self.advanced_group = advanced_group
+    def _field_label(self, text: str) -> QLabel:
+        l = QLabel(text)
+        l.setStyleSheet(f'color:{TEXT_DIM}; font-size:11px;')
+        return l
 
-        self.key_layout_container = QWidget()
-        key_box = QHBoxLayout(self.key_layout_container)
-        key_box.setContentsMargins(0, 0, 0, 0)
-        key_box.setSpacing(5)
-        key_box.addWidget(self.api_key_combo, 1)
-        key_box.addWidget(self.edit_keys_btn)
+    def _vline(self) -> QFrame:
+        v = QFrame()
+        v.setFrameShape(QFrame.Shape.VLine)
+        v.setStyleSheet(f'color: {BORDER};')
+        return v
 
-        self.promt_layout_container = QWidget()
-        promt_box = QHBoxLayout(self.promt_layout_container)
-        promt_box.setContentsMargins(0, 0, 0, 0)
-        promt_box.setSpacing(5)
-        promt_box.addWidget(self.promt_combo, 1)
-        promt_box.addWidget(self.edit_promt_btn)
-
-        # Form'u doldur 
-        self.form_layout.addRow(tr("project_settings.label_provider_select", "Çeviri Sağlayıcısı:"), self.provider_combo)
-        self.form_layout.addRow(tr("project_settings.label_source_lang", "Kaynak Dil:"), self.source_lang_combo)
-        self.form_layout.addRow(self.deepl_group)
-        self.form_layout.addRow(self.yandex_group)
-        self.form_layout.addRow(tr("project_settings.label_project_name", "Proje Adı:"), self.projectNameLabel)
-        self.form_layout.addRow(tr("project_settings.label_project_link", "Proje Linki:"), self.projectLinkInput)
-        self.form_layout.addRow(tr("project_settings.label_max_pages", "Maks. Sayfa:"), self.maxPagesInput)
-        self.form_layout.addRow(tr("project_settings.label_max_retries", "Maks. Deneme:"), self.maxRetriesInput)
-        self.form_layout.addRow(self.mcp_group)
-        self.form_layout.addRow(tr("project_settings.label_api_key_select", "API Key Seç:"), self.key_layout_container)
-        self.form_layout.addRow(tr("project_settings.label_current_api_key", "Mevcut API Key:"), self.api_key_input)
-        self.form_layout.addRow(tr("project_settings.label_prompt_select", "Prompt Seç:"), self.promt_layout_container)
-        self.form_layout.addRow(tr("project_settings.label_prompt_content", "Prompt İçeriği:"), self.startpromtinput)
-        self.form_layout.addRow(self.prompt_gen_btn)
-        self.form_layout.addRow(self.terminology_manage_btn)
-        self.form_layout.addRow(self.features_group)
-        self.form_layout.addRow(self.advanced_group)
-
-        self.refresh_combos()
-        self.on_provider_changed()
-
-    def _set_row_visible_by_widget(self, widget, visible):
-        pos = self.form_layout.getWidgetPosition(widget)
-        if pos[0] >= 0:
-            self.form_layout.setRowVisible(pos[0], visible)
-
+    # Provider görünürlük kontrolü
     def on_provider_changed(self):
         prov = self.provider_combo.currentData()
-        is_llm = (prov == "llm")
-        is_deepl = (prov == "deepl")
-        is_yandex = (prov == "yandex")
-        
-        self._set_row_visible_by_widget(self.deepl_group, is_deepl)
-        self._set_row_visible_by_widget(self.yandex_group, is_yandex)
-        self._set_row_visible_by_widget(self.mcp_group, is_llm)
-        self._set_row_visible_by_widget(self.key_layout_container, is_llm)
-        self._set_row_visible_by_widget(self.api_key_input, is_llm)
-        self._set_row_visible_by_widget(self.promt_layout_container, is_llm)
-        self._set_row_visible_by_widget(self.startpromtinput, is_llm)
-        self._set_row_visible_by_widget(self.prompt_gen_btn, is_llm)
-        self._set_row_visible_by_widget(self.terminology_manage_btn, is_llm)
-        self._set_row_visible_by_widget(self.features_group, is_llm)
-        self._set_row_visible_by_widget(self.advanced_group, is_llm)
+        is_llm    = (prov == 'llm')
+        is_deepl  = (prov == 'deepl')
+        is_yandex = (prov == 'yandex')
 
-        self.advanced_layout.setRowVisible(0, is_llm)  # Async Checkbox
-        self.advanced_layout.setRowVisible(1, is_llm)  # Async Threads
-        self.advanced_layout.setRowVisible(2, is_llm)  # Batch Checkbox
-        self.advanced_layout.setRowVisible(3, is_llm)  # Batch Chars
-        self.advanced_layout.setRowVisible(4, is_llm)  # Batch Chapters
+        self.deepl_group.setVisible(is_deepl)
+        self.yandex_group.setVisible(is_yandex)
+        self.mcp_group.setVisible(is_llm)
+        self.api_key_input.setVisible(is_llm)
+        self.api_key_combo.setEnabled(is_llm)
+        self.edit_keys_btn.setEnabled(is_llm)
+        self.promt_combo.setEnabled(is_llm)
+        self.edit_promt_btn.setEnabled(is_llm)
+        self.startpromtinput.setEnabled(is_llm)
+        self.prompt_gen_btn.setEnabled(is_llm)
+        self.features_group.setVisible(is_llm)
+        self.advanced_group.setVisible(is_llm)
 
-        # Batch Mode kısıtlaması
         self.batch_checkbox.setEnabled(is_llm)
         if not is_llm:
             self.batch_checkbox.setChecked(False)
-            self.batch_checkbox.setToolTip("Batch Mode sadece LLM tabanlı sağlayıcılarda kullanılabilir")
         else:
-            self.batch_checkbox.setToolTip("")
-
-
-        
+            self.batch_checkbox.setToolTip('')
 
     def _on_batch_toggled(self, checked: bool):
-        """Batch modu açılırken uyarı gösterir."""
         self.batch_chars_spinbox.setEnabled(checked)
         self.batch_chapters_spinbox.setEnabled(checked)
 
+    # MCP / Key / Prompt yardımcıları
     def _load_endpoints(self, selected_id=None):
-        """MCP endpoint listesini combo'ya yükler."""
         self.endpoint_combo.clear()
-        self.endpoint_combo.addItem(tr("new_project.combo_global_endpoint", "Global Aktif Endpoint"), None)
+        self.endpoint_combo.addItem(tr('new_project.combo_global_endpoint', 'Global Aktif Endpoint'), None)
         try:
             from core.llm_provider import load_endpoints
             data = load_endpoints()
-            for ep in data.get("endpoints", []):
+            for ep in data.get('endpoints', []):
                 self.endpoint_combo.addItem(f"{ep['name']} ({ep['type']})", ep['id'])
                 if selected_id and ep['id'] == selected_id:
                     self.endpoint_combo.setCurrentIndex(self.endpoint_combo.count() - 1)
@@ -455,21 +496,21 @@ class ProjectSettingsDialog(QDialog):
                 if generated:
                     self.startpromtinput.setText(generated)
         except ImportError:
-            QMessageBox.warning(self, tr("main_window.msg_structure_error_title", "Hata"), tr("project_settings.prompt_gen_missing", "Prompt Generator modülü henüz yüklenmemiş."))
+            QMessageBox.warning(
+                self,
+                tr('main_window.msg_structure_error_title', 'Hata'),
+                tr('project_settings.prompt_gen_missing', 'Prompt Generator modülü henüz yüklenmemiş.')
+            )
         except Exception as e:
-            QMessageBox.critical(self, tr("main_window.msg_structure_error_title", "Hata"), f"Prompt Generator: {e}")
-
-    def open_terminology_dialog(self):
-        try:
-            project_path = get_project_dir(os.getcwd(), self.project_name)
-            dlg = TerminologyDialog(project_path, self)
-            dlg.exec()
-        except Exception as e:
-            QMessageBox.critical(self, tr("main_window.msg_structure_error_title", "Hata"), f"Terminology: {e}")
+            QMessageBox.critical(
+                self,
+                tr('main_window.msg_structure_error_title', 'Hata'),
+                f'Prompt Generator: {e}'
+            )
 
     def refresh_combos(self):
-        load_files_to_combo(self.api_key_combo, "APIKeys")
-        load_files_to_combo(self.promt_combo, "Promts")
+        load_files_to_combo(self.api_key_combo, 'APIKeys')
+        load_files_to_combo(self.promt_combo, 'Promts')
 
     def on_api_combo_changed(self):
         data = self.api_key_combo.currentData()
@@ -491,60 +532,78 @@ class ProjectSettingsDialog(QDialog):
         dlg.exec()
         self.refresh_combos()
 
+    # Veri Toplama
     def get_data(self):
         max_pages_text = self.maxPagesInput.text()
         max_pages = int(max_pages_text) if max_pages_text.isdigit() else None
-        
+
         mcp_endpoint_id = None
         if self.use_custom_endpoint.isChecked():
             mcp_endpoint_id = self.endpoint_combo.currentData()
-            
+
         api_key_name = self.api_key_combo.currentText()
-        if api_key_name == tr("new_project.combo_select", "Seçiniz..."):
-            api_key_name = ""
-        
+        if api_key_name == tr('new_project.combo_select', 'Seçiniz...'):
+            api_key_name = ''
+
         return {
-            "link": self.projectLinkInput.text(),
-            "max_pages": max_pages,
-            "max_retries": self.maxRetriesInput.value(),
-            "api_key": self.api_key_input.text(),
-            "deepl_api": self.deepl_api_key_combo.text(),
-            "yandex_api": self.yandex_api_key_combo.text(),
-            "api_key_name": api_key_name,
-            "Startpromt": self.startpromtinput.toPlainText(),
-            "mcp_endpoint_id": mcp_endpoint_id,
-            "terminology_enabled": self.terminology_checkbox.isChecked(),
-            "async_enabled": self.async_checkbox.isChecked(),
-            "async_threads": self.async_threads_spinbox.value(),
-            "batch_enabled": self.batch_checkbox.isChecked(),
-            "max_batch_chars": self.batch_chars_spinbox.value(),
-            "max_chapters_per_batch": self.batch_chapters_spinbox.value(),
-            "translation_provider": self.provider_combo.currentData(),
-            "source_lang": self.source_lang_combo.currentData(),
+            'link':                 self.projectLinkInput.text(),
+            'max_pages':            max_pages,
+            'max_retries':          self.maxRetriesInput.value(),
+            'api_key':              self.api_key_input.text(),
+            'deepl_api':            self.deepl_api_key_combo.text(),
+            'yandex_api':           self.yandex_api_key_combo.text(),
+            'api_key_name':         api_key_name,
+            'Startpromt':           self.startpromtinput.toPlainText(),
+            'mcp_endpoint_id':      mcp_endpoint_id,
+            'terminology_enabled':  self.terminology_checkbox.isChecked(),
+            'async_enabled':        self.async_checkbox.isChecked(),
+            'async_threads':        self.async_threads_spinbox.value(),
+            'batch_enabled':        self.batch_checkbox.isChecked(),
+            'max_batch_chars':      self.batch_chars_spinbox.value(),
+            'max_chapters_per_batch': self.batch_chapters_spinbox.value(),
+            'translation_provider': self.provider_combo.currentData(),
+            'source_lang':          self.source_lang_combo.currentData(),
         }
 
+    # Veritabanı Taşıma
     def run_db_migration(self):
-        """Mevcut dizindekileri yavaş scan ile okuyup veritabanına geçirir."""
         from core.file_list_manager import FileListManager
-        self.db_migrate_btn.setText(tr("project_settings.btn_db_migrate_running", "Taşınıyor... Lütfen bekleyin"))
+        self.db_migrate_btn.setText(
+            tr('project_settings.btn_db_migrate_running', 'Taşınıyor... Lütfen bekleyin')
+        )
         self.db_migrate_btn.setEnabled(False)
         QApplication.processEvents()
-        project_path = get_project_dir(os.getcwd(),self.project_name)
-        
+        project_path = get_project_dir(os.getcwd(), self.project_name)
         try:
             legacy_flm = FileListManager(project_path)
             success = self.db_mgr.sync_directory_to_db(legacy_flm)
             if success:
                 QMessageBox.information(
-                    self, tr("project_settings.msg_db_migrate_success_title", "Başarılı"), 
-                    tr("project_settings.msg_db_migrate_success_body", "Eski veriler başarıyla veritabanına taşındı!\nArtık dosya listeleri anında açılacak.")
+                    self,
+                    tr('project_settings.msg_db_migrate_success_title', 'Başarılı'),
+                    tr('project_settings.msg_db_migrate_success_body',
+                       'Eski veriler başarıyla veritabanına taşındı!\nArtık dosya listeleri anında açılacak.')
                 )
                 self.db_migrate_btn.setVisible(False)
             else:
-                QMessageBox.warning(self, tr("project_settings.msg_db_migrate_error_title", "Hata"), tr("project_settings.msg_db_migrate_error_body", "Veritabanına taşıma işlemi sırasında bir hata oluştu."))
-                self.db_migrate_btn.setText(tr("project_settings.btn_db_migrate", "📦 Eski Projeyi Veritabanına Taşı (Hızlandır)"))
+                QMessageBox.warning(
+                    self,
+                    tr('project_settings.msg_db_migrate_error_title', 'Hata'),
+                    tr('project_settings.msg_db_migrate_error_body',
+                       'Veritabanına taşıma işlemi sırasında bir hata oluştu.')
+                )
+                self.db_migrate_btn.setText(
+                    tr('project_settings.btn_db_migrate', '📦 Eski Projeyi Veritabanına Taşı (Hızlandır)')
+                )
                 self.db_migrate_btn.setEnabled(True)
         except Exception as e:
-            QMessageBox.critical(self, tr("project_settings.msg_db_migrate_fail_title", "Hata"), tr("project_settings.msg_db_migrate_fail_body", "Beklenmeyen bir hata oluştu:\n{}").format(e))
-            self.db_migrate_btn.setText(tr("project_settings.btn_db_migrate", "📦 Eski Projeyi Veritabanına Taşı (Hızlandır)"))
+            QMessageBox.critical(
+                self,
+                tr('project_settings.msg_db_migrate_fail_title', 'Hata'),
+                tr('project_settings.msg_db_migrate_fail_body',
+                   'Beklenmeyen bir hata oluştu:\n{}').format(e)
+            )
+            self.db_migrate_btn.setText(
+                tr('project_settings.btn_db_migrate', '📦 Eski Projeyi Veritabanına Taşı (Hızlandır)')
+            )
             self.db_migrate_btn.setEnabled(True)

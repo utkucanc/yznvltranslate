@@ -272,7 +272,8 @@
     "group_yandex": "Yandex API Key (Ücretsiz)",
     "label_deepl_api_key": "DeepL API Key:",
     "label_yandex_api_key": "Yandex API Key:",
-    "provider_deepl": "DeepL Translate (Ücretli)"
+    "provider_deepl": "DeepL Translate (Ücretli)",
+    "btn_save": "💾 Save"
   },
   "mcp_server": {
     "window_title": "AI Source Management (MCP)",
@@ -693,6 +694,7 @@
     "chart_unavailable": "📊 Chart: matplotlib not installed.",
     "btn_view_api_stats": "📊  View API Statistics",
     "card_merge_export": "Merge / Export",
+    "btn_export": "🔗  Export Selected Translations",
     "output_format": "Output Format",
     "goto_label": "Go to Chapter:",
     "goto_placeholder": "Chapter number...",

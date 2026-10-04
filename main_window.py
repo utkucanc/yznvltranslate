@@ -150,15 +150,17 @@ class MainWindow(QMainWindow):
         self.token_progress_bar.setVisible(False)
         self.token_count_button.setEnabled(False)
         print(f"[Initial States]: {time.perf_counter()-t0:.2f}s")
-        # İlk aktif nav
-        self.set_active_nav("Dashboard")
+        # İlk aktif nav - açılışta Project sayfasını göster
+        self.main_stack.setCurrentIndex(1)
+        self.set_active_nav("Project")
+
         print(f"[Set Active Nav]: {time.perf_counter()-t0:.2f}s")
         # Sistem tray
         self._tray_icon = None
         self._setup_tray_icon()
         print(f"[Tray Icon]: {time.perf_counter()-t0:.2f}s")
     # ------------------------------------------------------------------
-    # Paylaşılan widget'lar — dashboard/project sayfaları bunları gömer
+    # Paylaşılan widget'lar - dashboard/project sayfaları bunları gömer
     # ------------------------------------------------------------------
 
     def _init_shared_widgets(self):

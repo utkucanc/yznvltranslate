@@ -272,7 +272,8 @@
     "group_yandex": "Yandex API Key (Ücretsiz)",
     "label_deepl_api_key": "DeepL API Key:",
     "label_yandex_api_key": "Yandex API Key:",
-    "provider_deepl": "DeepL Translate (Ücretli)"
+    "provider_deepl": "DeepL Translate (Ücretli)",
+    "btn_save": "💾 Kaydet"
   },
   "mcp_server": {
     "window_title": "Yapay Zeka Kaynağı Yönetimi (MCP)",
@@ -735,6 +736,7 @@
     "card_logs": "Loglar",
     "btn_clear_logs": "Temizle",
     "card_merge_export": "Birleştir / Dışa Aktar",
+    "btn_export": "🔗  Seçili Çevirileri Dışa Aktar",
     "output_format": "Çıktı Formatı",
     "goto_label": "Bölüme Git:",
     "goto_placeholder": "Bölüm numarası...",

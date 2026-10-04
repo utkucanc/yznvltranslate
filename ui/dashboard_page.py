@@ -15,6 +15,7 @@ OLUŞTURMAZ; mevcut main_window attribute'larını düzenler ve kartlara yerleş
 from core.localization import tr_log
 import os
 from PyQt6.QtWidgets import QWidget, QScrollArea, QVBoxLayout, QHBoxLayout, QGridLayout, QLabel, QPushButton, QLineEdit, QFrame, QProgressBar, QTextEdit, QCheckBox, QSpinBox, QRadioButton, QButtonGroup, QSizePolicy, QMenu, QMessageBox
+
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont
 from ui.dark_theme import BG_PANEL, BG_PANEL2, BORDER, TEXT_MAIN, TEXT_DIM, TEXT_FAINT, ACCENT_BLUE, ACCENT_GREEN, ACCENT_ORANGE, ACCENT_PURPLE, ACCENT_RED, ACCENT_CYAN
@@ -213,6 +214,17 @@ def _build_translation_queue_card(win) -> QFrame:
     open_btn.setObjectName('smallBtnFull')
     open_btn.clicked.connect(lambda : _open_terminology_dialog(win))
     body.addWidget(open_btn)
+
+    # Prompt Generator butonu
+    prompt_gen_btn = QPushButton(tr('project_settings.btn_prompt_gen', '⚡ Prompt Oluşturucu (Generator)'))
+    prompt_gen_btn.setStyleSheet(
+        'background-color: #880E4F; color: white; font-weight: bold;'
+        ' padding: 5px 10px; border-radius: 4px; font-size: 9pt;'
+    )
+    prompt_gen_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+    prompt_gen_btn.clicked.connect(lambda: _open_prompt_generator(win))
+    body.addWidget(prompt_gen_btn)
+
     body.addStretch()
     return frame
 
@@ -276,15 +288,42 @@ def _build_merge_export_card(win) -> QFrame:
     fmt_row = QHBoxLayout()
     txt_radio = QRadioButton('TXT')
     epub_radio = QRadioButton('EPUB')
-    epub_radio.setChecked(True)
+    txt_radio.setChecked(True)
+    fmt_group = QButtonGroup(frame)
+    fmt_group.addButton(txt_radio)
+    fmt_group.addButton(epub_radio)
     fmt_row.addWidget(txt_radio)
     fmt_row.addWidget(epub_radio)
     fmt_row.addStretch()
     body.addLayout(fmt_row)
+
+    # Dışa aktar butonu — formata göre TXT veya EPUB çıktısı verir
+    export_btn = QPushButton(tr('dashboard.btn_export', '🔗  Seçili Çevirileri Dışa Aktar'))
+    export_btn.setObjectName('purpleBtn')
+    export_btn.setEnabled(False)
+    export_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+
+    def _do_export():
+        if epub_radio.isChecked():
+            if hasattr(win, 'start_epub_process'):
+                win.start_epub_process()
+        else:
+            if hasattr(win, 'start_merging_process'):
+                win.start_merging_process()
+
+    export_btn.clicked.connect(_do_export)
+
+    # mergeButton devre dışı bırakıldığında export_btn de devre dışı kalır
     if hasattr(win, 'mergeButton'):
-        body.addWidget(win.mergeButton)
-    if hasattr(win, 'epubButton'):
-        body.addWidget(win.epubButton)
+        original_merge_set_enabled = win.mergeButton.setEnabled
+        def _sync_enabled(enabled, _orig=original_merge_set_enabled):
+            _orig(enabled)
+            export_btn.setEnabled(enabled)
+        win.mergeButton.setEnabled = _sync_enabled
+        export_btn.setEnabled(win.mergeButton.isEnabled())
+    body.addWidget(export_btn)
+    win._dashboard_export_btn = export_btn
+
     sep = QFrame()
     sep.setFrameShape(QFrame.Shape.HLine)
     sep.setStyleSheet(f'color:{BORDER};')
@@ -411,6 +450,37 @@ def _open_terminology_dialog(win):
     except Exception as e:
         from logger import app_logger
         app_logger.warning(tr_log('ui.dashboard_page', 586, f'Terminology dialog açılamadı: {e}'))
+
+
+def _open_prompt_generator(win):
+    """Aktif proje için Prompt Generator dialog'unu açar."""
+    try:
+        project_name = None
+        if hasattr(win, 'project_list') and win.project_list.currentItem():
+            project_name = win.project_list.currentItem().text()
+        if not project_name:
+            from PyQt6.QtWidgets import QMessageBox
+            QMessageBox.warning(
+                win,
+                tr('sidebar.no_project_title', 'Proje Seçilmedi'),
+                tr('sidebar.no_project_body', 'Lütfen önce bir proje seçin.')
+            )
+            return
+        from core.workers.prompt_generator import PromptGeneratorDialog
+        dlg = PromptGeneratorDialog(project_name, win)
+        dlg.exec()
+    except ImportError:
+        from PyQt6.QtWidgets import QMessageBox
+        QMessageBox.warning(
+            win,
+            tr('main_window.msg_structure_error_title', 'Hata'),
+            tr('project_settings.prompt_gen_missing', 'Prompt Generator modülü henüz yüklenmemiş.')
+        )
+    except Exception as e:
+        from logger import app_logger
+        app_logger.warning(tr_log('ui.dashboard_page', 620, f'Prompt Generator açılamadı: {e}'))
+
+
 
 def _attach_log_handler(win):
     """app_logger'a dashboard QTextEdit'e yazan bir handler ekler."""

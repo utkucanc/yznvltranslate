@@ -104,6 +104,7 @@ class TranslationController:
         async_threads = self.win.config.getint('Features', 'async_threads', fallback=3)
         batch_enabled = self.win.config.getboolean('Batch', 'batch_enabled', fallback=False)
         max_batch_chars = self.win.config.getint('Batch', 'max_batch_chars', fallback=33000)
+        max_chapters_per_batch = self.win.config.getint('Batch', 'max_chapters_per_batch', fallback=5)
         source_lang = self.win.config.get('ProjectInfo', 'source_lang', fallback=None)
         if not source_lang:
             try:
