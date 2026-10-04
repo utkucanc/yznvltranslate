@@ -133,12 +133,12 @@ class ProjectSettingsDialog(QDialog):
         cols.setSpacing(20)
         cols.addLayout(self._build_column1(
             project_name, project_link, max_pages,
-            translation_provider, deepl_api, yandex_api,
+            translation_provider,
             _LANG_CODES, source_lang, parent
         ), 1)
         cols.addWidget(self._vline())
         cols.addLayout(self._build_column2(
-            api_key, mcp_endpoint_id,
+            api_key, deepl_api, yandex_api, mcp_endpoint_id,
             async_enabled, async_threads,
             batch_enabled, max_batch_chars, max_chapters_per_batch,
             terminology_enabled
@@ -166,7 +166,7 @@ class ProjectSettingsDialog(QDialog):
 
     # Kolon 1: Temel Bilgiler + Provider
     def _build_column1(self, project_name, project_link, max_pages,
-                       translation_provider, deepl_api, yandex_api,
+                       translation_provider,
                        lang_codes, source_lang, parent):
         col = QVBoxLayout()
         col.setSpacing(8)
@@ -217,35 +217,13 @@ class ProjectSettingsDialog(QDialog):
         self.source_lang_combo.setCurrentIndex(src_idx)
         col.addWidget(self.source_lang_combo)
 
-        # DeepL grubu
-        self.deepl_group = QGroupBox(tr('project_settings.group_deepl', 'DeepL API Key (Ücretli)'))
-        deepl_lay = QFormLayout(self.deepl_group)
-        deepl_lay.setSpacing(4)
-        deepl_lay.setContentsMargins(8, 6, 8, 6)
-        self.deepl_api_key_combo = QLineEdit()
-        self.deepl_api_key_combo.setText(deepl_api)
-        deepl_lay.addRow(QLabel(tr('project_settings.label_deepl_api_key', 'DeepL API Key:')))
-        deepl_lay.addWidget(self.deepl_api_key_combo)
-        col.addWidget(self.deepl_group)
-
-        # Yandex grubu
-        self.yandex_group = QGroupBox(tr('project_settings.group_yandex', 'Yandex API Key (Ücretsiz)'))
-        yandex_lay = QFormLayout(self.yandex_group)
-        yandex_lay.setSpacing(4)
-        yandex_lay.setContentsMargins(8, 6, 8, 6)
-        self.yandex_api_key_combo = QLineEdit()
-        self.yandex_api_key_combo.setText(yandex_api)
-        yandex_lay.addRow(QLabel(tr('project_settings.label_yandex_api_key', 'Yandex API Key:')))
-        yandex_lay.addWidget(self.yandex_api_key_combo)
-        col.addWidget(self.yandex_group)
-
         col.addStretch()
         return col
 
 
     # Kolon 2: API Key + MCP + Async/Batch + Terminoloji
 
-    def _build_column2(self, api_key, mcp_endpoint_id,
+    def _build_column2(self, api_key, deepl_api, yandex_api, mcp_endpoint_id,
                        async_enabled, async_threads,
                        batch_enabled, max_batch_chars, max_chapters_per_batch,
                        terminology_enabled):
@@ -271,6 +249,28 @@ class ProjectSettingsDialog(QDialog):
         self.api_key_input.setText(api_key)
         self.api_key_input.setEchoMode(QLineEdit.EchoMode.Password)
         col.addWidget(self.api_key_input)
+
+        # DeepL grubu
+        self.deepl_group = QGroupBox(tr('project_settings.group_deepl', 'DeepL API Key (Ücretli)'))
+        deepl_lay = QFormLayout(self.deepl_group)
+        deepl_lay.setSpacing(4)
+        deepl_lay.setContentsMargins(8, 6, 8, 6)
+        self.deepl_api_key_combo = QLineEdit()
+        self.deepl_api_key_combo.setText(deepl_api)
+        deepl_lay.addRow(QLabel(tr('project_settings.label_deepl_api_key', 'DeepL API Key:')))
+        deepl_lay.addWidget(self.deepl_api_key_combo)
+        col.addWidget(self.deepl_group)
+
+        # Yandex grubu
+        self.yandex_group = QGroupBox(tr('project_settings.group_yandex', 'Yandex API Key (Ücretsiz)'))
+        yandex_lay = QFormLayout(self.yandex_group)
+        yandex_lay.setSpacing(4)
+        yandex_lay.setContentsMargins(8, 6, 8, 6)
+        self.yandex_api_key_combo = QLineEdit()
+        self.yandex_api_key_combo.setText(yandex_api)
+        yandex_lay.addRow(QLabel(tr('project_settings.label_yandex_api_key', 'Yandex API Key:')))
+        yandex_lay.addWidget(self.yandex_api_key_combo)
+        col.addWidget(self.yandex_group)
 
         # MCP grubu
         self.mcp_group = QGroupBox(tr('project_settings.group_mcp', 'Yapay Zeka Kaynağı (MCP)'))
