@@ -172,6 +172,30 @@ class NewProjectDialog(QDialog):
         col = QVBoxLayout()
         col.setSpacing(8)
         col.addWidget(self._section_title('2. ' + tr('new_project.col2_title', 'Proje Ayarları')))
+        col.addWidget(self._field_label(tr('new_project.label_source_lang', 'Kaynak Dil')))
+        self.source_lang_combo = QComboBox()
+        _LANG_CODES = [
+            ('en', tr('languages.en', 'İngilizce (en)')),
+            ('ko', tr('languages.ko', 'Korece (ko)')),
+            ('zh-cn', tr('languages.zh_cn', 'Çince Basitleştirilmiş (zh-cn)')),
+            ('zh-tw', tr('languages.zh_tw', 'Çince Geleneksel (zh-tw)')),
+            ('ja', tr('languages.ja', 'Japonca (ja)')),
+            ('tr', tr('languages.tr', 'Türkçe (tr)')),
+            ('de', tr('languages.de', 'Almanca (de)')),
+            ('fr', tr('languages.fr', 'Fransızca (fr)')),
+            ('es', tr('languages.es', 'İspanyolca (es)')),
+        ]
+        for code, label in _LANG_CODES:
+            self.source_lang_combo.addItem(label, code)
+        try:
+            from ui.app_settings_dialog import load_app_settings
+            default_src = load_app_settings().get('langdetect_source_lang', 'en')
+        except Exception:
+            default_src = 'en'
+        all_codes = [self.source_lang_combo.itemData(i) for i in range(self.source_lang_combo.count())]
+        idx = all_codes.index(default_src) if default_src in all_codes else 0
+        self.source_lang_combo.setCurrentIndex(idx)
+        col.addWidget(self.source_lang_combo)
         col.addWidget(self._field_label(tr('new_project.label_model', 'Varsayılan Model')))
         self.model_combo = QComboBox()
         self._populate_models()
@@ -457,4 +481,4 @@ class NewProjectDialog(QDialog):
         mcp_endpoint_id = None
         if self.use_custom_endpoint.isChecked():
             mcp_endpoint_id = self.endpoint_combo.currentData()
-        return (self.projectNameInput.text(), self.projectLinkInput.text(), max_pages, self.maxRetriesInput.value(), self.api_key_input.text(), self.startpromtinput.toPlainText(), api_key_name, mcp_endpoint_id, self.provider_combo.currentData(), self.deepl_api_key_input.text(), self.yandex_api_key_input.text())
+        return (self.projectNameInput.text(), self.projectLinkInput.text(), max_pages, self.maxRetriesInput.value(), self.api_key_input.text(), self.startpromtinput.toPlainText(), api_key_name, mcp_endpoint_id, self.provider_combo.currentData(), self.deepl_api_key_input.text(), self.yandex_api_key_input.text(), self.source_lang_combo.currentData())

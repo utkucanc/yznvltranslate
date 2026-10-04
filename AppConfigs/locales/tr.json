@@ -218,6 +218,7 @@
     "col1_title": "Temel Bilgiler",
     "col2_title": "Proje Ayarları",
     "col3_title": "Bağlantı & Gelişmiş",
+    "label_source_lang": "Kaynak Dil",
     "label_model": "Varsayılan Model",
     "label_parallel_workers": "Paralel Worker",
     "msg_warning_title": "Uyarı",
@@ -226,6 +227,7 @@
   "project_settings": {
     "window_title": "'{}' Ayarları",
     "label_provider_select": "Çeviri Sağlayıcısı:",
+    "label_source_lang": "Kaynak Dil:",
     "provider_llm": "Yapay Zeka (LLM / MCP)",
     "provider_google": "Google Translate (Ücretsiz)",
     "provider_yandex": "Yandex Translate (Ücretsiz)",
@@ -944,5 +946,16 @@
     "terminology_generated": "Terminoloji üretildi.",
     "download_started": "İndirme işlemi başladı.",
     "download_finished": "İndirme işlemi tamamlandı."
+  },
+  "languages": {
+    "en": "İngilizce (en)",
+    "ko": "Korece (ko)",
+    "zh_cn": "Çince Basitleştirilmiş (zh-cn)",
+    "zh_tw": "Çince Geleneksel (zh-tw)",
+    "ja": "Japonca (ja)",
+    "tr": "Türkçe (tr)",
+    "de": "Almanca (de)",
+    "fr": "Fransızca (fr)",
+    "es": "İspanyolca (es)"
   }
 }

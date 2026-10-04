@@ -218,6 +218,7 @@
     "col1_title": "Basic Information",
     "col2_title": "Project Settings",
     "col3_title": "Connection & Advanced",
+    "label_source_lang": "Source Language",
     "label_model": "Defaults Model",
     "label_parallel_workers": "Parallel Worker",
     "msg_warning_title": "Warning",
@@ -226,6 +227,7 @@
   "project_settings": {
     "window_title": "'{}' Settings",
     "label_provider_select": "Translation Provider:",
+    "label_source_lang": "Source Language:",
     "provider_llm": "Artificial Intelligence (LLM / MCP)",
     "provider_google": "Google Translate (Free)",
     "provider_yandex": "Yandex Translate (Free)",
@@ -925,5 +927,16 @@
     "terminology_generated": "Terminology generated.",
     "download_started": "Download started.",
     "download_finished": "Download finished."
+  },
+  "languages": {
+    "en": "English (en)",
+    "ko": "Korean (ko)",
+    "zh_cn": "Chinese Simplified (zh-cn)",
+    "zh_tw": "Chinese Traditional (zh-tw)",
+    "ja": "Japanese (ja)",
+    "tr": "Turkish (tr)",
+    "de": "German (de)",
+    "fr": "French (fr)",
+    "es": "Spanish (es)"
   }
 }

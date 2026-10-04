@@ -59,7 +59,7 @@ class ProjectSettingsDialog(QDialog):
                  mcp_endpoint_id=None, terminology_enabled=True,
                  async_enabled=False, async_threads=3,
                  batch_enabled=False, max_batch_chars=33000, max_chapters_per_batch=5,
-                 translation_provider="llm"):
+                 translation_provider="llm", source_lang=None):
         super().__init__(parent)
         self.setWindowTitle(tr("project_settings.window_title", "'{}' Ayarları").format(project_name))
         self.setMinimumWidth(520)
@@ -134,6 +134,31 @@ class ProjectSettingsDialog(QDialog):
         if idx >= 0:
             self.provider_combo.setCurrentIndex(idx)
         self.provider_combo.currentIndexChanged.connect(self.on_provider_changed)
+
+        # Kaynak Dil Seçimi
+        _LANG_CODES = [
+            ('en', 'English (en)'),
+            ('ko', 'Korean (ko)'),
+            ('zh-cn', 'Chinese Simplified (zh-cn)'),
+            ('zh-tw', 'Chinese Traditional (zh-tw)'),
+            ('ja', 'Japanese (ja)'),
+            ('tr', 'Turkish (tr)'),
+            ('de', 'German (de)'),
+            ('fr', 'French (fr)'),
+            ('es', 'Spanish (es)'),
+        ]
+        self.source_lang_combo = QComboBox(self)
+        for code, label in _LANG_CODES:
+            self.source_lang_combo.addItem(label, code)
+        if not source_lang:
+            try:
+                from ui.app_settings_dialog import load_app_settings
+                source_lang = load_app_settings().get('langdetect_source_lang', 'en')
+            except Exception:
+                source_lang = 'en'
+        all_src_codes = [self.source_lang_combo.itemData(i) for i in range(self.source_lang_combo.count())]
+        src_idx = all_src_codes.index(source_lang) if source_lang in all_src_codes else 0
+        self.source_lang_combo.setCurrentIndex(src_idx)
 
         # MCP Endpoint Seçimi
         mcp_group = QGroupBox(tr("project_settings.group_mcp", "Yapay Zeka Kaynağı (MCP)"))
@@ -270,7 +295,8 @@ class ProjectSettingsDialog(QDialog):
         
         # Veritabanı Taşıma
         from core.database_manager import DatabaseManager
-        self.db_mgr = DatabaseManager(os.path.join(os.getcwd(), self.project_name))
+        project_path = get_project_dir(os.getcwd(), self.project_name)
+        self.db_mgr = DatabaseManager(project_path)
         self.db_migrate_btn = QPushButton(tr("project_settings.btn_db_migrate", "📦 Eski Projeyi Veritabanına Taşı (Hızlandır)"))
         self.db_migrate_btn.setStyleSheet(
             "background-color: #0D47A1; color: white; "
@@ -295,44 +321,69 @@ class ProjectSettingsDialog(QDialog):
         self.terminology_manage_btn.clicked.connect(self.open_terminology_dialog)
 
         # Deepl api key
-        deepl_group = QGroupBox(tr("project_settings.group_deepl", "DeepL API Key (Ücretli)"))
-        self.deepl_layout = QFormLayout(deepl_group)
+        self.deepl_group = QGroupBox(tr("project_settings.group_deepl", "DeepL API Key (Ücretli)"))
+        self.deepl_layout = QFormLayout(self.deepl_group)
         self.deepl_layout.setSpacing(2)
         self.deepl_layout.setContentsMargins(8, 6, 8, 6)
         self.deepl_layout.addRow(QLabel(tr("project_settings.label_deepl_api_key", "DeepL API Key:")))
         self.deepl_api_key_combo = QLineEdit()
         self.deepl_api_key_combo.setText(deepl_api)
         self.deepl_layout.addWidget(self.deepl_api_key_combo)
+
         # Yandex Api key
-        yandex_group = QGroupBox(tr("project_settings.group_yandex", "Yandex API Key (Ücretsiz)"))
-        self.yandex_layout = QFormLayout(yandex_group)
+        self.yandex_group = QGroupBox(tr("project_settings.group_yandex", "Yandex API Key (Ücretsiz)"))
+        self.yandex_layout = QFormLayout(self.yandex_group)
         self.yandex_layout.setSpacing(2)
         self.yandex_layout.setContentsMargins(8, 6, 8, 6)
         self.yandex_layout.addRow(QLabel(tr("project_settings.label_yandex_api_key", "Yandex API Key:")))
         self.yandex_api_key_combo = QLineEdit()
         self.yandex_api_key_combo.setText(yandex_api)
         self.yandex_layout.addWidget(self.yandex_api_key_combo)
+
+        self.mcp_group = mcp_group
+        self.features_group = features_group
+        self.advanced_group = advanced_group
+
+        self.key_layout_container = QWidget()
+        key_box = QHBoxLayout(self.key_layout_container)
+        key_box.setContentsMargins(0, 0, 0, 0)
+        key_box.setSpacing(5)
+        key_box.addWidget(self.api_key_combo, 1)
+        key_box.addWidget(self.edit_keys_btn)
+
+        self.promt_layout_container = QWidget()
+        promt_box = QHBoxLayout(self.promt_layout_container)
+        promt_box.setContentsMargins(0, 0, 0, 0)
+        promt_box.setSpacing(5)
+        promt_box.addWidget(self.promt_combo, 1)
+        promt_box.addWidget(self.edit_promt_btn)
+
         # Form'u doldur 
         self.form_layout.addRow(tr("project_settings.label_provider_select", "Çeviri Sağlayıcısı:"), self.provider_combo)
-        self.form_layout.addRow(deepl_group)
-        self.form_layout.addRow(yandex_group)
+        self.form_layout.addRow(tr("project_settings.label_source_lang", "Kaynak Dil:"), self.source_lang_combo)
+        self.form_layout.addRow(self.deepl_group)
+        self.form_layout.addRow(self.yandex_group)
         self.form_layout.addRow(tr("project_settings.label_project_name", "Proje Adı:"), self.projectNameLabel)
         self.form_layout.addRow(tr("project_settings.label_project_link", "Proje Linki:"), self.projectLinkInput)
         self.form_layout.addRow(tr("project_settings.label_max_pages", "Maks. Sayfa:"), self.maxPagesInput)
         self.form_layout.addRow(tr("project_settings.label_max_retries", "Maks. Deneme:"), self.maxRetriesInput)
-        self.form_layout.addRow(mcp_group)
-        self.form_layout.addRow(tr("project_settings.label_api_key_select", "API Key Seç:"), key_layout)
+        self.form_layout.addRow(self.mcp_group)
+        self.form_layout.addRow(tr("project_settings.label_api_key_select", "API Key Seç:"), self.key_layout_container)
         self.form_layout.addRow(tr("project_settings.label_current_api_key", "Mevcut API Key:"), self.api_key_input)
-        self.form_layout.addRow(tr("project_settings.label_prompt_select", "Prompt Seç:"), promt_layout)
+        self.form_layout.addRow(tr("project_settings.label_prompt_select", "Prompt Seç:"), self.promt_layout_container)
         self.form_layout.addRow(tr("project_settings.label_prompt_content", "Prompt İçeriği:"), self.startpromtinput)
         self.form_layout.addRow(self.prompt_gen_btn)
         self.form_layout.addRow(self.terminology_manage_btn)
-        self.form_layout.addRow(features_group)
-        self.form_layout.addRow(advanced_group)
+        self.form_layout.addRow(self.features_group)
+        self.form_layout.addRow(self.advanced_group)
 
-        
         self.refresh_combos()
         self.on_provider_changed()
+
+    def _set_row_visible_by_widget(self, widget, visible):
+        pos = self.form_layout.getWidgetPosition(widget)
+        if pos[0] >= 0:
+            self.form_layout.setRowVisible(pos[0], visible)
 
     def on_provider_changed(self):
         prov = self.provider_combo.currentData()
@@ -340,16 +391,18 @@ class ProjectSettingsDialog(QDialog):
         is_deepl = (prov == "deepl")
         is_yandex = (prov == "yandex")
         
-        self.form_layout.setRowVisible(1, is_deepl)  # Deepl API Key
-        self.form_layout.setRowVisible(2, is_yandex)  # Yandex
-        self.form_layout.setRowVisible(5, is_llm)  # MCP Group
-        self.form_layout.setRowVisible(6, is_llm)  # API Key
-        self.form_layout.setRowVisible(7, is_llm)  # Prompt Combo
-        self.form_layout.setRowVisible(8, is_llm)  # Prompt Content
-        self.form_layout.setRowVisible(9, is_llm)  # Prompt Generator Button
-        self.form_layout.setRowVisible(10, is_llm)  # Terminology Manage Button
-        self.form_layout.setRowVisible(11, is_llm)  # Features Group
-        self.form_layout.setRowVisible(12, is_llm)  # Advanced Group
+        self._set_row_visible_by_widget(self.deepl_group, is_deepl)
+        self._set_row_visible_by_widget(self.yandex_group, is_yandex)
+        self._set_row_visible_by_widget(self.mcp_group, is_llm)
+        self._set_row_visible_by_widget(self.key_layout_container, is_llm)
+        self._set_row_visible_by_widget(self.api_key_input, is_llm)
+        self._set_row_visible_by_widget(self.promt_layout_container, is_llm)
+        self._set_row_visible_by_widget(self.startpromtinput, is_llm)
+        self._set_row_visible_by_widget(self.prompt_gen_btn, is_llm)
+        self._set_row_visible_by_widget(self.terminology_manage_btn, is_llm)
+        self._set_row_visible_by_widget(self.features_group, is_llm)
+        self._set_row_visible_by_widget(self.advanced_group, is_llm)
+
         self.advanced_layout.setRowVisible(0, is_llm)  # Async Checkbox
         self.advanced_layout.setRowVisible(1, is_llm)  # Async Threads
         self.advanced_layout.setRowVisible(2, is_llm)  # Batch Checkbox
@@ -408,7 +461,8 @@ class ProjectSettingsDialog(QDialog):
 
     def open_terminology_dialog(self):
         try:
-            dlg = TerminologyDialog(os.path.join(os.getcwd(), self.project_name), self)
+            project_path = get_project_dir(os.getcwd(), self.project_name)
+            dlg = TerminologyDialog(project_path, self)
             dlg.exec()
         except Exception as e:
             QMessageBox.critical(self, tr("main_window.msg_structure_error_title", "Hata"), f"Terminology: {e}")
@@ -466,6 +520,7 @@ class ProjectSettingsDialog(QDialog):
             "max_batch_chars": self.batch_chars_spinbox.value(),
             "max_chapters_per_batch": self.batch_chapters_spinbox.value(),
             "translation_provider": self.provider_combo.currentData(),
+            "source_lang": self.source_lang_combo.currentData(),
         }
 
     def run_db_migration(self):

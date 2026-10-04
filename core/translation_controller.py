@@ -104,9 +104,15 @@ class TranslationController:
         async_threads = self.win.config.getint('Features', 'async_threads', fallback=3)
         batch_enabled = self.win.config.getboolean('Batch', 'batch_enabled', fallback=False)
         max_batch_chars = self.win.config.getint('Batch', 'max_batch_chars', fallback=33000)
-        max_chapters_per_batch = self.win.config.getint('Batch', 'max_chapters_per_batch', fallback=5)
+        source_lang = self.win.config.get('ProjectInfo', 'source_lang', fallback=None)
+        if not source_lang:
+            try:
+                from ui.app_settings_dialog import load_app_settings
+                source_lang = load_app_settings().get('langdetect_source_lang', 'en')
+            except Exception:
+                source_lang = 'en'
         self.thread = QThread()
-        self.worker = TranslationWorker(input_folder, output_folder, api_key, startpromt, model_version, file_limit=file_limit, max_retries=max_retries, project_path=project_path, cache_enabled=cache_enabled, terminology_enabled=terminology_enabled, endpoint_id=mcp_endpoint_id, async_enabled=async_enabled, async_threads=async_threads, batch_enabled=batch_enabled, max_batch_chars=max_batch_chars, max_chapters_per_batch=max_chapters_per_batch, translation_provider=translation_provider)
+        self.worker = TranslationWorker(input_folder, output_folder, api_key, startpromt, model_version, file_limit=file_limit, max_retries=max_retries, project_path=project_path, cache_enabled=cache_enabled, terminology_enabled=terminology_enabled, endpoint_id=mcp_endpoint_id, async_enabled=async_enabled, async_threads=async_threads, batch_enabled=batch_enabled, max_batch_chars=max_batch_chars, max_chapters_per_batch=max_chapters_per_batch, source_lang=source_lang, translation_provider=translation_provider)
         self.worker.shutdown_on_finish = self.win.shutdown_checkbox.isChecked()
         self._has_error = False
         self.worker.moveToThread(self.thread)

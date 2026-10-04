@@ -514,7 +514,7 @@ class MainWindow(QMainWindow):
     def new_project_clicked(self):
         dialog = NewProjectDialog(self)
         if dialog.exec():
-            project_name, project_link, max_pages, max_retries, api_key, startpromt, api_key_name, mcp_endpoint_id, translation_provider, deepl_api, yandex_api = dialog.get_data()
+            project_name, project_link, max_pages, max_retries, api_key, startpromt, api_key_name, mcp_endpoint_id, translation_provider, deepl_api, yandex_api, source_lang = dialog.get_data()
             if not project_name or not project_link:
                 QMessageBox.warning(self, tr("main_window.msg_project_missing_info_title", "Eksik Bilgi"), tr("main_window.msg_project_missing_info_body", "Proje adı ve linki boş bırakılamaz."))
                 return
@@ -531,7 +531,7 @@ class MainWindow(QMainWindow):
                     return
                 for folder in ["download", "translate", "completed", "config"]:
                     os.makedirs(os.path.join(base_path, folder), exist_ok=True)
-                self.config["ProjectInfo"] = {"link": project_link}
+                self.config["ProjectInfo"] = {"link": project_link, "source_lang": source_lang}
                 if max_pages is not None:
                     self.config["ProjectInfo"]["max_pages"] = str(max_pages)
                 self.config["ProjectInfo"]["max_retries"] = str(max_retries)
@@ -625,15 +625,16 @@ class MainWindow(QMainWindow):
                 max_batch_chars = self.config.getint("Batch", "max_batch_chars", fallback=33000)
                 max_chapters_per_batch = self.config.getint("Batch", "max_chapters_per_batch", fallback=3)
                 translation_provider = self.config.get("API", "translation_provider", fallback="llm")
+                source_lang = self.config.get("ProjectInfo", "source_lang", fallback=None)
             except Exception:
-                pass
+                source_lang = None
         self.max_retries = max_retries
         dialog = ProjectSettingsDialog(
             project_name, project_link, max_pages, api_key, startpromt, gemini_version,deepl_api,yandex_api, self,
             mcp_endpoint_id=mcp_endpoint_id, terminology_enabled=terminology_enabled, async_enabled=async_enabled,
             async_threads=async_threads, batch_enabled=batch_enabled,
             max_batch_chars=max_batch_chars, max_chapters_per_batch=max_chapters_per_batch,
-            translation_provider=translation_provider,
+            translation_provider=translation_provider, source_lang=source_lang
         )
         if dialog.exec():
             updated_data = dialog.get_data()
@@ -641,6 +642,8 @@ class MainWindow(QMainWindow):
                 if "ProjectInfo" not in self.config:
                     self.config["ProjectInfo"] = {}
                 self.config["ProjectInfo"]["link"] = updated_data["link"]
+                if updated_data.get("source_lang"):
+                    self.config["ProjectInfo"]["source_lang"] = updated_data["source_lang"]
                 if updated_data["max_pages"]:
                     self.config["ProjectInfo"]["max_pages"] = str(updated_data["max_pages"])
                 else:
