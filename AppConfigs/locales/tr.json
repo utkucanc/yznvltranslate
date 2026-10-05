@@ -4,7 +4,8 @@
   },
   "ml_terminology_extractor": {
     "promt_part1": "Aşağıda sana çevrilmemiş bir web romanının/hikayesinin bağlamını veriyorum.\nLütfen bu metni analiz et ve metinde geçen EN ÖNEMLİ özel karakter isimlerini, yer isimlerini, unvanları ve özel yetenek/teknik isimlerini tespit et.\nBu terimlerin hikaye bağlamına en uygun Türkçe çevirilerini belirle.\nLÜTFEN ŞUNU YAP:\n1. Yalnızca hikayenin temel taşlarını oluşturan net özel isimleri ve terimleri (isim, yer, teknik vb.) dahil et.\n2. Basit kelimeleri listeye EKLEME.\n3. Terimleri SADECE 'Kaynak_Dil_Terimi → Türkçe_Çevirisi' formatında listele. Başka hiçbir açıklama yapma, madde imi kullanma.\nKAYNAK METİN:",
-    "promt_part2": "\nYANIT FORMATI:\nsource_term → target_translation"
+    "promt_part2": "\nYANIT FORMATI:\nsource_term → target_translation",
+    "retry_error": "Max deneyeme ulaşıltı. İşlem Durduruluyor."
   },
   "main_window": {
     "title": "Novel Çeviri Aracı V3.1.2",

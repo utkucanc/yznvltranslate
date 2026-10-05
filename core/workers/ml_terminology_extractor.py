@@ -5,6 +5,8 @@ import json
 import argparse
 import logging
 import threading
+import time
+from core.workers.rate_limiter import get_limiter
 from collections import defaultdict, Counter
 from core.localization import tr
 _terminology_save_lock = threading.Lock()
@@ -59,7 +61,26 @@ class MLTerminologyExtractor:
             logger.info(tr_log('core.workers.ml_terminology_extractor', 68, f'LLM Provider başarıyla yüklendi: {self.llm_provider.ep_name}'))
         except Exception as e:
             logger.error(tr_log('core.workers.ml_terminology_extractor', 70, f'LLM Provider başlatılamadı: {e}'))
-
+    
+    def _generate_with_retry(self, prompt: str, max_retries: int = 3):
+        tokens = get_local_token_count_approx(prompt)
+        limiter = get_limiter()
+        for attempt in range(max_retries + 1):
+            limiter.acquire(tokens)
+            try:
+                return self.llm_provider.generate(prompt)
+            except Exception as e:
+                msg = str(e).lower()
+                is_rate = any(k in msg for k in ('429', 'rate', 'quota', 'resource_exhausted', 'tpm', 'rpm'))
+                if not is_rate:
+                    raise
+                if attempt == max_retries:
+                    logger.error(tr_log('ml_terminology_extractor.retry_error',"Max deneyeme ulaşıltı. İşlem Durduruluyor."))
+                    raise
+                wait = min(20 * (2 ** attempt), 120)  # 20, 40, 80, 120...
+                logger.warning(f'Rate limit hatası, {wait} sn beklenip tekrar denenecek ({attempt + 1}/{max_retries})')
+                time.sleep(wait)
+                
     def _parse_llm_response(self, response: str) -> dict[str, str]:
         extracted = {}
         pattern = re.compile('^(.+?)\\s*(?:→|->|=)\\s*(.+?)$')
@@ -174,7 +195,7 @@ class MLTerminologyExtractor:
         logger.info(tr_log('core.workers.ml_terminology_extractor', 217, 'Yapay zekaya terminoloji çıkarma isteği gönderiliyor. Bu işlem model bağlam penceresine göre uzun (1-5 dakika) sürebilir...'))
         prompt = _get_extract_prompt().format(source_text=source_text_with_context)
         try:
-            response = self.llm_provider.generate(prompt)
+            response = self._generate_with_retry(prompt)
             extracted_dict = self._parse_llm_response(response)
             final_terms = []
             for (src, tgt) in extracted_dict.items():

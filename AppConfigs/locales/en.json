@@ -4,7 +4,8 @@
   },
   "ml_terminology_extractor": {
     "promt_part1": "Below is the context of an untranslated web novel/story.\nPlease analyze this text and identify the MOST IMPORTANT proper nouns, place names, titles, and names of special abilities/techniques that appear in the text.\nDetermine the Turkish translations for these terms that best fit the context of the story.\n PLEASE DO THE FOLLOWING:\n1. Include only clear proper nouns and terms (names, places, technical terms, etc.) that form the cornerstones of the story.\n2. DO NOT include simple words in the list.\n3. List the terms ONLY in the format ‘Source_Language_Term → English_Translation’. Do not provide any other explanations or use bullet points.\nSOURCE TEXT:",
-    "promt_part2": "\nANSWER FORMAT:\nsource_term → target_translation"
+    "promt_part2": "\nANSWER FORMAT:\nsource_term → target_translation",
+    "retry_error": "Max retries reached. Progress will stop."
   },
   "main_window": {
     "title": "Novel Translation Tool V3.1.2",
