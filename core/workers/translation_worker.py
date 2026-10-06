@@ -358,10 +358,55 @@ class TranslationWorker(QObject):
             return self.quality_checker.is_translation_failed(original, translated, file_name)
         return self._has_excessive_cjk(translated)
 
+    # İnternet kopması / asılma durumunda API çağrısının bekleyeceği maksimum süre (saniye).
+    API_CALL_TIMEOUT_SECONDS = 600  # 10 dakika
+
+    def _call_api_with_timeout(self, full_prompt: str):
+        """
+        provider.generate() çağrısını ayrı bir daemon thread'de çalıştırır ve
+        API_CALL_TIMEOUT_SECONDS süre içinde yanıt gelmezse TimeoutError fırlatır.
+
+        Döndürür: API yanıt metni
+        Fırlatır: TimeoutError (timeout), Exception (API hatası)
+        """
+        import threading
+        result_box = [None]
+        exc_box    = [None]
+
+        def _worker():
+            try:
+                result_box[0] = self.provider.generate(full_prompt)
+            except Exception as exc:
+                exc_box[0] = exc
+
+        t = threading.Thread(target=_worker, daemon=True)
+        t.start()
+
+        elapsed = 0.0
+        interval = 0.5
+        while t.is_alive():
+            if not self.is_running:
+                return None  # kullanıcı durdurdu
+            time.sleep(interval)
+            elapsed += interval
+            if elapsed >= self.API_CALL_TIMEOUT_SECONDS:
+                raise TimeoutError(
+                    f"API yaniti {self.API_CALL_TIMEOUT_SECONDS // 60} dakika icinde gelmedi "
+                    f"(internet kesintisi olabilir). Istek yeniden denenecek."
+                )
+
+        if exc_box[0] is not None:
+            raise exc_box[0]
+        return result_box[0]
+
     def _call_api_with_retry(self, full_prompt: str) -> str | None:
         """
         Verilen prompt'u API'ye gönderir, retry + duraklatma/durdurma mantığıyla.
         Başarılı yanıtı string olarak döndürür; hata durumunda None döner.
+
+        Timeout davranışı:
+          - API_CALL_TIMEOUT_SECONDS (600 s = 10 dk) içinde yanıt gelmezse
+            istek tekrarlanır (max_retries sınırı içinde).
         """
         retry_count = 0
         while retry_count < self.max_retries:
@@ -372,33 +417,58 @@ class TranslationWorker(QObject):
             with self.data_lock:
                 my_ep_idx = self._current_endpoint_idx
             try:
-                result = self.provider.generate(full_prompt)
+                result = self._call_api_with_timeout(full_prompt)
+                if result is None and not self.is_running:
+                    return None  # kullanıcı durdurdu
                 return result
+            except TimeoutError as te:
+                retry_count += 1
+                app_logger.warning(tr_log(
+                    'core.workers.translation_worker', 375,
+                    f'API timeout (deneme {retry_count}/{self.max_retries}): {te}'
+                ))
+                if retry_count >= self.max_retries:
+                    app_logger.error(tr_log(
+                        'core.workers.translation_worker', 378,
+                        f'API {self.max_retries} timeout sonrasi yanitlamadi. Dosya atlaniyor.'
+                    ))
+                    return None
+                wait_time = min(30 * retry_count, 120)
+                app_logger.info(tr_log(
+                    'core.workers.translation_worker', 382,
+                    f'Timeout sonrasi {wait_time}s bekleniyor, ardindan yeniden denenecek...'
+                ))
+                sleep_start = time.time()
+                while time.time() - sleep_start < wait_time:
+                    if not self.is_running:
+                        return None
+                    time.sleep(0.5)
             except Exception as e:
                 last_error = str(e)
                 if any((code in last_error for code in ['500', '503'])) and retry_count < self.max_retries - 1:
                     retry_count += 1
                     wait_time = min(2 ** retry_count, 60)
-                    self.global_error = f'Sunucu hatası. {wait_time}s sonra tekrar deneniyor. ({retry_count}/{self.max_retries})'
+                    self.global_error = f'Sunucu hatasi. {wait_time}s sonra tekrar deneniyor. ({retry_count}/{self.max_retries})'
                     sleep_start = time.time()
                     while time.time() - sleep_start < wait_time:
                         if not self.is_running:
                             return None
                         time.sleep(0.5)
                 elif '429' in last_error or 'ResourceExhausted' in last_error:
-                    app_logger.warning(tr_log('core.workers.translation_worker', 520, f"429 / ResourceExhausted (EP idx={my_ep_idx}) — sonraki endpoint'e geçiliyor..."))
+                    app_logger.warning(tr_log('core.workers.translation_worker', 520, f"429 / ResourceExhausted (EP idx={my_ep_idx}) — sonraki endpoint'e geciliyor..."))
                     if self._try_next_endpoint(my_ep_idx):
                         retry_count = 0
                         continue
                     else:
                         with self.data_lock:
-                            self.global_error = "Tüm API endpoint'leri tükendi. Çeviri durduruluyor."
+                            self.global_error = "Tum API endpoint'leri tukendi. Ceviri durduruluyor."
                             self.is_running = False
                         return None
                 else:
-                    app_logger.warning(tr_log('core.workers.translation_worker', 530, f'API çağrısı başarısız: {last_error}'))
+                    app_logger.warning(tr_log('core.workers.translation_worker', 530, f'API cagrisi basarisiz: {last_error}'))
                     return None
         return None
+
 
     def _translate_paragraphs(self, content: str) -> str | None:
         """

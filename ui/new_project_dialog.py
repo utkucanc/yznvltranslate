@@ -471,7 +471,8 @@ class NewProjectDialog(QDialog):
         """
         Döndürür:
             (project_name, project_link, max_pages, max_retries,
-             api_key, startpromt, api_key_name, mcp_endpoint_id, translation_provider)
+             api_key, startpromt, api_key_name, mcp_endpoint_id, translation_provider,
+             deepl_api, yandex_api, source_lang, batch_mode, quality_check)
         """
         max_pages_text = self.maxPagesInput.text()
         max_pages = int(max_pages_text) if max_pages_text.isdigit() else None
@@ -481,4 +482,6 @@ class NewProjectDialog(QDialog):
         mcp_endpoint_id = None
         if self.use_custom_endpoint.isChecked():
             mcp_endpoint_id = self.endpoint_combo.currentData()
-        return (self.projectNameInput.text(), self.projectLinkInput.text(), max_pages, self.maxRetriesInput.value(), self.api_key_input.text(), self.startpromtinput.toPlainText(), api_key_name, mcp_endpoint_id, self.provider_combo.currentData(), self.deepl_api_key_input.text(), self.yandex_api_key_input.text(), self.source_lang_combo.currentData())
+        batch_mode = self._toggle_batch_mode.isChecked() if hasattr(self, '_toggle_batch_mode') else False
+        quality_check = self._toggle_quality_check.isChecked() if hasattr(self, '_toggle_quality_check') else True
+        return (self.projectNameInput.text(), self.projectLinkInput.text(), max_pages, self.maxRetriesInput.value(), self.api_key_input.text(), self.startpromtinput.toPlainText(), api_key_name, mcp_endpoint_id, self.provider_combo.currentData(), self.deepl_api_key_input.text(), self.yandex_api_key_input.text(), self.source_lang_combo.currentData(), batch_mode, quality_check)

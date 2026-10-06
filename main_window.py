@@ -516,7 +516,7 @@ class MainWindow(QMainWindow):
     def new_project_clicked(self):
         dialog = NewProjectDialog(self)
         if dialog.exec():
-            project_name, project_link, max_pages, max_retries, api_key, startpromt, api_key_name, mcp_endpoint_id, translation_provider, deepl_api, yandex_api, source_lang = dialog.get_data()
+            project_name, project_link, max_pages, max_retries, api_key, startpromt, api_key_name, mcp_endpoint_id, translation_provider, deepl_api, yandex_api, source_lang, batch_mode, quality_check = dialog.get_data()
             if not project_name or not project_link:
                 QMessageBox.warning(self, tr("main_window.msg_project_missing_info_title", "Eksik Bilgi"), tr("main_window.msg_project_missing_info_body", "Proje adı ve linki boş bırakılamaz."))
                 return
@@ -539,6 +539,10 @@ class MainWindow(QMainWindow):
                 self.config["ProjectInfo"]["max_retries"] = str(max_retries)
                 self.config["API"] = {"gemini_api_key": api_key, "api_key_name": api_key_name, "translation_provider": translation_provider,"deepl_api": deepl_api,"yandex_api": yandex_api}
                 self.config["Startpromt"] = {"startpromt": startpromt}
+                if not self.config.has_section("Settings"):
+                    self.config.add_section("Settings")
+                self.config["Settings"]["batch_mode"] = str(batch_mode).lower()
+                self.config["Settings"]["quality_check"] = str(quality_check).lower()
                 if mcp_endpoint_id:
                     self.config["MCP"] = {"endpoint_id": mcp_endpoint_id}
                 elif "MCP" in self.config:

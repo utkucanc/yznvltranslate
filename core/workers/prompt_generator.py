@@ -12,6 +12,7 @@ PromptGeneratorDialog:  PyQt6 diyalog penceresi
 from core.localization import tr_log
 import os
 import random
+import configparser
 from PyQt6.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QTextEdit, QLabel, QPushButton, QGroupBox, QRadioButton, QSpinBox, QMessageBox, QProgressBar, QTabWidget, QWidget, QFormLayout, QApplication, QSizePolicy
 from PyQt6.QtGui import QFont
 from PyQt6.QtCore import Qt, QThread, pyqtSignal, QObject
@@ -404,6 +405,21 @@ class PromptGeneratorDialog(QDialog):
             QMessageBox.information(self, tr('prompt_generator_dialog.msg_save_success_title', 'Başarılı'), tr('prompt_generator_dialog.msg_save_success_body', '3 prompt kaydedildi.\nSeçilen: Prompt {key} ({label})').format(key=selected_key, label=label_map[selected_key]))
         except Exception as e:
             QMessageBox.warning(self, tr('prompt_generator_dialog.msg_save_warn_title', 'Kayıt Uyarı'), tr('prompt_generator_dialog.msg_save_warn_body', 'Prompt kullanılacak ancak dosyaya kaydedilemedi: {error}').format(error=e))
+        # Projenin config.ini'sine de yaz
+        try:
+            config_path = os.path.join(self.project_path, 'config', 'config.ini')
+            cfg = configparser.ConfigParser()
+            if os.path.exists(config_path):
+                with open(config_path, 'r', encoding='utf-8') as f:
+                    cfg.read_file(f)
+            if not cfg.has_section('Startpromt'):
+                cfg.add_section('Startpromt')
+            cfg['Startpromt']['startpromt'] = prompt_text
+            with open(config_path, 'w', encoding='utf-8') as f:
+                cfg.write(f)
+            app_logger.info(tr_log('core.workers.prompt_generator', 408, f'Prompt proje config.ini\'ye kaydedildi: {config_path}'))
+        except Exception as e:
+            app_logger.warning(tr_log('core.workers.prompt_generator', 410, f'Prompt config.ini\'ye kaydedilemedi: {e}'))
         self.accept()
 
     def get_selected_prompt(self) -> str:

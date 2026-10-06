@@ -220,3 +220,7 @@ AppConfigs/APIKeys/MCP/default_gemini.txt
 tests/__init__.py
 /tests
 pytest.ini
+/AppConfigs/Promts
+/AppConfigs/APIKeys/MCP
+/AppConfigs/APIKeys
+AppConfigs/APIKeys/MCP/default_gemini.txt
